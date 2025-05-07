@@ -1,0 +1,18 @@
+package service;
+
+import java.time.Duration;
+
+import io.smallrye.jwt.build.Jwt;
+
+public class JWTService {
+
+	public static String generateToken(String userName, String role) {
+		return Jwt
+			.issuer("https://beatconnect.com") // emisor
+			.subject(userName) // usuario
+			.groups(role) // roles (ej: user, admin)
+			.expiresIn(Duration.ofHours(1)) // expiración
+			.sign(); // firma con la clave privada
+	}
+
+}
