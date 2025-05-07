@@ -26,10 +26,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
 				.entity(new ErrorResponse("Unauthorized", 401))
 				.build();
 		} else {
-			return Response
-				.status(Response.Status.INTERNAL_SERVER_ERROR)
-				.entity(new Stack(e.getStackTrace()))
-				.build();
+			throw new RuntimeException(e);
 		}
 	}
 }

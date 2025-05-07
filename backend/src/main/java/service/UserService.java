@@ -4,6 +4,7 @@ import exception.CustomNotFoundException;
 import io.quarkus.security.UnauthorizedException;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.mutiny.Uni;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 import model.User;
 import model.dto.AuthResponse;
@@ -21,13 +22,10 @@ public class UserService {
 			.failWith(new CustomNotFoundException("User not found: " + name));
 	}
 
-	public static Uni<User> insertUser(User user) {
-		return User.findByName(user.name)
-			.onItem().transformToUni(u -> {
-				if (u != null) {
-					
-				}
-			})
+	@Transactional
+	public static Uni<Response> insertUser(User user) {
+		return User.persist(user)
+			.onItem().transform(ignore -> Response.status(201).build());
 	}
 
 	public static Uni<Response> login(Login login) {

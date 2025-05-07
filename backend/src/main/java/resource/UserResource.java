@@ -4,6 +4,7 @@ import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -39,6 +40,12 @@ public class UserResource {
 	@GET
 	public Uni<User> getUserName() {
 		return UserService.getUserByToken(securityIdentity);
+	}
+
+	@POST
+	@Path("/register")
+	public Uni<Response> register(@Valid User user) {
+		return UserService.insertUser(user);
 	}
 
 }
