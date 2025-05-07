@@ -1,7 +1,5 @@
 package model;
 
-import org.hibernate.mapping.Join;
-
 import io.quarkus.hibernate.reactive.panache.PanacheEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
