@@ -1,0 +1,186 @@
+@import url('https://fonts.googleapis.com/css2?family=Parisienne&display=swap'); // Fuente para el título
+
+$primary-color: #4CAF50; // Verde principal
+$hover-color: #3E8E41; // Color para hover
+$text-color: #424242; // Texto principal
+
+#root{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; // Altura completa de la ventana
+}
+
+body {
+  font-family: 'Roboto', sans-serif; // Fuente moderna para el cuerpo
+  margin: 0;
+  height: 100vh;
+  overflow: hidden; // Evita desplazamiento innecesario
+  position: relative;
+
+  // Pseudo-elemento para el fondo desenfocado
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../login/compents/utiles/animated_rain.gif'); // Ruta a tu imagen local
+    background-size: cover; // Cubrir la pantalla completamente
+    background-position: center; // Centramos la imagen
+    filter: blur(5px); // Aplicamos el desenfoque solo al fondo
+    z-index: -1; // Coloca el fondo detrás del contenido
+  }
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  z-index: 1; // Asegura que el contenido esté encima del fondo desenfocado
+}
+
+.title {
+  font-family: 'Parisienne', cursive; // Fuente elegante
+  text-align: center;
+  color: black !important; // Color del texto
+  font-size: 60px;
+  margin-bottom: 20px;
+  margin-top: 0px;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5); // Resalta el texto
+  opacity: 0;
+  transform: translateY(-50px); // Comienza desplazado hacia arriba
+  animation: slideDown 1s ease forwards; // Animación al cargar  
+}
+
+@keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .signup-card {
+    background-color: rgba(255, 255, 255, 0.8); // Fondo translúcido
+    padding: 25px; // Incrementa el padding interno
+    border-radius: 10px; // Bordes redondeados
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); // Sombra suave
+    text-align: center;
+    width: 400px; // Ajusta el ancho del formulario
+    max-width: 90%; // Asegura que se ajuste en pantallas pequeñas
+    margin: 0 auto; // Centra el formulario en la pantalla
+    transform: translateY(-50px); // Comienza desplazado hacia arriba
+    animation: slideDown 1s ease forwards; // Animación al cargar
+  
+    h1 {
+      color: $primary-color;
+      font-size: 26px; // Ajusta el tamaño del título
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+  
+    .description {
+      color: $text-color;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+  
+    .input-field {
+      margin-bottom: 12px; // Ajusta el espaciado entre campos
+    }
+  
+    button {
+      background-color: $primary-color;
+      color: white;
+      border: none;
+      padding: 10px; // Ajusta el tamaño del botón
+      border-radius: 5px;
+      font-size: 14px; // Ajusta la tipografía
+      cursor: pointer;
+  
+      &:hover {
+        background-color: $hover-color; // Cambia el color en hover
+      }
+    }
+  
+    .footer {
+      margin-top: 15px; // Ajusta el espaciado en la parte inferior
+      font-size: 12px; // Ajusta el tamaño del texto
+  
+      a {
+        color: $primary-color;
+        text-decoration: none;
+  
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+  
+
+.login-card {
+  background-color: rgba(255, 255, 255, 0.8); // Fondo translúcido
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2); // Sombra suave para profundidad
+  text-align: center;
+  width: 350px;
+  transform: translateY(-50px); // Comienza desplazado hacia arriba
+  animation: slideDown 1s ease forwards; // Animación al cargar  
+
+  h1 {
+    color: $primary-color;
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+
+  .description {
+    color: $text-color;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .input-field {
+    margin-bottom: 15px;
+  }
+
+  button {
+    background-color: $primary-color;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    
+
+    &:hover {
+      background-color: $hover-color;
+      transform: scale(1.05); // Color oscurecido en hover
+    }
+  }
+
+  .footer {
+    margin-top: 20px;
+    font-size: 14px;
+
+    a {
+      color: $primary-color;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
