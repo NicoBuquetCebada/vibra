@@ -8,7 +8,7 @@ public class JWTService {
 
 	public static String generateToken(String userName, String role) {
 		return Jwt
-			.issuer("https://beatconnect.com") // emisor
+			.issuer("https://vibra.com") // emisor
 			.subject(userName) // usuario
 			.groups(role) // roles (ej: user, admin)
 			.expiresIn(Duration.ofHours(1)) // expiración

@@ -3,7 +3,7 @@ package resource;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import model.FileUploadForm;
+import model.dto.FileUploadForm;
 
 import java.nio.file.*;
 import java.nio.file.Path;

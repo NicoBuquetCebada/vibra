@@ -1,22 +1,32 @@
+--INSERTS--
+
 -- Users
 INSERT INTO users (name, mail, first_name, surname, pass, profile_img, role) VALUES
 ('johndoe', 'john@example.com', 'john', 'doe', 'pass1', 'john.jpg', 'user'),
 ('janedoe', 'jane@example.com', 'jane', 'doe',  'pass2', 'jane.jpg', 'user'),
 ('bobsmith', 'bob@example.com', 'bob', 'smith',  'pass3', 'bob.jpg', 'admin');
 
--- Follows
-INSERT INTO follows (id, created_at, user1, user2) VALUES
-(1, '2023-01-01 10:00:00', 'johndoe', 'janedoe'),
-(2, '2023-01-02 11:00:00', 'janedoe', 'bobsmith'),
-(3, '2023-01-03 12:00:00', 'bobsmith', 'johndoe');
-ALTER SEQUENCE follows_seq RESTART WITH 4;
-
--- Albums
+ -- Albums
 INSERT INTO albums (id, name, cover_img, date, user_name) VALUES
 (1, 'Summer Vibes', 'summer.jpg', '2023-06-01', 'johndoe'),
 (2, 'Winter Nights', 'winter.jpg', '2023-12-01', 'janedoe'),
 (3, 'Spring Melodies', 'spring.jpg', '2023-03-01', 'bobsmith');
 ALTER SEQUENCE albums_seq RESTART WITH 4;
+
+-- Elimina la constraint existente
+ALTER TABLE albums DROP CONSTRAINT fklcrj8o8xk0s856f6wl9o7vuib;
+
+-- Vuelve a crear la constraint con ON DELETE CASCADE
+ALTER TABLE albums 
+ADD CONSTRAINT fk_albums_user 
+FOREIGN KEY (user_name) REFERENCES users(name) ON DELETE CASCADE;
+
+/* -- Follows
+INSERT INTO follows (id, created_at, user1, user2) VALUES
+(1, '2023-01-01 10:00:00', 'johndoe', 'janedoe'),
+(2, '2023-01-02 11:00:00', 'janedoe', 'bobsmith'),
+(3, '2023-01-03 12:00:00', 'bobsmith', 'johndoe');
+ALTER SEQUENCE follows_seq RESTART WITH 4;
 
 -- Songs
 INSERT INTO songs (id, name, cover_img, date, audio, user_name, album_id) VALUES
@@ -59,3 +69,4 @@ INSERT INTO comments (id, content, likes, user_name, post_id, comment_id) VALUES
 (2, 'Love this album!', 3, 'bobsmith', 2, NULL),
 (3, 'Amazing work!', 7, 'johndoe', 3, NULL);
 ALTER SEQUENCE comments_seq RESTART WITH 4;
+ */

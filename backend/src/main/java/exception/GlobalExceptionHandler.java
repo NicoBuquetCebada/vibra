@@ -25,6 +25,11 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
 				.status(Response.Status.UNAUTHORIZED)
 				.entity(new ErrorResponse("Unauthorized", 401))
 				.build();
+		} else if (e instanceof CustomAlreadyExistsException) {
+			return Response
+				.status(Response.Status.BAD_REQUEST)
+				.entity(new ErrorResponse(e.getMessage(), 400))
+				.build();
 		} else {
 			throw new RuntimeException(e);
 		}
