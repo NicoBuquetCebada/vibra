@@ -1,6 +1,6 @@
 package model;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import io.quarkus.hibernate.reactive.panache.PanacheEntity;
 import jakarta.persistence.Column;
@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
 public class Post extends PanacheEntity {
 
 	@Column(name = "created_at", nullable = false)
-	public Date createdAt;
+	public LocalDateTime createdAt;
 
 	@ManyToOne
 	@JoinColumn(name = "user_name", nullable = false)
@@ -30,7 +30,7 @@ public class Post extends PanacheEntity {
 
 	public Post() {}
 
-	public Post(Date createdAt, User userName, Album albumId, Song songId) {
+	public Post(LocalDateTime createdAt, User userName, Album albumId, Song songId) {
 		this.createdAt = createdAt;
 		this.userName = userName;
 		this.albumId = albumId;
