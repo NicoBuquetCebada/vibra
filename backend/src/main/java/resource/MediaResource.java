@@ -3,7 +3,7 @@ package resource;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import model.dto.FileUploadForm;
+import model.dto.FileUploadFormDTO;
 
 import java.nio.file.*;
 import java.nio.file.Path;
@@ -18,7 +18,7 @@ public class MediaResource {
 
 	@POST
 	@jakarta.ws.rs.Path("/upload")
-	public Response uploadFile(@BeanParam FileUploadForm form) {
+	public Response uploadFile(@BeanParam FileUploadFormDTO form) {
 		try {
 			String fileName = Paths.get(form.file.fileName()).getFileName().toString();
 			Path uploadedPath = form.file.uploadedFile();

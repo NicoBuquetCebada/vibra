@@ -1,13 +1,10 @@
 package model;
 
 import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
-import io.smallrye.mutiny.Uni;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import model.dto.Register;
-import service.UserService;
 
 @Entity
 @Table(name = "users")
@@ -45,32 +42,5 @@ public class User extends PanacheEntityBase {
 		this.profileImg = profileImg;
 		this.role = role;
 	}
-
-	public User(Register register) {
-		this.name = register.name;
-		this.firstName = register.firstName;
-		this.surname = register.surname;
-		this.mail = register.mail;
-		this.pass = UserService.hashPass(register.pass);
-		this.profileImg = register.profileImg;
-		this.role = register.role;
-	}
 	
-	// Specific query methods
-	public static Uni<User> findByName(String name) {
-		return find("name", name).firstResult();
-	}
-
-	public static Uni<User> findByMail(String mail) {
-		return find("mail", mail).firstResult();
-	}
-
-	public static Uni<User> findByNameOrMail(String name, String mail) {
-		return find("name = ?1 OR mail = ?2", name, mail).firstResult();
-	}
-
-	public static Uni<Long> deleteByName(String name) {
-		return delete("name", name);
-	}
-
 }

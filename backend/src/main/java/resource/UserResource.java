@@ -17,8 +17,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import model.User;
-import model.dto.Login;
-import model.dto.Register;
+import model.dto.LoginDTO;
+import model.dto.RegisterDTO;
 import service.UserService;
 
 @Path("/users")
@@ -29,43 +29,47 @@ public class UserResource {
 	@Inject
 	SecurityIdentity securityIdentity;
 
+	@Inject
+	UserService us;
+
+
 	@GET
 	public Uni<List<User>> getAllUsers() {
-		return UserService.getAllUsers();
+		return us.getAllUsers();
 	}
 
 	@GET
 	@Path("/{username}")
 	public Uni<User> getUserByName(@PathParam("username") String name) {
-		return UserService.getUserByName(name);
+		return us.getUserByName(name);
 	}
 
 	@POST
-	public Uni<Response> login(Login login) {
-		return UserService.login(login);
+	public Uni<Response> login(LoginDTO login) {
+		return us.login(login);
 	}
 
 	@GET
 	@Path("/token")
 	public Uni<User> getUserName() {
-		return UserService.getUserByToken(securityIdentity);
+		return us.getUserByToken(securityIdentity);
 	}
 
 	@POST
 	@Path("/register")
-	public Uni<Response> register(@Valid Register register) {
-		return UserService.insertUser(register);
+	public Uni<Response> register(@Valid RegisterDTO register) {
+		return us.insertUser(register);
 	}
 
 	@DELETE
 	@Path("/{name}")
 	public Uni<Response> deleteUserByName(@PathParam("name") String name) {
-		return UserService.deleteUserByName(name);
+		return us.deleteUserByName(name);
 	}
 
 	@PUT
-	public Uni<Response> updateUser(Register register) {
-		return UserService.updateUser(register);
+	public Uni<Response> updateUser(RegisterDTO register) {
+		return us.updateUser(register);
 	}
 	
 

@@ -3,6 +3,7 @@ package resource;
 import java.util.List;
 
 import io.smallrye.mutiny.Uni;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -19,15 +20,18 @@ import service.SongService;
 @Produces(MediaType.APPLICATION_JSON_PATCH_JSON)
 @Consumes(MediaType.APPLICATION_JSON_PATCH_JSON)
 public class SongResource {
+
+	@Inject SongService ss;
+
 	@GET
 	public Uni<List<Song>> getAllSongs() {
-		return SongService.getAllSongs();
+		return ss.getAllSongs();
 	}
 
 	@GET
 	@Path("/{id}")
 	public Uni<Song> getSongById(@PathParam("id") Long id) {
-		return SongService.getSongById(id);
+		return ss.getSongById(id);
 	}
 
 	// GET /albums/search?searched=buqueda&limit=10
@@ -37,11 +41,11 @@ public class SongResource {
 		@QueryParam("searched") String searchText,
 		@QueryParam("limit") Integer limit
 	) {
-		return SongService.searchSongsByName(searchText, limit);
+		return ss.searchSongsByName(searchText, limit);
 	}
 
 	@POST
 	public Uni<Response> addSong(Song album) {
-		return SongService.insertSong(album);
+		return ss.insertSong(album);
 	}
 }

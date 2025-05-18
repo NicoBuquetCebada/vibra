@@ -1,9 +1,9 @@
 package model.dto;
 
-public class AuthResponse {
+public class AuthResponseDTO {
 	private String token;
 
-	public AuthResponse(String token) {
+	public AuthResponseDTO(String token) {
 		this.token = token;
 	}
 

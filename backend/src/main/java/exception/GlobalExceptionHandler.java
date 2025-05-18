@@ -1,6 +1,9 @@
 package exception;
 
+import org.jose4j.jwt.consumer.InvalidJwtException;
+
 import io.quarkus.security.UnauthorizedException;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
@@ -29,6 +32,16 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
 			return Response
 				.status(Response.Status.BAD_REQUEST)
 				.entity(new ErrorResponse(e.getMessage(), 400))
+				.build();
+		} else if (e instanceof WebApplicationException) {
+			return Response
+				.status(Response.Status.BAD_REQUEST)
+				.entity(new ErrorResponse("Invalid Json", 400))
+				.build();
+		} else if (e instanceof InvalidJwtException) {
+			return Response
+				.status(Response.Status.UNAUTHORIZED)
+				.entity(new ErrorResponse("JWT: The authentication token has expired", 401))
 				.build();
 		} else {
 			throw new RuntimeException(e);
