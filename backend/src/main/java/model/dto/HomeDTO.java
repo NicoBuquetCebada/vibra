@@ -25,7 +25,6 @@ public class HomeDTO {
 		this.coverImg = coverImg;
 	}
 
-
 	public LocalDateTime getCreatedAt() {
 		return createdAt;
 	}
