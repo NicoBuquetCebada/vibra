@@ -2,9 +2,6 @@ package model.dto;
 
 import java.time.LocalDateTime;
 
-import model.Post;
-import model.Repost;
-
 public class HomeDTO {
 
 	public String type; // Post or repost
