@@ -3,6 +3,7 @@ import '../../styles/global.scss';
 import { TextField, Button } from '@mui/material';
 import { AuthContext } from '../../context/auth-context'; // Importamos el contexto
 import { useNavigate } from 'react-router-dom'; // Para redirigir al home
+import Logo from './utiles/LogoConOndasSinFondo.png'
 
 const Login: React.FC = () => {
   const authContext = useContext(AuthContext);
@@ -36,7 +37,7 @@ const Login: React.FC = () => {
   return (
     <div className="container">
       <div className="login-card">
-        <h1 className="title">BeatConnect</h1>
+        <img src={Logo} alt="Logo Vibra" className="logo-img" />
         <h1>Iniciar Sesión</h1>
         <p className="description">¡Conéctate a tu red social musical favorita!</p>
         <form onSubmit={handleSubmit}>

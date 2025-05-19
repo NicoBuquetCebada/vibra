@@ -5,18 +5,19 @@ import './styles/global.scss';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import AppRouter from './routes/appRouter';
 import {AuthProvider}  from './context/auth-context';
+import { PlayerProvider } from './context/player-context';
 
 // Definimos el tema de MUI
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#4CAF50', // Color primario (verde amigable)
+      main: '#307cbe', // Color primario (azul)
     },
     secondary: {
-      main: '#81C784', // Color secundario (verde claro)
+      main: '#145a96', // Color secundario (azul oscuro)
     },
     background: {
-      default: '#E8F5E9', // Fondo (verde pálido)
+      default: '#000000', // Fondo principal
     },
     text: {
       primary: '#424242', // Texto principal
@@ -28,9 +29,11 @@ const theme = createTheme({
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <AuthProvider>
+      <PlayerProvider>
     <ThemeProvider theme={theme}>
       <AppRouter />
     </ThemeProvider>
+    </PlayerProvider>
     </AuthProvider>
   </React.StrictMode>
 );

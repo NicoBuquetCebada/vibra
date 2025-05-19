@@ -2,7 +2,7 @@ package model.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public class Login {
+public class LoginDTO {
 	
 	@NotBlank
 	private String identifier;
@@ -10,7 +10,7 @@ public class Login {
 	@NotBlank
 	private String pass;
 
-	public Login(String identifier, String pass) {
+	public LoginDTO(String identifier, String pass) {
 		this.identifier = identifier;
 		this.pass = pass;
 	}

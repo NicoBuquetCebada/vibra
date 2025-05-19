@@ -1,10 +1,13 @@
 package model.dto;
 
+import java.util.List;
+
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
-public class FileUploadForm {
+public class MultiFileUploadFormDTO {
 
-	@RestForm
-	public FileUpload file;
+	@RestForm("file")
+	public List<FileUpload> files;
+
 }

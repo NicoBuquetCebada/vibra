@@ -1,7 +1,6 @@
 package model;
 
 import io.quarkus.hibernate.reactive.panache.PanacheEntity;
-import io.smallrye.mutiny.Uni;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -9,7 +8,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
-import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "songs")
@@ -28,38 +29,44 @@ public class Song extends PanacheEntity {
 
     @ManyToOne
 	@JoinColumn(name = "user_name", nullable = false)
-    public User userName;
+    public User user;
+
+	@JsonProperty("user")
+	public String getJsonUser() {
+		return user.name;
+	}
+
+	@JsonIgnore
+	public User getUser() {
+		return user;
+	}
 
 	@ManyToOne
 	@JoinColumn(name = "album_id", nullable = true)
-    public Album albumId;
+    public Album album;
+
+	@JsonProperty("album")
+	public String getJsonAlbum() {
+		if (album != null) {
+			return album.name;
+		}
+		return null;
+	}
+
+	@JsonIgnore
+	public Album getAlbum() {
+		return album;
+	}
 
     public Song() {}
 
-    public Song(String name, String coverImg, LocalDateTime date, String audio, User userName, Album albumId) {
+    public Song(String name, String coverImg, LocalDateTime date, String audio, User user, Album album) {
         this.name = name;
         this.coverImg = coverImg;
         this.date = date;
         this.audio = audio;
-        this.userName = userName;
-        this.albumId = albumId;
+        this.user = user;
+        this.album = album;
     }
-
-	//Query methods
-
-	public static Uni<List<Song>> getSongsByAlbum(Album albumId) {
-		return find("albumId", albumId).list();
-	}
-
-	// page = OFFSET pageSize = LIMIT | page = 2 pageSize = 10 -> LIMIT 10 OFFSET (2 * 10)
-	public static Uni<List<Song>> searchByName(String text, Integer page, Integer pageSize) {
-		return find("FROM Song WHERE LOWER(name) LIKE LOWER(?1)", "%" + text + "%")
-			.page(page, pageSize).list();
-	}
-
-	//Count results
-	public static Uni<Long> countSearchResult(String text) {
-		return count("name LIKE ?1", "%" + text + "%");
-	}
 
 }

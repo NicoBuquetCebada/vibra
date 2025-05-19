@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public class Register {
+public class RegisterDTO {
 
 	@NotBlank
 	@Size(min = 3, max = 20)
@@ -36,5 +36,5 @@ public class Register {
 
 	public String role;
 
-	public Register() {}
+	public RegisterDTO() {}
 }
