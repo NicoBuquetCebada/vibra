@@ -6,13 +6,11 @@ import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import model.Song;
 import service.SongService;
 
@@ -44,8 +42,4 @@ public class SongResource {
 		return ss.searchSongsByName(searchText, limit);
 	}
 
-	@POST
-	public Uni<Response> addSong(Song album) {
-		return ss.insertSong(album);
-	}
 }

@@ -4,10 +4,15 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import model.dto.FileUploadFormDTO;
+import model.dto.MultiFileUploadFormDTO;
 
 import java.nio.file.*;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+
+import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 @jakarta.ws.rs.Path("/media")
 @Produces(MediaType.APPLICATION_JSON)
@@ -31,6 +36,31 @@ public class MediaResource {
 		} catch (Exception e) {
 			return Response
 				.status(Response.Status.INTERNAL_SERVER_ERROR)
+				.entity(Map.of("error", e.getMessage()))
+				.build();
+		}
+	}
+
+	@POST
+	@jakarta.ws.rs.Path("/upload/multi")
+	public Response uploadFiles(@BeanParam MultiFileUploadFormDTO form) {
+		try {
+			List<String> uploadedUrls = new ArrayList<>();
+
+			for (FileUpload file : form.files) {
+				String fileName = Paths.get(file.fileName()).getFileName().toString();
+				Path uploadedPath = file.uploadedFile();
+				Path targetPath = Path.of(UPLOAD_DIR, fileName);
+
+				Files.createDirectories(targetPath.getParent());
+				Files.move(uploadedPath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+				uploadedUrls.add("/media/" + fileName);
+			}
+
+			return Response.ok(Map.of("urls", uploadedUrls)).build();
+		} catch (Exception e) {
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
 				.entity(Map.of("error", e.getMessage()))
 				.build();
 		}

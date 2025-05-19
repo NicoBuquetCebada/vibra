@@ -3,7 +3,6 @@ package service;
 import java.util.List;
 
 import exception.CustomNotFoundException;
-import io.quarkus.hibernate.reactive.panache.Panache;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.Response;
@@ -44,10 +43,6 @@ public class SongService {
 	//Modification requests
 
 	//Insert
-	public Uni<Response> insertSong(Song song) {
-		return Panache.withTransaction(() -> persistSong(song));
-	}
-
 	public Uni<Response> persistSong(Song song) {
 		return Song.persist(song)
 				.onItem().transform(ignore -> Response.status(201).build());

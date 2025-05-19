@@ -1,16 +1,22 @@
 package service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import exception.CustomNotFoundException;
-import io.quarkus.hibernate.reactive.panache.Panache;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.ws.rs.core.Response;
+import jakarta.inject.Inject;
 import model.Album;
+import model.Song;
+import model.User;
+import model.dto.AlbumPostDTO;
 
 @ApplicationScoped
 public class AlbumService {
+
+	@Inject SongService ss;
 
 	//Information requests
 
@@ -38,13 +44,22 @@ public class AlbumService {
 	//Modification requests
 
 	//Insert
-	public Uni<Response> insertAlbum(Album album) {
-		return Panache.withTransaction(() -> persistAlbum(album));
+	public Uni<Album> persistAlbum(Album album) {
+		return Album.persist(album).replaceWith(album);
 	}
 
-	public Uni<Response> persistAlbum(Album album) {
-		return Album.persist(album)
-				.onItem().transform(ignore -> Response.status(201).build());
+	public Uni<Album> createAlbumfromPost(User user, AlbumPostDTO postDTO) {
+		Album a = new Album(postDTO.albumName, postDTO.coverImg, LocalDateTime.now(), user);
+
+		return persistAlbum(a).flatMap(album -> {
+			return Multi.createFrom().iterable(postDTO.songs)
+				.onItem().transformToUniAndMerge(song -> {
+					
+					Song s = new Song(song.name, postDTO.coverImg, LocalDateTime.now(), song.audio , user, album);
+					return ss.persistSong(s);
+				}).collect().asList()
+				.replaceWith(album);
+		});
 	}
 
 }

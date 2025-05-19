@@ -4,22 +4,30 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import exception.CustomNotFoundException;
+import io.quarkus.hibernate.reactive.panache.common.WithTransaction;
 import io.quarkus.security.identity.SecurityIdentity;
-import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
-import model.Album;
 import model.Post;
 import model.Song;
 import model.User;
-import model.dto.PostDTO;
+import model.dto.AlbumPostDTO;
+import model.dto.SongPostDTO;
 
 @ApplicationScoped
 public class PostService {
 
 	@Inject UserService us;
+
+	@Inject SongService ss;
+
+	@Inject AlbumService as;
+
+	public Uni<List<Post>> getAllposts() {
+		return Post.findAll().list();
+	}
 
 	public Uni<Post> getPostById(Long id) {
 		return Post.<Post>findById(id)
@@ -33,75 +41,54 @@ public class PostService {
 			.list();
 	}
 
-	/* public Uni<Response> addPost(PostDTO postDTO, SecurityIdentity securityIdentity) {
-		return us.getUserByToken(securityIdentity)
+	@WithTransaction
+	public Uni<Response> addSongPost(SecurityIdentity si, SongPostDTO postDTO) {
+		return us.getUserByToken(si)
 			.flatMap(user -> {
-				String content = postDTO.content.toLowerCase();
+				Song song = new Song(
+					postDTO.songName,
+					postDTO.coverImg,
+					LocalDateTime.now(),
+					postDTO.audio,
+					user,
+					null
+				);
 
-				if ("song".equals(content)) {
-					Song song = new Song(
-						postDTO.song.name,
-						postDTO.coverImg,
-						LocalDateTime.now(),
-						postDTO.song.audio,
-						user,
-						null
-					);
-
-					return song.persist()
-						.flatMap(() -> {
-							Post newPost = new Post(
-								LocalDateTime.now(),
-								user,
-								null,
-								song
-							);
-							return newPost.persist()
-								.replaceWith(Response.ok().build());
-						});
-				}
-
-				if ("album".equals(content)) {
-					Album album = new Album(
-						postDTO.album.name,
-						postDTO.coverImg,
-						LocalDateTime.now(),
-						user
-					);
-
-					return album.persist()
-						.flatMap(() ->
-							Multi.createFrom().iterable(postDTO.album.songs)
-								.onItem().<Song>transform(songDTO ->
-									new Song(
-										songDTO.name,
-										postDTO.coverImg,
-										LocalDateTime.now(),
-										songDTO.audio,
-										user,
-										album
-									)
-								)
-								.onItem().transformToUniAndMerge(song -> song.persist())
-								.collect().asList()
-								.flatMap(songs -> {
-									Post newPost = new Post(
-										LocalDateTime.now(),
-										user,
-										album,
-										null
-									);
-									return newPost.<Post.map(v -> Response.ok().build())>persist()
-										.replaceWith(Response.ok().build());
-								})
+				return ss.persistSong(song)
+					.flatMap(ignore -> {
+						Post post = new Post(
+							LocalDateTime.now(),
+							user,
+							null,
+							song
 						);
-				}
 
-				return Uni.createFrom().item(Response.status(Response.Status.BAD_REQUEST)
-					.entity("Invalid content type").build());
+						return persistPost(post);
+					});
 			});
-	} */
+	}
 
+	@WithTransaction
+	public Uni<Response> addAlbumPost(SecurityIdentity si, AlbumPostDTO postDTO) {
+		return us.getUserByToken(si)
+			.flatMap(user -> {
+				return as.createAlbumfromPost(user, postDTO)
+					.flatMap(album -> {
+						Post post = new Post(
+							LocalDateTime.now(),
+							user,
+							album,
+							null
+						);
 
+						return persistPost(post);
+					});
+			});
+	}
+
+	public Uni<Response> persistPost(Post post) {
+		return Post.persist(post)
+			.onItem().transform(ignore -> Response.status(201).build());
+	}
 
 }

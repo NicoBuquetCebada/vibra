@@ -45,7 +45,7 @@ public class Song extends PanacheEntity {
 	@JoinColumn(name = "album_id", nullable = true)
     public Album album;
 
-	/* @JsonProperty("album")
+	@JsonProperty("album")
 	public String getJsonAlbum() {
 		if (album != null) {
 			return album.name;
@@ -56,7 +56,7 @@ public class Song extends PanacheEntity {
 	@JsonIgnore
 	public Album getAlbum() {
 		return album;
-	} */
+	}
 
     public Song() {}
 
