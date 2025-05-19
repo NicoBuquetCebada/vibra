@@ -45,6 +45,7 @@ public class UserResource {
 	}
 
 	@POST
+	@Path("/login")
 	public Uni<Response> login(LoginDTO login) {
 		return us.login(login);
 	}

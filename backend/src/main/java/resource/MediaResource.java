@@ -6,6 +6,8 @@ import jakarta.ws.rs.core.Response;
 import model.dto.FileUploadFormDTO;
 import model.dto.MultiFileUploadFormDTO;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -20,6 +22,7 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 public class MediaResource {
 
 	private static final String UPLOAD_DIR = "media";
+	private static final String URL = "http://localhost:8080/api/media/";
 
 	@POST
 	@jakarta.ws.rs.Path("/upload")
@@ -32,7 +35,7 @@ public class MediaResource {
 			Files.createDirectories(targetPath.getParent());
 			Files.move(uploadedPath, targetPath, StandardCopyOption.REPLACE_EXISTING);
 
-			return Response.ok(Map.of("url", "/media/" + fileName)).build();
+			return Response.ok(Map.of("url", URL + fileName)).build();
 		} catch (Exception e) {
 			return Response
 				.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -55,7 +58,7 @@ public class MediaResource {
 				Files.createDirectories(targetPath.getParent());
 				Files.move(uploadedPath, targetPath, StandardCopyOption.REPLACE_EXISTING);
 
-				uploadedUrls.add("/media/" + fileName);
+				uploadedUrls.add(URL + fileName);
 			}
 
 			return Response.ok(Map.of("urls", uploadedUrls)).build();
@@ -64,6 +67,23 @@ public class MediaResource {
 				.entity(Map.of("error", e.getMessage()))
 				.build();
 		}
+	}
+
+
+    @GET
+    @jakarta.ws.rs.Path("/{fileName}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getMedia(@PathParam("fileName") String fileName) throws IOException {
+		File file = Path.of("media", fileName).toFile();
+
+		if (!file.exists()) {
+			return Response.status(Response.Status.NOT_FOUND).build();
+		}
+
+		String mimeType = Files.probeContentType(file.toPath());
+		return Response.ok(file)
+			.type(mimeType)
+			.build();
 	}
 
 }
