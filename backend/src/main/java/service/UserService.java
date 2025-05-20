@@ -2,8 +2,11 @@ package service;
 
 import java.util.List;
 
+
 import exception.CustomAlreadyExistsException;
 import exception.CustomNotFoundException;
+import io.quarkus.cache.CacheInvalidate;
+import io.quarkus.cache.CacheResult;
 import io.quarkus.elytron.security.common.BcryptUtil;
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.security.UnauthorizedException;
@@ -30,18 +33,21 @@ public class UserService {
 		return User.findAll().list();
 	}
 	
+	@CacheResult(cacheName = "user-by-name")
 	public Uni<User> getUserByName(String name) {
 		return User.<User>find("name", name).firstResult()
 			.onItem().ifNull()
 			.failWith(new CustomNotFoundException("User not found: " + name));
 	}
 
+	@CacheResult(cacheName = "user-by-mail")
 	public Uni<User> getUserByMail(String mail) {
 		return User.<User>find("mail", mail).firstResult()
 			.onItem().ifNull()
 			.failWith(new CustomNotFoundException("User not found: " + mail));
 	}
 
+	@CacheResult(cacheName = "user-by-name-or-mail")
 	public Uni<User> getUserByNameOrMail(String name, String mail) {
 		return User.<User>find("name = ?1 OR mail = ?2", name, mail).firstResult()
 			.onItem().ifNull()
@@ -56,6 +62,7 @@ public class UserService {
 
 	
 	//Authentication
+	@CacheResult(cacheName = "user-by-token")
 	public Uni<User> getUserByToken(SecurityIdentity securityIdentity) {
 			String userName = securityIdentity.getPrincipal().getName();
 			return getUserByName(userName);
@@ -94,6 +101,9 @@ public class UserService {
 	}
 	
 	//Delete
+	@CacheInvalidate(cacheName = "user-by-name")
+	@CacheInvalidate(cacheName = "user-by-mail")
+	@CacheInvalidate(cacheName = "user-by-name-or-mail")
 	public Uni<Response> deleteUserByName(String name) {
 		return Panache.withTransaction(() -> {
 			return User.delete("name", name)
@@ -109,6 +119,9 @@ public class UserService {
 	}
 
 	//Update
+	@CacheInvalidate(cacheName = "user-by-name")
+	@CacheInvalidate(cacheName = "user-by-mail")
+	@CacheInvalidate(cacheName = "user-by-name-or-mail")
 	public Uni<Response> updateUser(RegisterDTO updated) {
 		return Panache.withTransaction(() -> {
 			return getUserByName(updated.name)
