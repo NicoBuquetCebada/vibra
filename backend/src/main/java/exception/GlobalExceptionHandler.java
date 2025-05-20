@@ -33,12 +33,12 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
 				.status(Response.Status.BAD_REQUEST)
 				.entity(new ErrorResponse(e.getMessage(), 400))
 				.build();
-		} else if (e instanceof WebApplicationException) {
+		} /* else if (e instanceof WebApplicationException) {
 			return Response
 				.status(Response.Status.BAD_REQUEST)
 				.entity(new ErrorResponse("Invalid Json", 400))
 				.build();
-		} else if (e instanceof InvalidJwtException) {
+		} */ else if (e instanceof InvalidJwtException) {
 			return Response
 				.status(Response.Status.UNAUTHORIZED)
 				.entity(new ErrorResponse("JWT: The authentication token has expired", 401))

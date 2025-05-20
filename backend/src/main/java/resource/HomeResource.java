@@ -27,7 +27,7 @@ public class HomeResource {
 	HomeService hs;
 
 	//Pagination size
-	private final Integer pageSize = 1;
+	private final Integer pageSize = 3;
 
 	@GET
 	public Uni<List<HomeDTO>> getHome(@QueryParam("page") Integer page) {
