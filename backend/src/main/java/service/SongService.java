@@ -3,6 +3,7 @@ package service;
 import java.util.List;
 
 import exception.CustomNotFoundException;
+import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.Response;
@@ -17,6 +18,7 @@ public class SongService {
 		return Song.findAll().list();
 	}
 
+	@CacheResult(cacheName = "song-by-id")
 	public Uni<Song> getSongById(Long id) {
 		return Song.<Song>findById(id)
 			.onItem().ifNull()
@@ -34,6 +36,7 @@ public class SongService {
 		return Song.count("name LIKE ?1", "%" + text + "%");
 	}
 
+	@CacheResult(cacheName = "songs-by-album")
 	public Uni<List<Song>> getSongsByAlbum(Album album) {
 		return Song.find("album", album).list();
 	}

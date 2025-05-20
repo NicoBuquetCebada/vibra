@@ -16,6 +16,8 @@ import java.util.Map;
 
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
+import io.quarkus.cache.CacheResult;
+
 @jakarta.ws.rs.Path("/media")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -83,6 +85,7 @@ public class MediaResource {
 		String mimeType = Files.probeContentType(file.toPath());
 		return Response.ok(file)
 			.type(mimeType)
+			.header("Cache-Control", "public, max-age=31536000, inmutable") // Hace que el navegador cachee 1 año
 			.build();
 	}
 

@@ -1,9 +1,11 @@
 package service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import exception.CustomNotFoundException;
+import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -24,6 +26,7 @@ public class AlbumService {
 		return Album.findAll().list();
 	}
 
+	@CacheResult(cacheName = "album-by-id")
 	public Uni<Album> getAlbumById(Long id) {
 		return Album.<Album>findById(id)
 			.onItem().ifNull()
