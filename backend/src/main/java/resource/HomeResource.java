@@ -27,7 +27,7 @@ public class HomeResource {
 	HomeService hs;
 
 	//Pagination size
-	private final Integer pageSize = 3;
+	private final Integer pageSize = 2; // CON 3 SE DESBORDA EL STACK DE REFERENCIA DE HIBERNATE
 
 	@GET
 	public Uni<List<HomeDTO>> getHome(@QueryParam("page") Integer page) {

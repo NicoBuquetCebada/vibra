@@ -10,9 +10,11 @@ function SongList({ songs, albumName, onPlay }) {
             className="play-btn"
             onClick={() => onPlay({ ...song, album: albumName })}
             title="Reproducir"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 28, marginLeft: 10 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 32, marginLeft: 22 }}
           >
-            ▶️
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="8,5 28,16 8,27" fill="#fff" />
+            </svg>
           </button>
         </li>
       ))}
@@ -21,14 +23,13 @@ function SongList({ songs, albumName, onPlay }) {
 }
 
 export default function PostModal({ post, onPlay }) {
-  console.log('PostModal recibe:', post);
   const isAlbum = post.content === 'album' && post.album;
   const isSong = post.content === 'song' && post.song;
 
   if (post.repostUser) {
     return (
       <div style={{
-        background: '#353646',
+        background: post.repostUser ? '#31384a' : '#2a3342',
         color: '#fff',
         borderRadius: 16,
         margin: '36px 0',
@@ -50,7 +51,7 @@ export default function PostModal({ post, onPlay }) {
           </div>
         </div>
         {/* Línea separadora */}
-        <div style={{ borderTop: '1.5px solid #444', margin: '10px 0 16px 0', width: '100%' }} />
+        <div style={{ borderTop: '1.5px solid #2a3342', margin: '10px 0 16px 0', width: '100%' }} />
         {/* User del post debajo, más grande */}
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
           <img src={post.user.profileImg} alt="user" style={{ width: 40, height: 40, borderRadius: '50%', marginRight: 10 }} />
@@ -58,7 +59,7 @@ export default function PostModal({ post, onPlay }) {
           <span style={{ marginLeft: 'auto', fontSize: 12, color: '#bbb' }}>{new Date(post.createdAt).toLocaleString()}</span>
         </div>
         {post.coverImg && (
-          <img src={post.coverImg} alt="cover" style={{ width: '100%', height: 320, objectFit: 'cover', borderRadius: 12, margin: '0 0 18px 0', display: 'block' }} />
+          <img src={post.coverImg} alt="cover" style={{ width: '100%', height: 320, objectFit: 'cover', borderRadius: 12, margin: '0 0 18px 0', display: 'block', border: '2px solid #3a7bd5' }} />
         )}
         {isSong && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -66,10 +67,12 @@ export default function PostModal({ post, onPlay }) {
             <button
               className="play-btn"
               onClick={() => onPlay({ ...post.song, coverImg: post.coverImg, user: post.user })}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 28, marginLeft: 10 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 36, marginLeft: 22 }}
               title="Reproducir"
             >
-              ▶️
+              <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="10,7 32,19 10,31" fill="#fff" />
+              </svg>
             </button>
           </div>
         )}
@@ -105,7 +108,7 @@ export default function PostModal({ post, onPlay }) {
         <span style={{ marginLeft: 'auto', fontSize: 12, color: '#bbb' }}>{new Date(post.createdAt).toLocaleString()}</span>
       </div>
       {post.coverImg && (
-        <img src={post.coverImg} alt="cover" style={{ width: '100%', height: 320, objectFit: 'cover', borderRadius: 12, margin: '0 0 18px 0', display: 'block' }} />
+        <img src={post.coverImg} alt="cover" style={{ width: '100%', height: 320, objectFit: 'cover', borderRadius: 12, margin: '0 0 18px 0', display: 'block', border: '2px solid #3a7bd5' }} />
       )}
       {isSong && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -113,10 +116,12 @@ export default function PostModal({ post, onPlay }) {
           <button
             className="play-btn"
             onClick={() => onPlay({ ...post.song, coverImg: post.coverImg, user: post.user })}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 28, marginLeft: 10 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 36, marginLeft: 22 }}
             title="Reproducir"
           >
-            ▶️
+            <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="10,7 32,19 10,31" fill="#fff" />
+            </svg>
           </button>
         </div>
       )}

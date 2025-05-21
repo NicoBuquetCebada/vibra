@@ -7,7 +7,6 @@ import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.Response;
-import model.Album;
 import model.Song;
 
 @ApplicationScoped
@@ -36,9 +35,9 @@ public class SongService {
 		return Song.count("name LIKE ?1", "%" + text + "%");
 	}
 
-	@CacheResult(cacheName = "songs-by-album")
-	public Uni<List<Song>> getSongsByAlbum(Album album) {
-		return Song.find("album", album).list();
+	public Uni<List<Song>> getSongsByAlbum(Long album) {
+		System.err.println("Entrando en getSongsByAlbum " + album);
+		return Song.find("album.id", album).list();
 	}
 
 

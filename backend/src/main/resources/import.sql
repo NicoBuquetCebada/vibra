@@ -9,6 +9,7 @@ ALTER TABLE posts DROP CONSTRAINT fk89ik4e9tqc05yvnct49n1fhto;
 -- Users
 INSERT INTO users (name, mail, first_name, surname, pass, profile_img, role) VALUES
 ('nico', 'nico@gmail.com', 'Nicolas', 'Buquet', '$2a$10$EfZNeGwyxw4xegJYnvamE.kHlUmVeE/32iEgtTUhjqFSRncRuK64y', 'http://localhost:8080/api/media/defaultu.jpg', 'user'),
+('jorge', 'jorge@gmail.com', 'Jorge', 'Lopez', '$2a$10$EfZNeGwyxw4xegJYnvamE.kHlUmVeE/32iEgtTUhjqFSRncRuK64y', 'http://localhost:8080/api/media/defaultu.jpg', 'user'),
 ('johndoe', 'john@example.com', 'john', 'doe', 'pass1', 'http://localhost:8080/api/media/defaultu.jpg', 'user'),
 ('janedoe', 'jane@example.com', 'jane', 'doe',  'pass2', 'http://localhost:8080/api/media/defaultu.jpg', 'user'),
 ('bobsmith', 'bob@example.com', 'bob', 'smith',  'pass3', 'http://localhost:8080/api/media/defaultu.jpg', 'admin');
@@ -28,10 +29,15 @@ FOREIGN KEY (user_name) REFERENCES users(name) ON DELETE CASCADE;
 
 -- Follows
 INSERT INTO follows (id, created_at, follower, followed) VALUES
-(1, '2023-01-01 10:00:00', 'nico', 'janedoe'),
-(2, '2023-01-02 11:00:00', 'nico', 'bobsmith'),
-(3, '2023-01-03 12:00:00', 'nico', 'johndoe');
-ALTER SEQUENCE follows_seq RESTART WITH 4;
+(1, '2023-01-01 10:00:00', 'jorge', 'janedoe'),
+(2, '2023-01-02 11:00:00', 'jorge', 'bobsmith'),
+(3, '2023-01-03 12:00:00', 'jorge', 'johndoe'),
+(4, '2023-01-03 12:00:00', 'jorge', 'nico'),
+(5, '2023-01-01 10:00:00', 'nico', 'janedoe'),
+(6, '2023-01-02 11:00:00', 'nico', 'bobsmith'),
+(7, '2023-01-03 12:00:00', 'nico', 'johndoe'),
+(8, '2023-01-03 12:00:00', 'nico', 'jorge');
+ALTER SEQUENCE follows_seq RESTART WITH 9;
 
 
 -- Posts

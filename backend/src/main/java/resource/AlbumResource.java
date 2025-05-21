@@ -22,8 +22,8 @@ public class AlbumResource {
 
 	@Inject AlbumService as;
 
-	@Authenticated
-	@GET
+/* 	@Authenticated
+ */	@GET
 	public Uni<List<Album>> getAllAlbums() {
 		return as.getAllAlbums();
 	}

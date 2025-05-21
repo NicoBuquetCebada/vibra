@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from 'react'
 import Login from './pages/Login';
 import Home from './pages/Home';
+import Upload from './pages/Upload';
 import { getToken } from './auth';
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
@@ -15,6 +16,7 @@ function App() {
       <Routes>
         <Route path="/" element={getToken() ? <Navigate to="/home" /> : <Login />} />
         <Route path="/home" element={getToken() ? <Home /> : <Navigate to="/" />} />
+        <Route path="/upload" element={getToken() ? <Upload /> : <Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
   );

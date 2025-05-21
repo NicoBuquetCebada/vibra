@@ -62,7 +62,6 @@ public class UserService {
 
 	
 	//Authentication
-	@CacheResult(cacheName = "user-by-token")
 	public Uni<User> getUserByToken(SecurityIdentity securityIdentity) {
 			String userName = securityIdentity.getPrincipal().getName();
 			return getUserByName(userName);

@@ -44,13 +44,14 @@ public class HomeService {
 		if (followed.isEmpty()) {
 			return Uni.createFrom().item(List.of());
 		}
-
 		return ps.getLatestPostsOf(followed, page, pageSize)
-			.flatMap(posts ->
+		    .onFailure().invoke(e -> System.err.println("Error en getLatestPostsOf: " + e))
+			.flatMap(posts -> 
+				
 				Multi.createFrom().iterable(posts)
 					.onItem().<HomeDTO>transformToUniAndMerge(post -> {
 						if (post.albumId != null) {
-							return ss.getSongsByAlbum(post.albumId)
+							return ss.getSongsByAlbum(post.albumId.id)
 								.flatMap(songs -> homeOfPost(post, songs));
 						} else {
 							return homeOfPost(post, null);
@@ -63,7 +64,7 @@ public class HomeService {
 								Multi.createFrom().iterable(reposts)
 									.onItem().<HomeDTO>transformToUniAndMerge(repost -> {
 										if (repost.postId.albumId != null) {
-											return ss.getSongsByAlbum(repost.postId.albumId)
+											return ss.getSongsByAlbum(repost.postId.albumId.id)
 												.flatMap(songs -> homeOfRepost(repost, songs));
 										} else {
 											return homeOfRepost(repost, null);

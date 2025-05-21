@@ -89,7 +89,7 @@
 
 - Add album post, crear un post con un album
 
-	request: POST /api/posts/song
+	request: POST /api/posts/album
 		body:
 			{
 				"albumName": "string",

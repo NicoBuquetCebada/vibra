@@ -14,6 +14,7 @@ export default function Login() {
     e.preventDefault();
     setError('');
     try {
+      console.log('[API] POST', API_URL, { identifier, pass });
       const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -22,8 +23,9 @@ export default function Login() {
       if (!res.ok) throw new Error('Credenciales incorrectas');
       const data = await res.json();
       setToken(data.token);
-      // Forzar refresh para asegurar que el token esté disponible y rutas protegidas funcionen
-      window.location.href = '/home';
+      setTimeout(() => {
+        window.location.href = '/home';
+      }, 100);
     } catch (err) {
       setError(err.message);
     }
@@ -31,7 +33,7 @@ export default function Login() {
 
   return (
     <div className="login-container">
-      <form onSubmit={handleSubmit} className="login-form">
+      <form onSubmit={handleSubmit} className="login-form" style={{ background: '#31384a' }}>
         <h2>Iniciar sesión</h2>
         <input
           type="text"
@@ -39,6 +41,7 @@ export default function Login() {
           value={identifier}
           onChange={e => setIdentifier(e.target.value)}
           required
+          style={{ background: '#262c36' }}
         />
         <input
           type="password"
@@ -46,8 +49,9 @@ export default function Login() {
           value={pass}
           onChange={e => setPass(e.target.value)}
           required
+          style={{ background: '#262c36' }}
         />
-        <button type="submit">Entrar</button>
+        <button type="submit" style={{ background: '#3a7bd5' }}>Entrar</button>
         {error && <div className="error">{error}</div>}
       </form>
     </div>
