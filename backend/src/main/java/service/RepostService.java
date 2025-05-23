@@ -9,10 +9,8 @@ import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
-import model.Rate;
 import model.Repost;
 import model.User;
-import model.dto.RateDTO;
 
 @ApplicationScoped
 public class RepostService {
@@ -42,5 +40,14 @@ public class RepostService {
 					);
 			});
 	}
+	
+	@WithTransaction
+    public Uni<Response> deleteRepost(SecurityIdentity si, Long post) {
+        return us.getUserByToken(si)
+			.flatMap(user ->
+				Repost.delete("post.id = ?1 AND user = ?2", post, user)
+					.onItem().transform(ignore -> Response.status(204).build())
+			);
+    }
 
 }

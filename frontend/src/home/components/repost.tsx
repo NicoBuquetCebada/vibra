@@ -1,22 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { IconButton } from '@mui/material';
 import RepeatIcon from '@mui/icons-material/Repeat';
-import { getPostMetrics, repostPost } from '../../api';
+import { getPostMetrics, repostPost, deleteRepost } from '../../api';
 
 interface RepostButtonProps {
   postId: number;
 }
 
 const RepostButton: React.FC<RepostButtonProps> = ({ postId }) => {
-  const [shared, setShared] = useState(false);
-  const [isInitialRepost, setIsInitialRepost] = useState(false);
+  const [reposted, setReposted] = useState(false);
 
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
         const metrics = await getPostMetrics(postId);
-        setShared(metrics.reposted);
-        setIsInitialRepost(metrics.reposted);
+        setReposted(metrics.reposted);
       } catch (error) {
         console.error('Error fetching metrics:', error);
       }
@@ -25,17 +23,21 @@ const RepostButton: React.FC<RepostButtonProps> = ({ postId }) => {
   }, [postId]);
 
   const handleRepost = async () => {
-    if (isInitialRepost) return; // No permitir cambios si ya está reposteado inicialmente
-
     try {
-      await repostPost(postId);
-      setShared(true);
-      setIsInitialRepost(true);
+      if (reposted) {
+        // Si ya está reposteado, eliminarlo
+        await deleteRepost(postId);
+        setReposted(false);
+      } else {
+        // Si no está reposteado, repostearlo
+        await repostPost(postId);
+        setReposted(true);
+      }
     } catch (error) {
       console.error('Error:', error);
       // Revertir el estado local si falla la llamada API
       const metrics = await getPostMetrics(postId);
-      setShared(metrics.reposted);
+      setReposted(metrics.reposted);
     }
   };
 
@@ -43,7 +45,8 @@ const RepostButton: React.FC<RepostButtonProps> = ({ postId }) => {
     <IconButton
       onClick={handleRepost}
       sx={{
-        color: shared ? '#00bcd4' : 'rgba(61, 61, 61, 0.3)',
+        color: reposted ? '#00bcd4' : 'rgba(61, 61, 61, 0.3)',
+        transition: 'color 0.2s ease',
       }}
     >
       <RepeatIcon />

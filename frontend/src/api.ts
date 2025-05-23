@@ -31,6 +31,7 @@ export const getPostMetrics = async (postId: number): Promise<PostMetrics> => {
   return response.json();
 };
 
+// Crear un nuevo rate
 export const ratePost = async (postId: number, rating: number): Promise<void> => {
   const response = await fetchWithAuth('/api/metrics/rate', {
     method: 'POST',
@@ -45,6 +46,22 @@ export const ratePost = async (postId: number, rating: number): Promise<void> =>
   if (!response.ok) throw new Error('Error al calificar el post');
 };
 
+// Actualizar un rate existente
+export const updateRate = async (postId: number, rating: number): Promise<void> => {
+  const response = await fetchWithAuth('/api/metrics/rate', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      postId,
+      rate: rating
+    }),
+  });
+  if (!response.ok) throw new Error('Error al actualizar la calificación');
+};
+
+// Guardar un post
 export const savePost = async (postId: number): Promise<void> => {
   const response = await fetchWithAuth('/api/metrics/save', {
     method: 'POST',
@@ -56,6 +73,15 @@ export const savePost = async (postId: number): Promise<void> => {
   if (!response.ok) throw new Error('Error al guardar el post');
 };
 
+// Eliminar un save
+export const deleteSave = async (postId: number): Promise<void> => {
+  const response = await fetchWithAuth(`/api/metrics/save/${postId}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) throw new Error('Error al eliminar el guardado');
+};
+
+// Hacer repost de un post
 export const repostPost = async (postId: number): Promise<void> => {
   const response = await fetchWithAuth('/api/metrics/repost', {
     method: 'POST',
@@ -65,4 +91,12 @@ export const repostPost = async (postId: number): Promise<void> => {
     body: JSON.stringify(postId),
   });
   if (!response.ok) throw new Error('Error al repostear el post');
+};
+
+// Eliminar un repost
+export const deleteRepost = async (postId: number): Promise<void> => {
+  const response = await fetchWithAuth(`/api/metrics/repost/${postId}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) throw new Error('Error al eliminar el repost');
 };

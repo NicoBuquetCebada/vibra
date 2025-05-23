@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, IconButton } from '@mui/material';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
-import { getPostMetrics, ratePost } from '../../api';
+import { getPostMetrics, ratePost, updateRate } from '../../api';
 
 interface RateProps {
   postId: number;
@@ -9,29 +9,37 @@ interface RateProps {
 
 const Rate: React.FC<RateProps> = ({ postId }) => {
   const [rating, setRating] = useState(0);
-  const [isInitialRating, setIsInitialRating] = useState(false);
+  const [hasRating, setHasRating] = useState(false);
 
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
         const metrics = await getPostMetrics(postId);
         setRating(metrics.rate);
-        setIsInitialRating(metrics.rate > 0);    } catch (error) {
-      if (error instanceof Error) {
-        console.error('Error al obtener métricas:', error.message);
+        setHasRating(metrics.rate > 0);
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error('Error al obtener métricas:', error.message);
+        }
       }
-    }
     };
     fetchMetrics();
   }, [postId]);
 
   const handleRating = async (value: number) => {
-    if (isInitialRating) return; // No permitir cambios si ya hay un rating inicial
+    // Permitir cambio solo si es diferente al rating actual
+    if (value === rating) return;
 
     try {
-      await ratePost(postId, value);
+      if (hasRating) {
+        // Actualizar rating existente
+        await updateRate(postId, value);
+      } else {
+        // Crear nuevo rating
+        await ratePost(postId, value);
+        setHasRating(true);
+      }
       setRating(value);
-      setIsInitialRating(true);
     } catch (error) {
       if (error instanceof Error) {
         console.error('Error al calificar post:', error.message);
@@ -55,6 +63,7 @@ const Rate: React.FC<RateProps> = ({ postId }) => {
           <MusicNoteIcon
             sx={{
               color: rating > i ? '#307cbe' : 'rgba(61, 61, 61, 0.3)',
+              transition: 'color 0.2s ease',
             }}
           />
         </IconButton>

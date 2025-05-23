@@ -4,7 +4,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import Rate from './rate';
 import RepostButton from './repost';
 import SaveButton from './save';
-import Logo from '../../login/compents/utiles/LogoConOndasSinFondo.png';
+import Logo from '../../assets/logo.png';
 import { usePlayer } from '../../context/player-context';
 import { useNavigate } from 'react-router-dom';
 
@@ -119,7 +119,13 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(({ song, repostUser, 
         <IconButton
           onClick={handlePlay}
           sx={{
-            "&:hover": { background: "#145a96", color: "white" },
+            padding: 0,
+            width: '45px',
+            height: '45px',
+            "&:hover": { 
+              background: "#145a96", 
+              color: "white" 
+            },
             zIndex: 10, // Siempre visible en móviles
           }}
         >

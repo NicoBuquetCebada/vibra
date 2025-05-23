@@ -3,7 +3,7 @@ import '../../styles/global.scss';
 import { TextField, Button } from '@mui/material';
 import { AuthContext } from '../../context/auth-context'; // Importamos el contexto
 import { useNavigate } from 'react-router-dom'; // Para redirigir al home
-import Logo from './utiles/LogoConOndasSinFondo.png'
+import Logo from '../../assets/logo.png'
 
 const Login: React.FC = () => {
   const authContext = useContext(AuthContext);

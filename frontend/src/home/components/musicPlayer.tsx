@@ -6,7 +6,7 @@ import SkipNextIcon from '@mui/icons-material/SkipNext';
 import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { usePlayer } from '../../context/player-context';
-import Logo from '../../login/compents/utiles/LogoConOndasSinFondo.png';
+import Logo from '../../assets/logo.png';
 
 interface Song {
   id: number;

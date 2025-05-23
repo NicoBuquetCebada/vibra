@@ -5,7 +5,7 @@ import AddIcon from '@mui/icons-material/Add';
 import AudiotrackIcon from '@mui/icons-material/Audiotrack';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/bottom-navigation';
-import Logo from '../login/compents/utiles/LogoConOndasSinFondo.png';
+import Logo from '../assets/logo.png';
 import { fetchWithAuth } from '../api';
 
 interface Song {

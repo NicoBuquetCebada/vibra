@@ -72,11 +72,24 @@ INSERT INTO songs (id, name, cover_img, date, audio, user_name, album_id) VALUES
 (4, 'mastercaster', 'http://localhost:8080/api/media/defaultc.png', '2023-03-15', 'http://localhost:8080/api/media/default.mp3', 'nico', null);
 ALTER SEQUENCE songs_seq RESTART WITH 5;
 
-/* CREATE VIEW metrics AS
-SELECT */
+DROP TABLE IF EXISTS search_view CASCADE;
+DROP TABLE IF EXISTS user_page_view CASCADE;
+
+CREATE VIEW search_view (name, id, type) AS
+SELECT name, NULL::BIGINT AS id, 'user' AS type, profile_img AS img FROM users UNION ALL
+SELECT name, id, 'song' AS type, cover_img AS img FROM songs UNION ALL
+SELECT name, id, 'album' AS type, cover_img AS img FROM albums;
+
+CREATE VIEW user_page_view (name, profile_img, posts, followed, followers) AS
+SELECT u.name, u.profile_img, COUNT(p.id) AS posts, COUNT(DISTINCT f1.followed) AS followed, COUNT(DISTINCT f2.followed) AS followers
+FROM users u
+LEFT JOIN posts p ON u.name = p.user_name
+LEFT JOIN follows f1 ON u.name = f1.follower
+LEFT JOIN follows f2 ON u.name = f2.followed
+GROUP BY u.name, u.profile_img;
+
 
 /*
-
 -- Rates
 INSERT INTO rates (id, rate, created_at, user_name, post_id) VALUES
 (1, 5, '2023-06-18 15:00:00', 'janedoe', 1),

@@ -54,6 +54,24 @@
 			"reposted": true
 		}
 
+search, buscador de usuarios, albumes y canciones. Se introduce el texto a buscar y devuelve nombre, id (en caso de user es null) y tipo (user, song, album)
+
+	request: GET /api/home/search/{search}
+
+	response:
+		[
+		{
+			"name": "string",
+			"id": 1,
+			"type": "string"
+		},
+		{
+			"name": "string",
+			"id": 1,
+			"type": "string"
+		}
+		]
+
 # METRICS
 
 - rate post, hacer rate a un post
@@ -66,11 +84,27 @@
 			}
 	response: code 201
 
+-  update rate, actualiza un rate
+
+	request: PUT /api/metrics/rate
+		body:
+			{
+				"rate": 4,
+				"postId": 1
+			}
+	response: code 200
+
 - save post, hacer save a un post. El valor del body es el id de post
 
 	request: POST /api/metrics/save
 		body: 1
 	response: code 201
+
+- delete save, eliminar un save. El valor del pathParam es el id de post
+
+	request: DELETE /api/metrics/save/{post_id}
+		body: 1
+	response: code 204
 
 - repost post, hacer repost a un post. El valor del body es el id de post
 
@@ -78,6 +112,12 @@
 		body: 1
 	response: code 201
 
+- delete repost, eliminar un repost. El valor del pathParam es el id de post
+
+	request: DELETE /api/metrics/repost/{post_id}
+		body: 1
+	response: code 204
+	
 # USERS
 
 - Login
