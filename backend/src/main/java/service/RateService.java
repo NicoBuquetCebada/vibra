@@ -10,37 +10,29 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import model.Rate;
-import model.Repost;
 import model.User;
 import model.dto.RateDTO;
 
 @ApplicationScoped
-public class RepostService {
+public class RateService {
 
 	@Inject UserService us;
 
 	@Inject PostService ps;
 
-	public Uni<List<Repost>> getLatestRepostsOf(List<User> followed, Integer page, Integer pageSize) {
-		return Repost.find("user IN ?1 ORDER BY createdAt DESC", followed)
-			.page(page, pageSize)
-			.list();
-	}
-
-	public Uni<Repost> getRespostByPost(Long post, User user) {
-		return Repost.find("post.id = ?1 AND user = ?2", post, user).firstResult();
-	}
-
 	@WithTransaction
-	public Uni<Response> repostPost(SecurityIdentity si, Long postId) {
+	public Uni<Response> ratePost(SecurityIdentity si, RateDTO rate) {
 		return us.getUserByToken(si)
 			.flatMap(user -> {
-				return ps.getPostById(postId)
+				return ps.getPostById(rate.postId)
 					.<Response>flatMap(post -> 
-						Repost.persist(new Repost(LocalDateTime.now(), user, post))
+						Rate.persist(new Rate(rate.rate, LocalDateTime.now(), user, post))
 							.onItem().transform(ignore -> Response.status(201).build())
 					);
 			});
 	}
 
+	public Uni<Rate> getRatesByPost(Long post, User user) {
+		return Rate.find("post.id = ?1 AND user = ?2", post, user).firstResult();
+	}
 }

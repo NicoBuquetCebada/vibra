@@ -16,8 +16,6 @@ import java.util.Map;
 
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
-import io.quarkus.cache.CacheResult;
-
 @jakarta.ws.rs.Path("/media")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -70,7 +68,6 @@ public class MediaResource {
 				.build();
 		}
 	}
-
 
     @GET
     @jakarta.ws.rs.Path("/{fileName}")

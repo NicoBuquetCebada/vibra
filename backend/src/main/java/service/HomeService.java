@@ -15,6 +15,7 @@ import model.Song;
 import model.User;
 import model.dto.AlbumDTO;
 import model.dto.HomeDTO;
+import model.dto.MetricsDTO;
 import model.dto.SongDTO;
 import model.dto.UserDTO;
 
@@ -30,6 +31,10 @@ public class HomeService {
 	@Inject RepostService rs;
 
 	@Inject SongService ss;
+
+	@Inject SaveService sas;
+
+	@Inject RateService ras;
 	
 	@WithSession
 	public Uni<List<HomeDTO>> getHome(SecurityIdentity si, Integer page, Integer pageSize) {
@@ -44,13 +49,14 @@ public class HomeService {
 		if (followed.isEmpty()) {
 			return Uni.createFrom().item(List.of());
 		}
-
 		return ps.getLatestPostsOf(followed, page, pageSize)
-			.flatMap(posts ->
+		    .onFailure().invoke(e -> System.err.println("Error en getLatestPostsOf: " + e))
+			.flatMap(posts -> 
+				
 				Multi.createFrom().iterable(posts)
 					.onItem().<HomeDTO>transformToUniAndMerge(post -> {
 						if (post.albumId != null) {
-							return ss.getSongsByAlbum(post.albumId)
+							return ss.getSongsByAlbum(post.albumId.id)
 								.flatMap(songs -> homeOfPost(post, songs));
 						} else {
 							return homeOfPost(post, null);
@@ -62,8 +68,8 @@ public class HomeService {
 							.flatMap(reposts ->
 								Multi.createFrom().iterable(reposts)
 									.onItem().<HomeDTO>transformToUniAndMerge(repost -> {
-										if (repost.postId.albumId != null) {
-											return ss.getSongsByAlbum(repost.postId.albumId)
+										if (repost.post.albumId != null) {
+											return ss.getSongsByAlbum(repost.post.albumId.id)
 												.flatMap(songs -> homeOfRepost(repost, songs));
 										} else {
 											return homeOfRepost(repost, null);
@@ -81,6 +87,34 @@ public class HomeService {
 							)
 					)
 			);
+	}
+
+	@WithSession
+	public Uni<MetricsDTO> getMetrics(SecurityIdentity si, Long post) {
+		return us.getUserByToken(si)
+			.flatMap(user -> {
+				return rs.getRespostByPost(post, user)
+					.flatMap(repost -> {
+						return ras.getRatesByPost(post, user)
+						.flatMap(rate -> {
+							return sas.getSaveByPost(post, user)
+								.onItem().transform(save -> {
+									Integer rat = 0;
+									boolean sav = false;
+									boolean rep = false;
+
+									if (rate != null)
+										rat = rate.rate;
+									if (save != null)
+										sav = true;
+									if (repost != null)
+										rep = true;
+
+									return new MetricsDTO(post, rat, sav, rep);
+								});
+						});
+				});
+			});
 	}
 	
 	//HomeDTO of constructors
@@ -112,7 +146,8 @@ public class HomeService {
 			content,
 			song,
 			album,
-			coverImg
+			coverImg,
+			post.id
 		));
 	}
 	
@@ -122,29 +157,30 @@ public class HomeService {
 		SongDTO song = null;
 		AlbumDTO album = null;
 		
-		if (repost.postId.songId != null|| repost.postId.albumId != null) {
-			content = (repost.postId.albumId == null) ? "song" : "album";
-			coverImg = (repost.postId.albumId == null) ? repost.postId.songId.coverImg : repost.postId.albumId.coverImg;
+		if (repost.post.songId != null|| repost.post.albumId != null) {
+			content = (repost.post.albumId == null) ? "song" : "album";
+			coverImg = (repost.post.albumId == null) ? repost.post.songId.coverImg : repost.post.albumId.coverImg;
 		}
 	
-		if (repost.postId.songId != null) {
-			song = new SongDTO(repost.postId.songId.name, repost.postId.songId.audio);
+		if (repost.post.songId != null) {
+			song = new SongDTO(repost.post.songId.name, repost.post.songId.audio);
 		} else if (songs != null) {
 			List<SongDTO> songDTOs = songs.stream()
 				.map(s -> new SongDTO(s.name, s.audio))
 				.toList();
-			album = new AlbumDTO(repost.postId.albumId.name, songDTOs);
+			album = new AlbumDTO(repost.post.albumId.name, songDTOs);
 		}
 	
 		return Uni.createFrom().<HomeDTO>item(new HomeDTO(
 			"repost",
 			repost.createdAt,
-			new UserDTO(repost.postId.userName),
-			new UserDTO(repost.userName),
+			new UserDTO(repost.post.userName),
+			new UserDTO(repost.user),
 			content,
 			song,
 			album,
-			coverImg
+			coverImg,
+			repost.post.id
 		));
 	}
 	

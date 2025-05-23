@@ -42,4 +42,10 @@ public class SongResource {
 		return ss.searchSongsByName(searchText, limit);
 	}
 
+	@GET
+	@Path("/albums/{album_id}")
+	public Uni<List<Song>> getSongsByAlbum(@PathParam("album_id") Long album_id) {
+		return ss.getSongsByAlbum(album_id);
+	}
+
 }

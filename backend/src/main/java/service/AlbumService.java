@@ -1,6 +1,5 @@
 package service;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -54,10 +53,10 @@ public class AlbumService {
 	public Uni<Album> createAlbumfromPost(User user, AlbumPostDTO postDTO) {
 		Album a = new Album(postDTO.albumName, postDTO.coverImg, LocalDateTime.now(), user);
 
-		return persistAlbum(a).flatMap(album -> {
+		return persistAlbum(a)
+		.flatMap(album -> {
 			return Multi.createFrom().iterable(postDTO.songs)
 				.onItem().transformToUniAndMerge(song -> {
-					
 					Song s = new Song(song.name, postDTO.coverImg, LocalDateTime.now(), song.audio , user, album);
 					return ss.persistSong(s);
 				}).collect().asList()
