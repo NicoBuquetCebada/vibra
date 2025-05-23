@@ -2,7 +2,6 @@ package resource;
 
 import java.util.List;
 
-import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;

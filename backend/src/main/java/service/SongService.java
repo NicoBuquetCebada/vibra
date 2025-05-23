@@ -36,7 +36,6 @@ public class SongService {
 	}
 
 	public Uni<List<Song>> getSongsByAlbum(Long album) {
-		System.err.println("Entrando en getSongsByAlbum " + album);
 		return Song.find("album.id", album).list();
 	}
 

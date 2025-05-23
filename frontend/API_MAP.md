@@ -63,7 +63,11 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 		{
 			"name": "string",
 			"id": 1,
-			"img": "ruta/imagen",
+			"type": "string"
+		},
+		{
+			"name": "string",
+			"id": 1,
 			"type": "string"
 		}
 		]
@@ -88,7 +92,7 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 				"rate": 4,
 				"postId": 1
 			}
-	response: code 201
+	response: code 200
 
 - save post, hacer save a un post. El valor del body es el id de post
 
@@ -100,7 +104,7 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 
 	request: DELETE /api/metrics/save/{post_id}
 		body: 1
-	response: code 201
+	response: code 204
 
 - repost post, hacer repost a un post. El valor del body es el id de post
 
@@ -112,7 +116,7 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 
 	request: DELETE /api/metrics/repost/{post_id}
 		body: 1
-	response: code 201
+	response: code 204
 	
 # USERS
 

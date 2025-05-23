@@ -12,9 +12,10 @@ public class HomeDTO {
 	public SongDTO song;
 	public AlbumDTO album;
 	public String coverImg;
+	public Long postId;
 
 	public HomeDTO(String type, LocalDateTime createdAt, UserDTO user, UserDTO repostUser, String content, SongDTO song,
-			AlbumDTO album, String coverImg) {
+			AlbumDTO album, String coverImg, Long postId) {
 		this.type = type;
 		this.createdAt = createdAt;
 		this.user = user;
@@ -23,6 +24,7 @@ public class HomeDTO {
 		this.song = song;
 		this.album = album;
 		this.coverImg = coverImg;
+		this.postId = postId;
 	}
 
 	public LocalDateTime getCreatedAt() {

@@ -2,6 +2,7 @@ package resource;
 
 import java.util.List;
 
+import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
@@ -17,8 +18,10 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import model.User;
+import model.UserPage;
 import model.dto.LoginDTO;
 import model.dto.RegisterDTO;
+import service.UserPageService;
 import service.UserService;
 
 @Path("/users")
@@ -26,11 +29,11 @@ import service.UserService;
 @Consumes(MediaType.APPLICATION_JSON)
 public class UserResource {
 
-	@Inject
-	SecurityIdentity securityIdentity;
+	@Inject SecurityIdentity securityIdentity;
 
-	@Inject
-	UserService us;
+	@Inject UserPageService ups;
+
+	@Inject UserService us;
 
 
 	@GET
@@ -71,6 +74,13 @@ public class UserResource {
 	@PUT
 	public Uni<Response> updateUser(RegisterDTO register) {
 		return us.updateUser(register);
+	}
+
+	@GET
+	@Path("/page")
+	@Authenticated
+	public Uni<UserPage> getPage() {
+		return ups.getPage(securityIdentity);
 	}
 	
 
