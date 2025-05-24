@@ -140,12 +140,10 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 		body:
 			{
 				"name": "userName",
-				"mail": "string",
-				"firstName": "nombre de pila",
+				"mail": "correo electronico",
+				"firstName": "nombre",
 				"surname": "apellido",
-				"pass": "contraseña",
-				"profileImg": "ruta/imagen",
-				"role": "user"
+				"pass": "contraseña"
 			}
 	
 	response: code 201

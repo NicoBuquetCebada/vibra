@@ -32,9 +32,5 @@ public class RegisterDTO {
 	)
 	public String pass;
 
-	public String profileImg;
-
-	public String role;
-
 	public RegisterDTO() {}
 }

@@ -19,6 +19,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import model.User;
 import model.UserPage;
+import model.UserPagePost;
 import model.dto.LoginDTO;
 import model.dto.RegisterDTO;
 import service.UserPageService;
@@ -34,6 +35,7 @@ public class UserResource {
 	@Inject UserPageService ups;
 
 	@Inject UserService us;
+
 
 
 	@GET
@@ -82,6 +84,12 @@ public class UserResource {
 	public Uni<UserPage> getPage() {
 		return ups.getPage(securityIdentity);
 	}
+
+	@GET
+    @Path("/posts")
+    public Uni<List<UserPagePost>> getUserPosts() {
+        return ups.getPostsByUserName(securityIdentity);
+    }
 	
 
 }

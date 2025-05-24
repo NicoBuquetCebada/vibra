@@ -74,20 +74,42 @@ ALTER SEQUENCE songs_seq RESTART WITH 5;
 
 DROP TABLE IF EXISTS search_view CASCADE;
 DROP TABLE IF EXISTS user_page_view CASCADE;
+DROP TABLE IF EXISTS user_page_posts_view CASCADE;
 
+
+-- SEARCH BAR VIEW
 CREATE VIEW search_view (name, id, type) AS
 SELECT name, NULL::BIGINT AS id, 'user' AS type, profile_img AS img FROM users UNION ALL
 SELECT name, id, 'song' AS type, cover_img AS img FROM songs UNION ALL
 SELECT name, id, 'album' AS type, cover_img AS img FROM albums;
 
+-- USER PAGE INFO VIEW
 CREATE VIEW user_page_view (name, profile_img, posts, followed, followers) AS
-SELECT u.name, u.profile_img, COUNT(p.id) AS posts, COUNT(DISTINCT f1.followed) AS followed, COUNT(DISTINCT f2.followed) AS followers
+SELECT u.name, u.profile_img,
+(SELECT COUNT(*) FROM posts WHERE user_name = u.name) AS posts,
+COUNT(DISTINCT f1.followed) AS followed,
+COUNT(DISTINCT f2.followed) AS followers
 FROM users u
-LEFT JOIN posts p ON u.name = p.user_name
 LEFT JOIN follows f1 ON u.name = f1.follower
 LEFT JOIN follows f2 ON u.name = f2.followed
 GROUP BY u.name, u.profile_img;
 
+-- USER PAGE POSTS DTO VIEW
+CREATE OR REPLACE VIEW user_page_posts_view AS
+SELECT
+    p.id, p.user_name, p.created_at,
+    CASE
+        WHEN p.album_id IS NOT NULL THEN 'album'
+        WHEN p.song_id IS NOT NULL THEN 'song'
+    END AS type,
+    COALESCE(p.album_id, p.song_id) AS content_id,
+    COALESCE(a.name, s.name) AS name,
+    COALESCE(a.cover_img, s.cover_img) AS cover_img
+FROM posts p
+LEFT JOIN albums a ON p.album_id = a.id
+LEFT JOIN songs s ON p.song_id = s.id;
+
+/* CREATE VIEW user_page_posts_view (id, user_name, created_at, type, content_name, ) */
 
 /*
 -- Rates
