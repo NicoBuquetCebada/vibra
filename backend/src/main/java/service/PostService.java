@@ -41,6 +41,10 @@ public class PostService {
 			.list();
 	}
 
+	public Uni<List<Post>> getPostsByUser(User user) {
+		return Post.find("userName = ?1 ORDER BY createdAt DESC", user).list();
+	}
+
 	@WithTransaction
 	public Uni<Response> addSongPost(SecurityIdentity si, SongPostDTO postDTO) {
 		return us.getUserByToken(si)

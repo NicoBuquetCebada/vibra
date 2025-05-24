@@ -25,7 +25,7 @@ public class UserService {
 	// User of constructor
 	public User userOfRegister(RegisterDTO register) {
 		String hashedPass = hashPass(register.pass);
-		return new User(register.name, register.firstName, register.surname, register.mail, hashedPass, register.profileImg, register.profileImg);
+		return new User(register.name, register.firstName, register.surname, register.mail, hashedPass, "http://localhost:8080/media/defaultu", "user");
 	}
 
 	//Information requests
@@ -130,8 +130,8 @@ public class UserService {
 					user.firstName = updated.firstName;
 					user.surname = updated.surname;
 					user.pass = hashPass(updated.pass);
-					user.profileImg = updated.profileImg;
-					user.role = updated.role;
+					user.profileImg = "http://localhost:8080/media/defaultu";
+					user.role = "user";
 				})
 				.onItem().ifNotNull()
 				.transform(ignored -> Response.ok().build());

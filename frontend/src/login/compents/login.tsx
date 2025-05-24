@@ -1,9 +1,11 @@
 import React, { useState, useContext } from 'react';
 import '../../styles/global.scss';
-import { TextField, Button } from '@mui/material';
+import { TextField, Button, IconButton, InputAdornment } from '@mui/material';
 import { AuthContext } from '../../context/auth-context'; // Importamos el contexto
 import { useNavigate } from 'react-router-dom'; // Para redirigir al home
 import Logo from '../../assets/logo.png'
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 const Login: React.FC = () => {
   const authContext = useContext(AuthContext);
@@ -19,6 +21,15 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +54,7 @@ const Login: React.FC = () => {
     <div className="container">
       <div className="login-card">
         <img src={Logo} alt="Logo Vibra" className="logo-img" />
-        <h1>Iniciar Sesión</h1>
+        <h1>Inicia Sesión</h1>
         <p className="description">¡Conéctate a tu red social musical favorita!</p>
         <form onSubmit={handleSubmit}>
           <TextField
@@ -59,14 +70,39 @@ const Login: React.FC = () => {
           />
           <TextField
             label="Contraseña"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             variant="outlined"
             fullWidth
             margin="normal"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             error={error}
-            disabled={loading} // Deshabilitar campo si está cargando
+            disabled={loading}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={handleClickShowPassword}
+                    onMouseDown={handleMouseDownPassword}
+                    edge="end"
+                    sx={{ 
+                      bgcolor: 'transparent !important',
+                      '&:hover': { 
+                        bgcolor: 'transparent !important',
+                        color: 'primary.main'
+                      },
+                      '&.MuiIconButton-root': {
+                        bgcolor: 'transparent !important'
+                      },
+                      color: showPassword ? 'primary.main' : 'grey.600'
+                    }}
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <Button variant="contained" fullWidth className="btn" type="submit" disabled={loading}>
             {loading ? 'Entrando...' : 'Entrar'} 
