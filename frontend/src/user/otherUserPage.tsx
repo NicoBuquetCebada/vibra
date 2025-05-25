@@ -1,15 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Box, Avatar, Typography, Paper } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import MusicPlayer from '../home/components/musicPlayer';
 import BottomNav from '../components/bottom-navigation';
 import { fetchWithAuth } from '../api';
 import SongCard from '../home/components/songCard';
-import Fab from '@mui/material/Fab';
-import TuneIcon from '@mui/icons-material/Tune';
-import PersonIcon from '@mui/icons-material/Person';
-import Tooltip from '@mui/material/Tooltip';
-
 
 interface UserData {
   name: string;
@@ -29,37 +24,16 @@ export interface UserPagePost {
   coverImg?: string;
 }
 
-export function userPagePostToSongCard(
-  post: UserPagePost,
-  userData: UserData,
-  index: number
-) {
-  return {
-    id: index,
-    title: post.name,
-    audioSrc:
-      post.type === 'song'
-        ? post.name // Cambia esto por la URL real si la tienes, aquí solo es el nombre
-        : post.type === 'album'
-        ? '' // No tienes info de canciones en el álbum, pon la URL si la tienes
-        : '',
-    profilePic: userData.profile_img,
-    username: post.userName,
-    coverImg: post.coverImg,
-    postId: post.id,
-  };
-}
-
-const UserPage: React.FC = () => {
+const OtherUserPage: React.FC = () => {
+  const { username } = useParams();
   const navigate = useNavigate();
-
   const [userData, setUserData] = useState<UserData | null>(null);
   const [posts, setPosts] = useState<UserPagePost[]>([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetchWithAuth('/api/users/page');
+        const response = await fetchWithAuth(`/api/users/${username}`);
         if (!response.ok) throw new Error('Error al obtener datos del usuario');
         const data = await response.json();
         setUserData(data);
@@ -70,7 +44,7 @@ const UserPage: React.FC = () => {
 
     const fetchUserPosts = async () => {
       try {
-        const response = await fetchWithAuth('/api/users/posts');
+        const response = await fetchWithAuth(`/api/users/posts`);
         if (!response.ok) throw new Error('Error al obtener posts');
         const data = await response.json();
         setPosts(data);
@@ -79,9 +53,11 @@ const UserPage: React.FC = () => {
       }
     };
 
-    fetchUserData();
-    fetchUserPosts();
-  }, []);
+    if (username) {
+      fetchUserData();
+      fetchUserPosts();
+    }
+  }, [username]);
 
   return (
     <Container
@@ -109,35 +85,32 @@ const UserPage: React.FC = () => {
         <Paper
           elevation={3}
           sx={{
-            padding: '12px 16px',
-            borderRadius: '10px',
+            padding: '24px',
+            borderRadius: '16px',
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
             display: 'flex',
             alignItems: 'center',
-            gap: '16px',
-            position: 'relative', // Para posicionar el botón dentro
+            gap: '24px',
           }}
         >
           {/* Avatar del usuario */}
           <Avatar
-            src={userData?.profile_img || undefined}
+            src={userData?.profile_img}
             sx={{
-              width: { xs: 56, md: 72 },
-              height: { xs: 56, md: 72 },
-              border: '2px solid #307cbe',
+              width: { xs: 100, md: 120 },
+              height: { xs: 100, md: 120 },
+              border: '4px solid #307cbe',
             }}
-          >
-            {!userData?.profile_img && <PersonIcon sx={{ fontSize: 40, color: '#307cbe' }} />}
-          </Avatar>
+          />
 
           {/* Información del usuario */}
           <Box sx={{ flex: 1 }}>
             <Typography
-              variant="h5"
+              variant="h4"
               sx={{
                 fontWeight: 600,
                 color: '#307cbe',
-                mb: 1
+                marginBottom: '16px',
               }}
             >
               {userData?.name || 'Cargando...'}
@@ -147,7 +120,7 @@ const UserPage: React.FC = () => {
             <Box
               sx={{
                 display: 'flex',
-                gap: '18px',
+                gap: '32px',
               }}
             >
               {/* Posts */}
@@ -174,8 +147,11 @@ const UserPage: React.FC = () => {
 
               {/* Followed */}
               <Box
-                sx={{ cursor: 'pointer' }}
-                onClick={() => navigate(`/profile/${userData?.name}/followed`)}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                }}
               >
                 <Typography
                   variant="h5"
@@ -193,8 +169,11 @@ const UserPage: React.FC = () => {
 
               {/* Followers */}
               <Box
-                sx={{ cursor: 'pointer' }}
-                onClick={() => navigate(`/profile/${userData?.name}/followers`)}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                }}
               >
                 <Typography
                   variant="h5"
@@ -211,57 +190,34 @@ const UserPage: React.FC = () => {
               </Box>
             </Box>
           </Box>
-
-          {/* Botón de configuración arriba a la derecha */}
-          <Tooltip title="Ajustes de perfil" arrow placement="bottom">
-            <Fab
-              color="primary"
-              aria-label="configuración"
-              size="small"
-              sx={{
-                position: 'absolute',
-                top: 12,
-                right: 12,
-                zIndex: 2,
-                boxShadow: 2,
-              }}
-              onClick={() => navigate('/settings')}
-            >
-              <TuneIcon />
-            </Fab>
-          </Tooltip>
         </Paper>
 
         {/* Publicaciones */}
+
+
         <Box sx={{ mt: 4 }}>
-          {(!userData || posts.length === 0) ? (
+        <Typography variant="h6" sx={{ mb: 2 }}>
+            Publicaciones
+        </Typography>
+        {posts.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
-              {!userData ? 'Cargando usuario...' : 'No hay publicaciones.'}
+            No hay publicaciones.
             </Typography>
-          ) : (
-            posts.map((post, idx) => {
-              const songCardData = userPagePostToSongCard(post, userData, idx);
-
-              // Función para navegar al perfil correcto
-              const handleUserClick = (username: string) => {
-                if (username === userData?.name) {
-                  navigate('/profile');
-                } else {
-                  navigate(`/profile/${username}`);
-                }
-              };
-
-              return (
-                <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
-                  <SongCard
-                    song={songCardData}
-                    // Si SongCard tiene avatar/nombre clicable, pásale la función:
-                    onUserClick={() => handleUserClick(songCardData.username)}
-                  />
-                </Box>
-              );
-            })
-          )}
+        ) : (
+            posts.map((post) => (
+            <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
+                <SongCard song={{
+                id: post.id,
+                title: post.name,
+                audioSrc: '', // Añade aquí la URL si la tienes en el post
+                profilePic: userData?.profile_img || '',
+                username: post.userName,
+                coverImg: post.coverImg,
+                postId: post.id
+                }} />
+            </Box>
+            ))
+        )}
         </Box>
       </Box>
 
@@ -287,11 +243,9 @@ const UserPage: React.FC = () => {
         <MusicPlayer />
       </Box>
 
-      <BottomNav handleNavigation={navigate}  />
-
-      
+      <BottomNav handleNavigation={navigate} />
     </Container>
   );
 };
 
-export default UserPage;
+export default OtherUserPage;
