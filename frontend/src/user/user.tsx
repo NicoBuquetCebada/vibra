@@ -62,6 +62,7 @@ const UserPage: React.FC = () => {
         const response = await fetchWithAuth('/api/users/page');
         if (!response.ok) throw new Error('Error al obtener datos del usuario');
         const data = await response.json();
+        console.log('Datos de usuario:', data); // <-- Aquí ves la respuesta completa
         setUserData(data);
       } catch (error) {
         console.error('Error:', error);
@@ -73,6 +74,7 @@ const UserPage: React.FC = () => {
         const response = await fetchWithAuth('/api/users/posts');
         if (!response.ok) throw new Error('Error al obtener posts');
         const data = await response.json();
+        console.log('Posts del usuario:', data); // <-- Aquí ves la respuesta completa
         setPosts(data);
       } catch (error) {
         console.error('Error:', error);
@@ -103,6 +105,7 @@ const UserPage: React.FC = () => {
           flex: 1,
           maxWidth: '65%',
           paddingX: { xs: '16px', md: '32px' },
+          minHeight: 'max-content',
         }}
       >
         {/* Perfil del usuario */}
@@ -174,7 +177,9 @@ const UserPage: React.FC = () => {
 
               {/* Followed */}
               <Box
-                sx={{ cursor: 'pointer' }}
+                sx={{ cursor: 'pointer',display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center', }}
                 onClick={() => navigate(`/profile/${userData?.name}/followed`)}
               >
                 <Typography
@@ -193,7 +198,9 @@ const UserPage: React.FC = () => {
 
               {/* Followers */}
               <Box
-                sx={{ cursor: 'pointer' }}
+                sx={{ cursor: 'pointer',display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center', }}
                 onClick={() => navigate(`/profile/${userData?.name}/followers`)}
               >
                 <Typography

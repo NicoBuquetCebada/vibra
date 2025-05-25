@@ -10,6 +10,7 @@ import OtherUserPage from '../user/otherUserPage'; // Importa tu componente Othe
 import SettingsPage from '../user/SettingsPage'; // Importa tu componente SettingsPage
 import PostPage from '../post/PostPage';
 import UserListPage from '../user/UserListPage';
+import NotificationList from '../notifications/NotificationList'; // Importa el componente
 
 const AppRouter: React.FC = () => {
   const authContext = useContext(AuthContext);
@@ -36,6 +37,7 @@ const AppRouter: React.FC = () => {
         <Route path="/post/:postId" element={isLoggedIn ? <PostPage /> : <Navigate to="/login" />} />
         <Route path="/profile/:username/followers" element={<UserListPage />} />
         <Route path="/profile/:username/followed" element={<UserListPage />} />
+        <Route path="/notifications" element={isLoggedIn ? <NotificationList /> : <Navigate to="/login" />} />
       </Routes>
     </Router>
   );

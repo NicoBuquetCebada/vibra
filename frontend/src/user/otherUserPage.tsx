@@ -5,6 +5,8 @@ import MusicPlayer from '../home/components/musicPlayer';
 import BottomNav from '../components/bottom-navigation';
 import { fetchWithAuth } from '../api';
 import SongCard from '../home/components/songCard';
+import PersonIcon from '@mui/icons-material/Person';
+
 
 interface UserData {
   name: string;
@@ -79,38 +81,42 @@ const OtherUserPage: React.FC = () => {
           flex: 1,
           maxWidth: '65%',
           paddingX: { xs: '16px', md: '32px' },
+          minHeight: 'max-content',
         }}
       >
         {/* Perfil del usuario */}
         <Paper
           elevation={3}
           sx={{
-            padding: '24px',
-            borderRadius: '16px',
+            padding: '12px 16px',
+            borderRadius: '10px',
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
             display: 'flex',
             alignItems: 'center',
-            gap: '24px',
+            gap: '16px',
+            position: 'relative',
           }}
         >
           {/* Avatar del usuario */}
           <Avatar
             src={userData?.profile_img}
             sx={{
-              width: { xs: 100, md: 120 },
-              height: { xs: 100, md: 120 },
-              border: '4px solid #307cbe',
-            }}
-          />
+              width: { xs: 56, md: 72 },
+              height: { xs: 56, md: 72 },
+              border: '2px solid #307cbe',
+            }}>
+                {!userData?.profile_img && <PersonIcon sx={{ fontSize: 40, color: '#307cbe' }} />}
+            </Avatar>
+            
 
           {/* Información del usuario */}
           <Box sx={{ flex: 1 }}>
             <Typography
-              variant="h4"
+              variant="h5"
               sx={{
                 fontWeight: 600,
                 color: '#307cbe',
-                marginBottom: '16px',
+                mb: 1
               }}
             >
               {userData?.name || 'Cargando...'}
@@ -120,7 +126,7 @@ const OtherUserPage: React.FC = () => {
             <Box
               sx={{
                 display: 'flex',
-                gap: '32px',
+                gap: '18px',
               }}
             >
               {/* Posts */}
