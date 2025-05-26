@@ -9,6 +9,7 @@ import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.elytron.security.common.BcryptUtil;
 import io.quarkus.hibernate.reactive.panache.Panache;
+import io.quarkus.hibernate.reactive.panache.common.WithTransaction;
 import io.quarkus.security.UnauthorizedException;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.mutiny.Uni;
@@ -18,6 +19,7 @@ import model.User;
 import model.dto.AuthResponseDTO;
 import model.dto.RegisterDTO;
 import model.dto.LoginDTO;
+import model.dto.PassChangeDTO;
 
 @ApplicationScoped
 public class UserService {
@@ -136,6 +138,51 @@ public class UserService {
 				.onItem().ifNotNull()
 				.transform(ignored -> Response.ok().build());
 		});
+	}
+
+	@WithTransaction
+    public Uni<Response> updateField(SecurityIdentity si, String field, String value) {
+        return getUserByToken(si)
+            .flatMap(user -> {
+                switch (field.toLowerCase()) {
+                    case "mail":
+                        if (!isValidMail(value)) {
+                            return Uni.createFrom().failure(
+                                new IllegalArgumentException("Email inválido")
+                            );
+                        }
+                        return User.update("mail = ?1 WHERE name = ?2", value, user.name)
+                            .map(updated -> Response.ok().build());
+                    
+                    case "profileimg":
+                        return User.update("profileImg = ?1 WHERE name = ?2", value, user.name)
+                            .map(updated -> Response.ok().build());
+                    
+                    default:
+                        return Uni.createFrom().failure(
+                            new IllegalArgumentException("Campo no actualizable")
+                        );
+                }
+            });
+    }
+
+	@WithTransaction
+	public Uni<Response> updatePass(SecurityIdentity si, PassChangeDTO dto) {
+		return getUserByToken(si)
+			.flatMap(user -> {
+				if (!verifyPass(dto.oldPass, user.pass)) {
+					return Uni.createFrom().failure(new UnauthorizedException());
+				}
+				String hashedPass = hashPass(dto.newPass);
+				return User.update("pass = ?1 WHERE name = ?2", hashedPass, user.name)
+					.map(ignore -> Response.ok().build());
+			});
+	}
+
+	// Validation
+	public boolean isValidMail(String mail) {
+		String regex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+		return mail.matches(regex);
 	}
 
 	//Passwords
