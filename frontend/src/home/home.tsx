@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useContext } from 'react';
-import { Container, Box, Typography, CircularProgress, IconButton, Avatar } from '@mui/material';
+import { Container, Box, Typography, CircularProgress, IconButton, Avatar, Tooltip } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
@@ -36,7 +36,7 @@ export interface PostApi {
 }
 
 // Adaptador para transformar PostApi a Song (para SongCard)
-function postToSongCard(post: PostApi, index: number) {
+export function postToSongCard(post: PostApi, index: number) {
   // Si es post de canción
   if (post.content === 'song' && post.song) {
     return {
@@ -344,31 +344,33 @@ function MusicHome() {
         }}
       >
         {/* Logo que funciona como botón de logout */}
-        <IconButton 
-          onClick={handleLogout} 
-          sx={{ 
-            position: 'fixed', 
-            top: 19, 
-            left: 16, 
-            zIndex: 2000,
-            background: 'rgba(255,255,255,0.8)',
-            padding: '6px',
-            '&:hover': {
-              background: 'rgba(255,255,255,0.9)',
-            }
-          }}
-        >
-          <Box
-            component="img"
-            src={Logo}
-            alt="Logo"
-            sx={{
-              width: '40px',
-              height: '40px',
-              objectFit: 'contain'
+        <Tooltip title="Cerrar sesión" arrow placement="bottom">
+          <IconButton 
+            onClick={handleLogout} 
+            sx={{ 
+              position: 'fixed', 
+              top: 19, 
+              left: 16, 
+              zIndex: 2000,
+              background: 'rgba(255,255,255,0.8)',
+              padding: '6px',
+              '&:hover': {
+                background: 'rgba(255,255,255,0.9)',
+              }
             }}
-          />
-        </IconButton>
+          >
+            <Box
+              component="img"
+              src={Logo}
+              alt="Logo"
+              sx={{
+                width: '40px',
+                height: '40px',
+                objectFit: 'contain'
+              }}
+            />
+          </IconButton>
+        </Tooltip>
 
         {/* Barra de búsqueda */}
         <Box
@@ -447,6 +449,14 @@ function MusicHome() {
                       backgroundColor: 'rgba(48, 124, 190, 0.1)',
                     },
                     borderBottom: index < searchResults.length - 1 ? '1px solid rgba(0,0,0,0.1)' : 'none',
+                  }}
+                  onClick={() => {
+                    if (result.type === 'user') {
+                      navigate(`/profile/${result.name}`);
+                    } else if ((result.type === 'song' || result.type === 'album' || result.type === 'post') && result.id) {
+                      navigate(`/post/${result.id}`);
+                    }
+                    setShowResults(false);
                   }}
                 >
                   {/* Mostrar imagen si existe, sino mostrar icono por defecto */}
@@ -528,6 +538,23 @@ function MusicHome() {
               ))}
             </Box>
           )}
+          {/* Mensaje cuando no hay resultados */}
+          {showResults && searchResults.length === 0 && (
+            <Box
+              sx={{
+                width: '100%',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: '0 0 16px 16px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                p: 3,
+                textAlign: 'center',
+                color: '#307cbe',
+                fontWeight: 500,
+              }}
+            >
+              No se han encontrado resultados.
+            </Box>
+          )}
         </Box>
 
         <Box
@@ -543,15 +570,46 @@ function MusicHome() {
             zIndex: 1,
           }}
         >
-          {posts.map((post, index) => (
-            <SongCard
-              key={index}
-              song={postToSongCard(post, index)}
-              isRepost={post.type === 'repost'}
-              repostUser={post.type === 'repost' ? post.repostUser : undefined}
-              ref={index === posts.length - 1 ? observerRef : null}
-            />
-          ))}
+          {posts.map((post, index) => {
+            const songCardData = postToSongCard(post, index);
+
+            // Función para navegación inteligente
+            const handleUserClick = (username: string) => {
+              console.log('Navigating to user:', username);
+              console.log('Current user:', authContext?.user?.name);
+              if (username === authContext?.user?.name) {
+                navigate('/profile');
+              } else {
+                navigate(`/profile/${username}`);
+              }
+            };
+
+            // Para repostUser (si existe)
+            const handleRepostUserClick = (repostUser?: { name: string }) => {
+              if (!repostUser) return;
+              if (repostUser.name === authContext?.user?.name) {
+                navigate('/profile');
+              } else {
+                navigate(`/profile/${repostUser.name}`);
+              }
+            };
+
+            return (
+              <SongCard
+                key={index}
+                song={songCardData}
+                isRepost={post.type === 'repost'}
+                repostUser={post.type === 'repost' ? post.repostUser : undefined}
+                onUserClick={() => handleUserClick(songCardData.username)}
+                onRepostUserClick={
+                  post.type === 'repost' && post.repostUser
+                    ? () => handleRepostUserClick(post.repostUser)
+                    : undefined
+                }
+                ref={index === posts.length - 1 ? observerRef : null}
+              />
+            );
+          })}
           {loading && (
             <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', py: 2 }}>
               <CircularProgress sx={{ color: '307cbe' }} />

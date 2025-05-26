@@ -84,12 +84,25 @@ public class UserResource {
 	public Uni<UserPage> getPage() {
 		return ups.getPage(securityIdentity);
 	}
+	
+	@GET
+	@Path("/page/{user_name}")
+	@Authenticated
+	public Uni<UserPage> getOthersPage(@PathParam("user_name") String userName) {
+		return ups.getOthersPage(userName);
+	}
 
 	@GET
     @Path("/posts")
     public Uni<List<UserPagePost>> getUserPosts() {
-        return ups.getPostsByUserName(securityIdentity);
+        return ups.getPostsByUserToken(securityIdentity);
     }
+
+	@GET
+	@Path("/posts/{user_name}")
+	public Uni<List<UserPagePost>> getOtherUserPosts(@PathParam("user_name") String userName) {
+		return ups.getPostsByUserName(userName);
+	}
 	
 
 }

@@ -25,11 +25,11 @@ const RepostButton: React.FC<RepostButtonProps> = ({ postId }) => {
   const handleRepost = async () => {
     try {
       if (reposted) {
-        // Si ya está reposteado, eliminarlo
+        console.log(`Llamando a deleteRepost para el postId: ${postId}`);
         await deleteRepost(postId);
         setReposted(false);
       } else {
-        // Si no está reposteado, repostearlo
+        console.log(`Llamando a repostPost para el postId: ${postId}`);
         await repostPost(postId);
         setReposted(true);
       }

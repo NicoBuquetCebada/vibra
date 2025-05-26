@@ -14,6 +14,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ handleNavigation }) => {
   return (
     <BottomNavigation
       sx={{
+        mt: 2,
         position: 'fixed',
         bottom: 0,
         left: 0,
