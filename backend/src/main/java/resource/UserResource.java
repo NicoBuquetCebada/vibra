@@ -10,8 +10,8 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -21,6 +21,7 @@ import model.User;
 import model.UserPage;
 import model.UserPagePost;
 import model.dto.LoginDTO;
+import model.dto.PassChangeDTO;
 import model.dto.RegisterDTO;
 import service.UserPageService;
 import service.UserService;
@@ -38,15 +39,9 @@ public class UserResource {
 
 
 
-	@GET
+	@GET // Only for dev tests
 	public Uni<List<User>> getAllUsers() {
 		return us.getAllUsers();
-	}
-
-	@GET
-	@Path("/{username}")
-	public Uni<User> getUserByName(@PathParam("username") String name) {
-		return us.getUserByName(name);
 	}
 
 	@POST
@@ -55,27 +50,33 @@ public class UserResource {
 		return us.login(login);
 	}
 
-	@GET
-	@Path("/token")
-	public Uni<User> getUserName() {
-		return us.getUserByToken(securityIdentity);
-	}
-
 	@POST
 	@Path("/register")
 	public Uni<Response> register(@Valid RegisterDTO register) {
 		return us.insertUser(register);
 	}
 
-	@DELETE
-	@Path("/{name}")
-	public Uni<Response> deleteUserByName(@PathParam("name") String name) {
-		return us.deleteUserByName(name);
+
+	// Campos actualizables: mail y profileImg
+	@PATCH
+	@Path("update/{field}/{value}")
+	@Authenticated
+	public Uni<Response> updateField(@PathParam("field") String field, @PathParam("value") String value) {
+		return us.updateField(securityIdentity, field, value);
 	}
 
-	@PUT
-	public Uni<Response> updateUser(RegisterDTO register) {
-		return us.updateUser(register);
+	@PATCH
+	@Path("update/password")
+	@Authenticated
+	public Uni<Response> updatePass(PassChangeDTO dto) {
+		return us.updatePass(securityIdentity, dto);
+	}
+
+	@DELETE
+	@Path("/{name_name}")
+	@Authenticated
+	public Uni<Response> deleteUserByName(@PathParam("name_name") String name) {
+		return us.deleteUserByName(name);
 	}
 
 	@GET
@@ -84,12 +85,25 @@ public class UserResource {
 	public Uni<UserPage> getPage() {
 		return ups.getPage(securityIdentity);
 	}
+	
+	@GET
+	@Path("/page/{user_name}")
+	@Authenticated
+	public Uni<UserPage> getOthersPage(@PathParam("user_name") String userName) {
+		return ups.getOthersPage(userName);
+	}
 
 	@GET
     @Path("/posts")
     public Uni<List<UserPagePost>> getUserPosts() {
-        return ups.getPostsByUserName(securityIdentity);
+        return ups.getPostsByUserToken(securityIdentity);
     }
+
+	@GET
+	@Path("/posts/{user_name}")
+	public Uni<List<UserPagePost>> getOtherUserPosts(@PathParam("user_name") String userName) {
+		return ups.getPostsByUserName(userName);
+	}
 	
 
 }

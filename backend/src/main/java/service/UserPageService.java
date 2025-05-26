@@ -22,9 +22,20 @@ public class UserPageService {
 			});
 	}
 
-	public Uni<List<UserPagePost>> getPostsByUserName(SecurityIdentity si) {
+	public Uni<UserPage> getOthersPage(String userName) {
+		return us.getUserByName(userName)
+			.flatMap(user -> {
+				return UserPage.find("LOWER(name) LIKE ?1", user.name).firstResult();
+			});
+	}
+
+	public Uni<List<UserPagePost>> getPostsByUserToken(SecurityIdentity si) {
         return us.getUserByToken(si)
 			.flatMap(user -> UserPagePost.find("userName = ?1 ORDER BY createdAt DESC", user.name).list());		
     }
 
+	public Uni<List<UserPagePost>> getPostsByUserName(String userName) {
+		return us.getUserByName(userName)
+			.flatMap(user -> UserPagePost.find("userName = ?1 ORDER BY createdAt DESC", user.name).list());
+	}
 }

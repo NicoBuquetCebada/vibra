@@ -29,6 +29,5 @@ public class UserPagePost extends PanacheEntityBase {
     @Column(name = "cover_img")
     public String coverImg;
 
-    // Constructor vacío requerido
     public UserPagePost() {}
 }

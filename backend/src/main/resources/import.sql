@@ -73,15 +73,27 @@ INSERT INTO songs (id, name, cover_img, date, audio, user_name, album_id) VALUES
 ALTER SEQUENCE songs_seq RESTART WITH 5;
 
 DROP TABLE IF EXISTS search_view CASCADE;
+DROP TABLE IF EXISTS notifications_view CASCADE;
 DROP TABLE IF EXISTS user_page_view CASCADE;
 DROP TABLE IF EXISTS user_page_posts_view CASCADE;
 
 
+-- VIEWS
+
 -- SEARCH BAR VIEW
-CREATE VIEW search_view (name, id, type) AS
+CREATE OR REPLACE VIEW search_view (name, id, type) AS
 SELECT name, NULL::BIGINT AS id, 'user' AS type, profile_img AS img FROM users UNION ALL
 SELECT name, id, 'song' AS type, cover_img AS img FROM songs UNION ALL
 SELECT name, id, 'album' AS type, cover_img AS img FROM albums;
+
+-- NOTIFICATIONS VIEW
+CREATE OR REPLACE VIEW notifications_view (type, created_at, action_user, profile_img, content_user, content_id) AS
+SELECT 'follow' AS type, f.created_at, f.follower AS action_user, u.profile_img AS profile_img, f.followed AS content_user, f.id AS content_id
+FROM follows f JOIN users u ON f.follower = u.name UNION ALL
+SELECT 'repost' AS type, r.created_at, r.user_name AS action_user, u.profile_img AS profile_img, p.user_name AS content_user, p.id AS content_id
+FROM reposts r JOIN posts p ON r.post_id = p.id JOIN users u ON r.user_name = u.name UNION ALL
+SELECT 'rate' AS type, ra.created_at, ra.user_name AS action_user, u.profile_img AS profile_img, p.user_name AS content_user, p.id AS content_id
+FROM rates ra JOIN posts p ON ra.post_id = p.id JOIN users u ON ra.user_name = u.name;
 
 -- USER PAGE INFO VIEW
 CREATE VIEW user_page_view (name, profile_img, posts, followed, followers) AS
