@@ -3,12 +3,23 @@ import { Container, Box, Avatar, Typography, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MusicPlayer from '../home/components/musicPlayer';
 import BottomNav from '../components/bottom-navigation';
-import { fetchWithAuth } from '../api';
+import { fetchWithAuth, getFollowers, getFollowed } from '../api';
 import SongCard from '../home/components/songCard';
 import Fab from '@mui/material/Fab';
 import TuneIcon from '@mui/icons-material/Tune';
 import PersonIcon from '@mui/icons-material/Person';
 import Tooltip from '@mui/material/Tooltip';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import ListItemText from '@mui/material/ListItemText';
+import CircularProgress from '@mui/material/CircularProgress';
 
 
 interface UserData {
@@ -55,6 +66,10 @@ const UserPage: React.FC = () => {
 
   const [userData, setUserData] = useState<UserData | null>(null);
   const [posts, setPosts] = useState<UserPagePost[]>([]);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [dialogTitle, setDialogTitle] = useState('');
+  const [userList, setUserList] = useState<{ name: string; profile_img?: string }[]>([]);
+  const [loadingList, setLoadingList] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -84,6 +99,24 @@ const UserPage: React.FC = () => {
     fetchUserData();
     fetchUserPosts();
   }, []);
+
+  const handleOpenList = async (type: 'followers' | 'followed') => {
+    setDialogTitle(type === 'followers' ? 'Seguidores' : 'Seguidos');
+    setOpenDialog(true);
+    setLoadingList(true);
+    try {
+      const data = type === 'followers' ? await getFollowers() : await getFollowed();
+      setUserList(data);
+    } catch {
+      setUserList([]);
+    }
+    setLoadingList(false);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setUserList([]);
+  };
 
   return (
     <Container
@@ -177,10 +210,8 @@ const UserPage: React.FC = () => {
 
               {/* Followed */}
               <Box
-                sx={{ cursor: 'pointer',display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center', }}
-                onClick={() => navigate(`/profile/${userData?.name}/followed`)}
+                sx={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+                onClick={() => handleOpenList('followed')}
               >
                 <Typography
                   variant="h5"
@@ -198,10 +229,8 @@ const UserPage: React.FC = () => {
 
               {/* Followers */}
               <Box
-                sx={{ cursor: 'pointer',display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center', }}
-                onClick={() => navigate(`/profile/${userData?.name}/followers`)}
+                sx={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+                onClick={() => handleOpenList('followers')}
               >
                 <Typography
                   variant="h5"
@@ -296,7 +325,56 @@ const UserPage: React.FC = () => {
 
       <BottomNav handleNavigation={navigate}  />
 
-      
+      <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="xs">
+        <DialogTitle>{dialogTitle}</DialogTitle>
+        <DialogContent>
+          {loadingList ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+              <CircularProgress />
+            </Box>
+          ) : userList.length === 0 ? (
+            <DialogContentText>No hay usuarios.</DialogContentText>
+          ) : (
+            <List>
+              {userList.map((item) => (
+                <ListItem key={item.name}>
+                  <ListItemAvatar>
+                    <Avatar src={item.profile_img || undefined} />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={
+                      <Button
+                        variant="text"
+                        sx={{
+                          textTransform: 'none',
+                          color: '#307cbe',
+                          fontWeight: 600,
+                          fontSize: 16,
+                          p: 0,
+                          minWidth: 0,
+                        }}
+                        onClick={() => {
+                          if (userData && item.name === userData.name) {
+                            navigate('/profile');
+                          } else {
+                            navigate(`/profile/${item.name}`);
+                          }
+                          handleCloseDialog();
+                        }}
+                      >
+                        {item.name}
+                      </Button>
+                    }
+                  />
+                </ListItem>
+              ))}
+            </List>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

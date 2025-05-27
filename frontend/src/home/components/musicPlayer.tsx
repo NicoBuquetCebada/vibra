@@ -31,6 +31,8 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(50);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const { currentSong } = usePlayer(); // Accede a la canción actual desde el contexto
 
   const isSmallScreen = useMediaQuery('(max-width: 600px)'); // Detectar tamaño de pantalla
@@ -80,8 +82,35 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
   }, [song, isPlaying, currentSong]);
 
   useEffect(() => {
-    // Efecto para manejar cambios en el estado de reproducción
-  }, [song, isPlaying]);
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    // Actualiza la duración cuando se carga la metadata
+    const handleLoadedMetadata = () => {
+      setDuration(audio.duration);
+    };
+
+    // Actualiza el progreso y el tiempo actual mientras se reproduce
+    const handleTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+      setProgress((audio.currentTime / (audio.duration || 1)) * 100);
+    };
+
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+
+    return () => {
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+    };
+  }, [audioRef, currentSong]);
+
+  // Formatea segundos a mm:ss
+  const formatTime = (secs: number) => {
+    const minutes = Math.floor(secs / 60);
+    const seconds = Math.floor(secs % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
 
   if (!currentSong) {
     return (
@@ -217,6 +246,10 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
         }} />
 
       {/* 🔹 Slider para duración */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '80%' }}>
+        <Typography variant="caption">{formatTime(currentTime)}</Typography>
+        <Typography variant="caption">{formatTime(duration)}</Typography>
+      </Box>
       <Slider value={progress} onChange={handleSeek} aria-label="Duración" sx={{ width: '80%', marginTop: '10px', color: 'white' }} />
 
       {/* 🔹 Controles de reproducción */}

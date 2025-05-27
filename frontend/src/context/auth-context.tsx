@@ -1,26 +1,52 @@
-import React, { createContext, useState, ReactNode } from 'react';
+import React, { createContext, useState, ReactNode, useEffect } from 'react';
 
 interface AuthContextType {
   isLoggedIn: boolean;
   login: (emailOrUsername: string, password: string) => Promise<boolean>;
   logout: () => void;
   token: string | null;
-  user: { name: string} | null; // Añadido para almacenar información del usuario
+  user: { name: string } | null;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [user, setUser] = useState<{ name: string } | null>(null); // Añadido para almacenar información del usuario
+  const [user, setUser] = useState<{ name: string } | null>(null);
 
   // Si el token no es válido, lo eliminamos y forzamos logout
-  React.useEffect(() => {
-    if (token && token.length < 10) { // Comprobación simple, puedes mejorarla
+  useEffect(() => {
+    if (token && token.length < 10) {
       setToken(null);
       localStorage.removeItem('token');
+      setUser(null);
     }
+  }, [token]);
+
+  // Recuperar usuario si hay token en localStorage
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (token) {
+        try {
+          const response = await fetch('http://localhost:8080/api/users/page', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setUser({ name: data.name });
+          } else {
+            setUser(null);
+          }
+        } catch {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+    };
+    fetchUser();
   }, [token]);
 
   // Nueva función de login que llama a la API real
@@ -41,11 +67,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (data.token) {
         setToken(data.token);
         localStorage.setItem('token', data.token);
+        // Obtener usuario tras login
+        try {
+          const userRes = await fetch('http://localhost:8080/api/users/page', {
+            headers: {
+              Authorization: `Bearer ${data.token}`,
+            },
+          });
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            setUser({ name: userData.name });
+          }
+        } catch {
+          setUser(null);
+        }
         return true;
       }
       return false;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+    } catch {
       return false;
     }
   };
@@ -53,6 +92,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = () => {
     setToken(null);
     localStorage.removeItem('token');
+    setUser(null);
   };
 
   const isLoggedIn = !!token;
