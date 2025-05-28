@@ -31,7 +31,7 @@ export interface SongCardProps {
 
 const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
   ({ song, repostUser, isRepost }, ref) => {
-    const { setCurrentSong, setPlaylist } = usePlayer();
+    const {setPlaylist, setPlaylistIndex } = usePlayer();
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [hover, setHover] = useState(false);
     const navigate = useNavigate();
@@ -73,9 +73,11 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
           postId: song.postId,
           type: 'album'
         }));
-        setPlaylist(playlist, 0); // Empieza por la primera canción
+        setPlaylist(playlist);      // <-- solo el array
+        setPlaylistIndex(0);        // <-- selecciona la primera canción
       } else {
-        setCurrentSong(song);
+        setPlaylist([song]);        // <-- playlist de una sola canción
+        setPlaylistIndex(0);
       }
     };
 

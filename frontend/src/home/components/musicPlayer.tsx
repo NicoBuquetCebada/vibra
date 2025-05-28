@@ -1,7 +1,10 @@
-import React, { useEffect } from 'react';
-import { Box, Typography, useMediaQuery } from '@mui/material';
-import AudioPlayer from 'react-h5-audio-player';
-import 'react-h5-audio-player/lib/styles.css';
+import React, { useRef, useState, useEffect } from 'react';
+import { Box, Typography, IconButton, Slider, useMediaQuery } from '@mui/material';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PauseIcon from '@mui/icons-material/Pause';
+import SkipNextIcon from '@mui/icons-material/SkipNext';
+import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { usePlayer } from '../../context/player-context';
 import Logo from '../../assets/logo.png';
 
@@ -23,23 +26,112 @@ interface MusicPlayerProps {
 }
 
 const MusicPlayer: React.FC<MusicPlayerProps> = () => {
-  const {
-    currentSong,
-    playlist,
-    playlistIndex,
-    setPlaylistIndex,
-    setCurrentSong,
-  } = usePlayer();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [volume, setVolume] = useState(50);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const { playlist, playlistIndex, setPlaylistIndex } = usePlayer();
+
+  const currentSong = playlist[playlistIndex];
 
   const isSmallScreen = useMediaQuery('(max-width: 600px)');
 
-  // Cambia la canción cuando cambia el índice de la playlist
-  useEffect(() => {
-    if (playlist.length > 0 && playlist[playlistIndex]) {
-      setCurrentSong(playlist[playlistIndex]);
+  const handlePlayPause = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playlistIndex]);
+  };
+
+  const handleSeek = (event: Event, newValue: number | number[]) => {
+    if (audioRef.current && duration && !isNaN(duration)) {
+      const seekTime = (newValue as number / 100) * duration;
+      audioRef.current.currentTime = seekTime;
+      setProgress(newValue as number);
+    }
+  };
+
+  const handleVolumeChange = (event: Event, newValue: number | number[]) => {
+    if (audioRef.current) {
+      const volumeValue = (newValue as number) / 100;
+      audioRef.current.volume = volumeValue;
+      setVolume(newValue as number);
+    }
+  };
+
+  const handlePrev = () => {
+    if (playlist.length > 0 && playlistIndex > 0) {
+      setPlaylistIndex(playlistIndex - 1);
+      setIsPlaying(true);
+    }
+  };
+
+  const handleNext = () => {
+    if (playlist.length > 0 && playlistIndex < playlist.length - 1) {
+      setPlaylistIndex(playlistIndex + 1);
+      setIsPlaying(true);
+    }
+  };
+
+  useEffect(() => {
+    if (audioRef.current && currentSong) {
+      audioRef.current.src = currentSong.audioSrc;
+      if (isPlaying) {
+        audioRef.current.play();
+      }
+    }
+  }, [currentSong, isPlaying]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleLoadedMetadata = () => {
+      setDuration(audio.duration);
+    };
+
+    const handleTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+      setProgress((audio.currentTime / (audio.duration || 1)) * 100);
+    };
+
+    const handleEnded = () => {
+      if (playlist.length > 0 && playlistIndex < playlist.length - 1) {
+        setPlaylistIndex(playlistIndex + 1);
+        setIsPlaying(true);
+      } else {
+        audio.currentTime = 0;
+        setIsPlaying(false);
+      }
+    };
+
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, [audioRef, currentSong, playlist, playlistIndex]);
+
+  const formatTime = (secs: number) => {
+    const minutes = Math.floor(secs / 60);
+    const seconds = Math.floor(secs % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
+  useEffect(() => {
+    setProgress(0);
+    setCurrentTime(0);
+  }, [currentSong]);
 
   if (!currentSong) {
     return (
@@ -56,12 +148,12 @@ const MusicPlayer: React.FC<MusicPlayerProps> = () => {
           padding: '20px',
         }}
       >
-        <Typography
-          variant="h5"
-          sx={{
+        <Typography 
+          variant="h5" 
+          sx={{ 
             color: '#307cbe',
             fontWeight: 'bold',
-            textAlign: 'center',
+            textAlign: 'center'
           }}
         >
           Reproductor
@@ -74,16 +166,16 @@ const MusicPlayer: React.FC<MusicPlayerProps> = () => {
             width: '50%',
             maxWidth: '200px',
             height: 'auto',
-            opacity: 0.8,
+            opacity: 0.8
           }}
         />
-        <Typography
-          variant="body1"
-          sx={{
+        <Typography 
+          variant="body1" 
+          sx={{ 
             color: '#307cbe',
             textAlign: 'center',
             maxWidth: '80%',
-            lineHeight: 1.6,
+            lineHeight: 1.6
           }}
         >
           Pulse el botón de play en una publicación para reproducir música!
@@ -92,20 +184,30 @@ const MusicPlayer: React.FC<MusicPlayerProps> = () => {
     );
   }
 
-  // Handlers para siguiente/anterior
-  const handleClickNext = () => {
-    if (playlist.length > 0 && playlistIndex < playlist.length - 1) {
-      setPlaylistIndex(playlistIndex + 1);
-    }
-  };
-
-  const handleClickPrevious = () => {
-    if (playlist.length > 0 && playlistIndex > 0) {
-      setPlaylistIndex(playlistIndex - 1);
-    }
-  };
-
-  return (
+  return isSmallScreen ? (
+    <Box
+      sx={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        backgroundColor: '#145a96',
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '10px',
+        boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.3)',
+        zIndex: 1000,
+      }}
+    >
+      <Typography variant="subtitle1" fontWeight="bold">{currentSong ? currentSong.title : 'Ninguna canción cargada'}</Typography>
+      <IconButton onClick={handlePlayPause} sx={{ color: 'white' }}>
+        {isPlaying ? <PauseIcon fontSize="large" /> : <PlayArrowIcon fontSize="large" />}
+      </IconButton>
+      <audio ref={audioRef} preload="metadata" />
+    </Box>
+  ) : (
     <Box
       sx={{
         width: { xs: '100%', sm: '100%' },
@@ -115,46 +217,74 @@ const MusicPlayer: React.FC<MusicPlayerProps> = () => {
         flexDirection: 'column',
         alignItems: 'center',
         padding: '20px',
+        '& .MuiIconButton-root': {
+          color: '#307cbe',
+          '&:hover': {
+            backgroundColor: 'rgba(48, 124, 190, 0.1)',
+          }
+        },
+        '& .MuiSlider-root': {
+          color: '#307cbe',
+          '& .MuiSlider-thumb': {
+            backgroundColor: '#307cbe',
+            '&:hover': {
+              backgroundColor: '#145a96'
+            }
+          },
+          '& .MuiSlider-track': {
+            backgroundColor: '#307cbe'
+          },
+          '& .MuiSlider-rail': {
+            backgroundColor: 'rgba(48, 124, 190, 0.3)'
+          }
+        },
       }}
     >
       <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#307cbe' }}>
-        {currentSong.title}
+        {currentSong ? currentSong.title : 'Ninguna canción cargada'}
       </Typography>
       <Typography variant="subtitle1" sx={{ color: '#307cbe' }}>
-        {currentSong.username}
+        {currentSong ? currentSong.username : ''}
       </Typography>
-      <Box
-        component="img"
-        src={currentSong.coverImg || Logo}
+      <Box 
+        component="img" 
+        src={currentSong.coverImg || Logo} 
         alt="Portada"
-        sx={{
+        sx={{ 
           width: '100%',
           aspectRatio: '1/1',
           objectFit: 'cover',
           marginTop: '10px',
           marginX: '-20px',
           maxWidth: 'calc(100% + 40px)',
-        }}
-      />
-      <Box sx={{ width: '100%', mt: 2 }}>
-        <AudioPlayer
-          src={currentSong.audioSrc}
-          showSkipControls={playlist.length > 0}
-          showJumpControls={false}
-          onClickPrevious={handleClickPrevious}
-          onClickNext={handleClickNext}
-          onEnded={handleClickNext}
-          autoPlayAfterSrcChange={true}
-          style={{
-            background: '#f5f5f5',
-            color: '#307cbe',
-            borderRadius: 8,
-            boxShadow: 'none',
-          }}
-          customAdditionalControls={[]}
-          customVolumeControls={[]}
-        />
+        }} />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '80%' }}>
+        <Typography variant="caption">{formatTime(currentTime)}</Typography>
+        <Typography variant="caption">{formatTime(duration)}</Typography>
       </Box>
+      <Slider
+        value={progress}
+        onChange={handleSeek}
+        aria-label="Duración"
+        sx={{ width: '80%', marginTop: '10px', color: 'white' }}
+        disabled={!duration || isNaN(duration)}
+      />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+        <IconButton onClick={handlePrev} sx={{ color: 'white' }}>
+          <SkipPreviousIcon fontSize="large" />
+        </IconButton>
+        <IconButton onClick={handlePlayPause} sx={{ color: 'white' }}>
+          {isPlaying ? <PauseIcon fontSize="large" /> : <PlayArrowIcon fontSize="large" />}
+        </IconButton>
+        <IconButton onClick={handleNext} sx={{ color: 'white' }}>
+          <SkipNextIcon fontSize="large" />
+        </IconButton>
+      </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', width: '80%', marginTop: '10px' }}>
+        <VolumeUpIcon />
+        <Slider value={volume} onChange={handleVolumeChange} aria-label="Volumen" sx={{ color: 'white' }} />
+      </Box>
+      <audio ref={audioRef} preload="metadata" />
     </Box>
   );
 };
