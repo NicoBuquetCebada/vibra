@@ -1,4 +1,4 @@
-import React, { useRef, forwardRef, useState } from 'react';
+import { useRef, forwardRef, useState } from 'react';
 import { Card, IconButton, Box, Typography, Avatar } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import Rate from './rate';
@@ -6,7 +6,6 @@ import RepostButton from './repost';
 import SaveButton from './save';
 import Logo from '../../assets/logo.png';
 import { usePlayer } from '../../context/player-context';
-import { useNavigate } from 'react-router-dom';
 
 interface Song {
   id: number;
@@ -32,7 +31,6 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [hover, setHover] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const navigate = useNavigate();
 
     const handlePlay = () => {
       setCurrentSong(song);

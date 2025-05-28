@@ -47,6 +47,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
   };
 
   const handleSeek = (event: Event, newValue: number | number[]) => {
+	event;
     if (audioRef.current) {
       const seekTime = (newValue as number / 100) * audioRef.current.duration; // Calcula el tiempo al que se debe mover
       audioRef.current.currentTime = seekTime; // Actualiza el tiempo actual del audio
@@ -56,6 +57,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
   };
 
   const handleVolumeChange = (event: Event, newValue: number | number[]) => {
+	event;
     if (audioRef.current) {
       const volumeValue = (newValue as number) / 100; // Normaliza el volumen entre 0 y 1
       audioRef.current.volume = volumeValue; // Actualiza el volumen del audio
