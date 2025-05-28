@@ -92,6 +92,22 @@ export const deleteRepost = async (postId: number) => {
   if (!res.ok) throw new Error('Error al eliminar el repost');
 };
 
+// Obtener todos los posts guardados del usuario autenticado
+export const getSavedPosts = async () => {
+  // Simulación: GET /api/metrics/saves
+  const res = await fetchWithAuth('/api/metrics/saves');
+  if (!res.ok) throw new Error('Error al obtener posts guardados');
+  return res.json();
+};
+
+// Obtener todos los reposts de un usuario (puede ser el autenticado o cualquier otro)
+export const getUserReposts = async (userName: string) => {
+  // Simulación: GET /api/metrics/reposts/{userName}
+  const res = await fetchWithAuth(`/api/metrics/reposts/${userName}`);
+  if (!res.ok) throw new Error('Error al obtener reposts del usuario');
+  return res.json();
+};
+
 // -------- USERS --------
 export const login = async (identifier: string, pass: string) => {
   const res = await fetchWithAuth('/api/users/login', {

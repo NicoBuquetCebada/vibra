@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Container, Box, Avatar, Typography, Paper, Alert, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, List, ListItem, ListItemAvatar, ListItemText, CircularProgress } from '@mui/material';
+import { Container, Box, Avatar, Typography, Paper, Alert, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, List, ListItem, ListItemAvatar, ListItemText, CircularProgress, Tabs, Tab } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import MusicPlayer from '../home/components/musicPlayer';
 import BottomNav from '../components/bottom-navigation';
-import { getOtherUserPage, getOtherUserPosts, getOtherUserFollowers, getOtherUserFollowed } from '../api';
+import { getOtherUserPage, getOtherUserPosts, getOtherUserFollowers, getOtherUserFollowed, getUserReposts, fetchWithAuth } from '../api';
 import SongCard from '../home/components/songCard';
 import PersonIcon from '@mui/icons-material/Person';
 import { AuthContext } from '../context/auth-context';
@@ -16,6 +16,16 @@ interface UserData {
   followers: number;
 }
 
+interface SongObj {
+  name: string;
+  audio: string;
+}
+
+interface AlbumObj {
+  name: string;
+  songs: SongObj[];
+}
+
 export interface UserPagePost {
   id: number;
   userName: string;
@@ -24,6 +34,8 @@ export interface UserPagePost {
   contentId: number;
   name: string;
   coverImg?: string;
+  song?: SongObj;   // <-- Añade esto
+  album?: AlbumObj; // <-- Y esto
 }
 
 const OtherUserPage: React.FC = () => {
@@ -37,6 +49,9 @@ const OtherUserPage: React.FC = () => {
   const [userList, setUserList] = useState<{ name: string; profile_img?: string }[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [tab, setTab] = useState(0);
+  const [reposts, setReposts] = useState<UserPagePost[]>([]);
+  const [loadingReposts, setLoadingReposts] = useState(true);
   const auth  = useContext(AuthContext);
   const user = auth?.user;
 
@@ -65,7 +80,23 @@ const OtherUserPage: React.FC = () => {
       }
       try {
         const data = await getOtherUserPosts(username);
-        setPosts(data);
+        // Para cada post, pide el audio si es song o las canciones si es album
+        const postsWithAudio = await Promise.all(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          data.map(async (post: any) => {
+            if (post.type === 'song') {
+              const songRes = await fetchWithAuth(`/api/songs/${post.contentId}`);
+              const songData = await songRes.json();
+              return { ...post, song: { name: post.name, audio: songData.audio } };
+            } else if (post.type === 'album') {
+              const albumRes = await fetchWithAuth(`/api/songs/albums/${post.contentId}`);
+              const albumSongs = await albumRes.json();
+              return { ...post, album: { name: post.name, songs: albumSongs } };
+            }
+            return post;
+          })
+        );
+        setPosts(postsWithAudio);
       } catch {
         setPosts([]);
       }
@@ -74,6 +105,39 @@ const OtherUserPage: React.FC = () => {
     fetchUserData();
     fetchUserPosts();
   }, [username]);
+
+  useEffect(() => {
+    const fetchReposts = async () => {
+      setLoadingReposts(true);
+      try {
+        if (userData?.name) {
+          const data = await getUserReposts(userData.name);
+          const repostsWithAudio = await Promise.all(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            data.map(async (post: any) => {
+              if (post.type === 'song') {
+                const songRes = await fetchWithAuth(`/api/songs/${post.contentId}`);
+                const songData = await songRes.json();
+                return { ...post, song: { name: post.name, audio: songData.audio } };
+              } else if (post.type === 'album') {
+                const albumRes = await fetchWithAuth(`/api/songs/albums/${post.contentId}`);
+                const albumSongs = await albumRes.json();
+                return { ...post, album: { name: post.name, songs: albumSongs } };
+              }
+              return post;
+            })
+          );
+          setReposts(repostsWithAudio);
+        } else {
+          setReposts([]);
+        }
+      } catch {
+        setReposts([]);
+      }
+      setLoadingReposts(false);
+    };
+    if (userData) fetchReposts();
+  }, [userData]);
 
   const handleOpenList = async (type: 'followers' | 'followed') => {
     setDialogTitle(type === 'followers' ? 'Seguidores' : 'Seguidos');
@@ -98,6 +162,73 @@ const OtherUserPage: React.FC = () => {
   // Simulación de follow/unfollow (ajusta con tu API real)
   const handleFollowToggle = () => {
     setIsFollowing((prev) => !prev);
+  };
+
+  // Renderizado de pestañas
+  const renderTabContent = () => {
+    if (tab === 0) {
+      return posts.length === 0 && !error ? (
+        <Typography variant="body2" color="text.secondary">
+          No hay publicaciones.
+        </Typography>
+      ) : (
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        posts.map((post, idx) => {
+          // Mapeo igual que en userPagePostToSongCard
+          let audioSrc = '';
+          if (post.song && post.song.audio) {
+            audioSrc = post.song.audio;
+          } else if (post.album && post.album.songs && post.album.songs.length > 0) {
+            audioSrc = post.album.songs[0].audio;
+          }
+          return (
+            <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
+              <SongCard song={{
+                id: post.id,
+                title: post.song?.name || post.album?.name || post.name,
+                audioSrc,
+                profilePic: userData?.profile_img || '',
+                username: post.userName,
+                coverImg: post.coverImg,
+                postId: post.id
+              }} />
+            </Box>
+          );
+        })
+      );
+    }
+    if (tab === 1) {
+      if (loadingReposts) return <Box sx={{ textAlign: 'center', mt: 4 }}><CircularProgress /></Box>;
+      return reposts.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">
+          No hay reposts.
+        </Typography>
+      ) : (
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        reposts.map((post, idx) => {
+          let audioSrc = '';
+          if (post.song && post.song.audio) {
+            audioSrc = post.song.audio;
+          } else if (post.album && post.album.songs && post.album.songs.length > 0) {
+            audioSrc = post.album.songs[0].audio;
+          }
+          return (
+            <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
+              <SongCard song={{
+                id: post.id,
+                title: post.song?.name || post.album?.name || post.name,
+                audioSrc,
+                profilePic: userData?.profile_img || '',
+                username: post.userName,
+                coverImg: post.coverImg,
+                postId: post.id
+              }} />
+            </Box>
+          );
+        })
+      );
+    }
+    return null;
   };
 
   return (
@@ -233,33 +364,18 @@ const OtherUserPage: React.FC = () => {
 
         {/* Publicaciones */}
         <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Publicaciones
-          </Typography>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-          {posts.length === 0 && !error ? (
-            <Typography variant="body2" color="text.secondary">
-              No hay publicaciones.
-            </Typography>
-          ) : (
-            posts.map((post) => (
-              <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
-                <SongCard song={{
-                  id: post.id,
-                  title: post.name,
-                  audioSrc: '', // Añade aquí la URL si la tienes en el post
-                  profilePic: userData?.profile_img || '',
-                  username: post.userName,
-                  coverImg: post.coverImg,
-                  postId: post.id
-                }} />
-              </Box>
-            ))
-          )}
+          <Tabs value={tab} onChange={(_, v) => setTab(v)} centered>
+            <Tab label="Posts" />
+            <Tab label="Reposts" />
+          </Tabs>
+          <Box sx={{ mt: 2 }}>
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+            {renderTabContent()}
+          </Box>
         </Box>
       </Box>
 

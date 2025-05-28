@@ -586,6 +586,13 @@ function MusicHome() {
           {posts.map((post, index) => {
             const songCardData = postToSongCard(post, index);
 
+            // Añade este console.log:
+            console.log(
+              `[Home] Post: ${songCardData.title} | Tipo: ${post.content} | audioSrc:`,
+              songCardData.audioSrc,
+              songCardData
+            );
+
             // Función para navegación inteligente
             const handleUserClick = (username: string) => {
               console.log('Navigating to user:', username);

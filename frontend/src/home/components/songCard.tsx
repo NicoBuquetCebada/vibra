@@ -17,6 +17,8 @@ interface Song {
   username: string;
   coverImg?: string;
   postId: number;
+  type?: string; // 'song' o 'album'
+  albumSongs?: { name: string; audio: string }[]; // <-- Añade esto
 }
 
 export interface SongCardProps {
@@ -29,7 +31,7 @@ export interface SongCardProps {
 
 const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
   ({ song, repostUser, isRepost }, ref) => {
-    const { setCurrentSong } = usePlayer();
+    const { setCurrentSong, setPlaylist } = usePlayer();
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [hover, setHover] = useState(false);
     const navigate = useNavigate();
@@ -57,7 +59,24 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
     };
 
     const handlePlay = () => {
-      setCurrentSong(song);
+      if (song.type === 'album' && Array.isArray(song.albumSongs) && song.albumSongs.length > 0) {
+        // Mapea las canciones del álbum al formato Song
+          console.log('[SongCard AlbumSongs]', song.albumSongs);
+
+        const playlist = song.albumSongs.map((track, idx) => ({
+          id: idx,
+          title: track.name,
+          audioSrc: track.audio,
+          profilePic: song.profilePic,
+          username: song.username,
+          coverImg: song.coverImg,
+          postId: song.postId,
+          type: 'album'
+        }));
+        setPlaylist(playlist, 0); // Empieza por la primera canción
+      } else {
+        setCurrentSong(song);
+      }
     };
 
     return (
@@ -99,7 +118,27 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
         )}
 
         {/* Parte superior izquierda (Artista y título) */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 0, mb: 0 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 0, mb: 0, position: 'relative' }}>
+          {/* Tipo de publicación en la esquina superior derecha */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              background: song.audioSrc && song.audioSrc !== '' && song.title ? '#307cbe' : '#aaa',
+              color: 'white',
+              px: 1.5,
+              py: 0.5,
+              borderRadius: '0 0 0 8px',
+              fontSize: 12,
+              fontWeight: 600,
+              zIndex: 20,
+            }}
+          >
+            {song.audioSrc && song.audioSrc !== '' && song.title?.toLowerCase().includes('album')
+              ? 'Álbum'
+              : 'Canción'}
+          </Box>
           <Avatar
             src={song.profilePic}
             sx={{ cursor: 'pointer' }}
@@ -215,3 +254,5 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
 );
 
 export default SongCard;
+
+// En tu función de mapeo para SongCard:

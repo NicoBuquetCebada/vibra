@@ -1,26 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Box, Avatar, Typography, Paper } from '@mui/material';
+import { Container, Box, Avatar, Typography, Paper, Tabs, Tab, CircularProgress, Button, List, ListItem, ListItemAvatar, ListItemText, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Fab, Tooltip } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MusicPlayer from '../home/components/musicPlayer';
 import BottomNav from '../components/bottom-navigation';
-import { fetchWithAuth, getFollowers, getFollowed } from '../api';
+import { fetchWithAuth, getFollowers, getFollowed, getSavedPosts, getUserReposts } from '../api';
 import SongCard from '../home/components/songCard';
-import Fab from '@mui/material/Fab';
 import TuneIcon from '@mui/icons-material/Tune';
 import PersonIcon from '@mui/icons-material/Person';
-import Tooltip from '@mui/material/Tooltip';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ListItemText from '@mui/material/ListItemText';
-import CircularProgress from '@mui/material/CircularProgress';
-
 
 interface UserData {
   name: string;
@@ -28,6 +14,16 @@ interface UserData {
   posts: number;
   followed: number;
   followers: number;
+}
+
+interface SongObj {
+  name: string;
+  audio: string;
+}
+
+interface AlbumObj {
+  name: string;
+  songs: SongObj[];
 }
 
 export interface UserPagePost {
@@ -38,6 +34,8 @@ export interface UserPagePost {
   contentId: number;
   name: string;
   coverImg?: string;
+  song?: SongObj;
+  album?: AlbumObj;
 }
 
 export function userPagePostToSongCard(
@@ -45,15 +43,38 @@ export function userPagePostToSongCard(
   userData: UserData,
   index: number
 ) {
+  // Si es post de canción
+  if (post.type === 'song' && post.song) {
+    return {
+      id: index,
+      title: post.song.name,
+      audioSrc: post.song.audio, // <-- Aquí debe estar la URL
+      profilePic: userData.profile_img,
+      username: post.userName,
+      coverImg: post.coverImg,
+      postId: post.id,
+      type: post.type,
+    };
+  }
+  // Si es post de álbum
+  if (post.type === 'album' && post.album && post.album.songs.length > 0) {
+    return {
+      id: index,
+      title: post.album.name,
+      audioSrc: post.album.songs[0].audio, // <-- Aquí debe estar la URL de la primera canción
+      profilePic: userData.profile_img,
+      username: post.userName,
+      coverImg: post.coverImg,
+      postId: post.id,
+      albumSongs: post.album.songs, // <-- Añade las canciones del álbum
+      type: post.type, // Añade el tipo de post
+    };
+  }
+  // Fallback
   return {
     id: index,
     title: post.name,
-    audioSrc:
-      post.type === 'song'
-        ? post.name // Cambia esto por la URL real si la tienes, aquí solo es el nombre
-        : post.type === 'album'
-        ? '' // No tienes info de canciones en el álbum, pon la URL si la tienes
-        : '',
+    audioSrc: '',
     profilePic: userData.profile_img,
     username: post.userName,
     coverImg: post.coverImg,
@@ -66,10 +87,39 @@ const UserPage: React.FC = () => {
 
   const [userData, setUserData] = useState<UserData | null>(null);
   const [posts, setPosts] = useState<UserPagePost[]>([]);
+  const [reposts, setReposts] = useState<UserPagePost[]>([]);
+  const [saves, setSaves] = useState<UserPagePost[]>([]);
+  const [tab, setTab] = useState(0);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [loadingReposts, setLoadingReposts] = useState(true);
+  const [loadingSaves, setLoadingSaves] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTitle, setDialogTitle] = useState('');
   const [userList, setUserList] = useState<{ name: string; profile_img?: string }[]>([]);
   const [loadingList, setLoadingList] = useState(false);
+
+  // Mueve estas funciones AQUÍ, fuera del useEffect:
+  const fetchReposts = async () => {
+    setLoadingReposts(true);
+    try {
+      const data = await getUserReposts(userData?.name || '');
+      setReposts(data);
+    } catch {
+      setReposts([]);
+    }
+    setLoadingReposts(false);
+  };
+
+  const fetchSaves = async () => {
+    setLoadingSaves(true);
+    try {
+      const data = await getSavedPosts();
+      setSaves(data);
+    } catch {
+      setSaves([]);
+    }
+    setLoadingSaves(false);
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -77,7 +127,6 @@ const UserPage: React.FC = () => {
         const response = await fetchWithAuth('/api/users/page');
         if (!response.ok) throw new Error('Error al obtener datos del usuario');
         const data = await response.json();
-        console.log('Datos de usuario:', data); // <-- Aquí ves la respuesta completa
         setUserData(data);
       } catch (error) {
         console.error('Error:', error);
@@ -85,20 +134,30 @@ const UserPage: React.FC = () => {
     };
 
     const fetchUserPosts = async () => {
+      setLoadingPosts(true);
       try {
         const response = await fetchWithAuth('/api/users/posts');
         if (!response.ok) throw new Error('Error al obtener posts');
         const data = await response.json();
-        console.log('Posts del usuario:', data); // <-- Aquí ves la respuesta completa
         setPosts(data);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
-        console.error('Error:', error);
+        setPosts([]);
       }
+      setLoadingPosts(false);
     };
 
     fetchUserData();
     fetchUserPosts();
+    // Ya no llames a fetchReposts ni fetchSaves aquí
   }, []);
+
+  useEffect(() => {
+    if (userData) {
+      fetchReposts();
+      fetchSaves();
+    }
+  }, [userData]);
 
   const handleOpenList = async (type: 'followers' | 'followed') => {
     setDialogTitle(type === 'followers' ? 'Seguidores' : 'Seguidos');
@@ -116,6 +175,108 @@ const UserPage: React.FC = () => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setUserList([]);
+  };
+
+  // Nueva función para obtener posts con audio
+  const fetchUserPostsWithAudio = async () => {
+    setLoadingPosts(true);
+    try {
+      const response = await fetchWithAuth('/api/users/posts');
+      if (!response.ok) throw new Error('Error al obtener posts');
+      const posts = await response.json();
+
+      // Para cada post, pide el audio si es song o las canciones si es album
+      const postsWithAudio = await Promise.all(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        posts.map(async (post: any) => {
+          if (post.type === 'song') {
+            const songRes = await fetchWithAuth(`/api/songs/${post.contentId}`);
+            const songData = await songRes.json();
+            return { ...post, song: { name: post.name, audio: songData.audio } };
+          } else if (post.type === 'album') {
+            const albumRes = await fetchWithAuth(`/api/songs/albums/${post.contentId}`);
+            const albumSongs = await albumRes.json();
+            return { ...post, album: { name: post.name, songs: albumSongs } };
+          }
+          return post;
+        })
+      );
+
+      setPosts(postsWithAudio);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      setPosts([]);
+    }
+    setLoadingPosts(false);
+  };
+
+  // Llama a la nueva función en el useEffect
+  useEffect(() => {
+    fetchUserPostsWithAudio();
+  }, []);
+
+  // Renderizado de pestañas
+  const renderTabContent = () => {
+    if (!userData) {
+      return (
+        <Box sx={{ textAlign: 'center', mt: 4 }}>
+          <CircularProgress />
+        </Box>
+      );
+    }
+
+    if (tab === 0) {
+      if (loadingPosts) return <Box sx={{ textAlign: 'center', mt: 4 }}><CircularProgress /></Box>;
+      return posts.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">No hay publicaciones.</Typography>
+      ) : (
+        posts.map((post, idx) => {
+          console.log('[UserPage] post recibido:', post);
+          const songCardData = userPagePostToSongCard(post, userData, idx);
+          console.log(
+            `[SongCard] Post: ${post.name} | Tipo: ${post.type} | audioSrc:`,
+            songCardData.audioSrc,
+            songCardData
+          );
+          return (
+            <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
+              <SongCard song={songCardData} onUserClick={() => navigate('/profile')} />
+            </Box>
+          );
+        })
+      );
+    }
+    if (tab === 1) {
+      if (loadingReposts) return <Box sx={{ textAlign: 'center', mt: 4 }}><CircularProgress /></Box>;
+      return reposts.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">No hay reposts.</Typography>
+      ) : (
+        reposts.map((post, idx) => {
+          const songCardData = userPagePostToSongCard(post, userData, idx);
+          return (
+            <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
+              <SongCard song={songCardData} onUserClick={() => navigate('/profile')} />
+            </Box>
+          );
+        })
+      );
+    }
+    if (tab === 2) {
+      if (loadingSaves) return <Box sx={{ textAlign: 'center', mt: 4 }}><CircularProgress /></Box>;
+      return saves.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">No hay guardados.</Typography>
+      ) : (
+        saves.map((post, idx) => {
+          const songCardData = userPagePostToSongCard(post, userData, idx);
+          return (
+            <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
+              <SongCard song={songCardData} onUserClick={() => navigate('/profile')} />
+            </Box>
+          );
+        })
+      );
+    }
+    return null;
   };
 
   return (
@@ -268,36 +429,19 @@ const UserPage: React.FC = () => {
           </Tooltip>
         </Paper>
 
-        {/* Publicaciones */}
+        {/* Pestañas de Posts, Reposts y Guardados */}
         <Box sx={{ mt: 4 }}>
-          {(!userData || posts.length === 0) ? (
-            <Typography variant="body2" color="text.secondary">
-              {!userData ? 'Cargando usuario...' : 'No hay publicaciones.'}
-            </Typography>
-          ) : (
-            posts.map((post, idx) => {
-              const songCardData = userPagePostToSongCard(post, userData, idx);
-
-              // Función para navegar al perfil correcto
-              const handleUserClick = (username: string) => {
-                if (username === userData?.name) {
-                  navigate('/profile');
-                } else {
-                  navigate(`/profile/${username}`);
-                }
-              };
-
-              return (
-                <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
-                  <SongCard
-                    song={songCardData}
-                    // Si SongCard tiene avatar/nombre clicable, pásale la función:
-                    onUserClick={() => handleUserClick(songCardData.username)}
-                  />
-                </Box>
-              );
-            })
-          )}
+          <Tabs value={tab} onChange={(_, v) => setTab(v)} centered>
+            <Tab label="Posts" />
+            <Tab label="Reposts" />
+            {/* Solo muestra "Guardados" si es tu perfil */}
+            {userData && /* lógica para saber si es tu perfil */ true && (
+              <Tab label="Guardados" />
+            )}
+          </Tabs>
+          <Box sx={{ mt: 2 }}>
+            {renderTabContent()}
+          </Box>
         </Box>
       </Box>
 
