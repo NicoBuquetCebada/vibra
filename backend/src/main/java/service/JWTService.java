@@ -11,7 +11,7 @@ public class JWTService {
 			.issuer("https://vibra.com") // emisor
 			.subject(userName) // usuario
 			.groups(role) // roles (ej: user, admin)
-			.expiresIn(Duration.ofHours(1)) // expiración
+			.expiresIn(Duration.ofDays(10)) // expiración
 			.sign(); // firma con la clave privada
 	}
 
