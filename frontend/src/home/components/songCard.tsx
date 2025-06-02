@@ -27,10 +27,11 @@ export interface SongCardProps {
   isRepost?: boolean;
   repostUser?: { name: string; profileImg: string };
   onRepostUserClick?: () => void;
+  onPlay?: () => void; // NUEVO: callback para play externo
 }
 
 const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
-  ({ song, repostUser, isRepost }, ref) => {
+  ({ song, repostUser, isRepost, onPlay }, ref) => {
     const {setPlaylist, setPlaylistIndex } = usePlayer();
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [hover, setHover] = useState(false);
@@ -59,6 +60,10 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
     };
 
     const handlePlay = () => {
+      if (onPlay) {
+        onPlay(); // Si viene de Home, controla el flujo global
+        return;
+      }
       if (song.type === 'album' && Array.isArray(song.albumSongs) && song.albumSongs.length > 0) {
         // Mapea las canciones del álbum al formato Song
           console.log('[SongCard AlbumSongs]', song.albumSongs);
