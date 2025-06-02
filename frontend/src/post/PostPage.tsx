@@ -19,7 +19,7 @@ const PostPage: React.FC = () => {
     const fetchPost = async () => {
       setLoading(true);
       try {
-        const res = await fetchWithAuth(`/api/post/${postId}`);
+        const res = await fetchWithAuth(`/api/posts/${postId}`);
         if (!res.ok) throw new Error('No se pudo cargar la publicación');
         const data: PostApi = await res.json();
         setPost(data);
