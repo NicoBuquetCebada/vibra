@@ -301,6 +301,27 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 		}
 		]
 
+ - Get follow, obtiene si el usuario autenticado sigue a un usuario
+
+	request: GET /api/follows/follow/{user_name}
+
+	response: 
+		si lo sigue: code 200
+		si no lo sigue: code 404
+	
+ - Follow, el usario autenticado sigue a un usuario
+
+	request: POST /api/follows/follow/{user_name}
+
+	response: code 201
+
+ - Unfollow, el usario autenticado deja de seguir a un usuario
+
+	request: DELETE /api/follows/follow/{user_name}
+
+	response: code code 204
+
+
 # SONGS
 
  - Get song, obtiene una canción por id

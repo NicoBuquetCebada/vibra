@@ -1,5 +1,7 @@
 # Mapa de endpoints de la API
 
+ROOT PATH: http://localhost:8080
+
 ## HOME
 
 - Obtener objetos del HOME (debe contener el JWT)
@@ -63,7 +65,11 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 		{
 			"name": "string",
 			"id": 1,
-			"img": "ruta/imagen",
+			"type": "string"
+		},
+		{
+			"name": "string",
+			"id": 1,
 			"type": "string"
 		}
 		]
@@ -88,7 +94,7 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 				"rate": 4,
 				"postId": 1
 			}
-	response: code 201
+	response: code 200
 
 - save post, hacer save a un post. El valor del body es el id de post
 
@@ -100,7 +106,7 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 
 	request: DELETE /api/metrics/save/{post_id}
 		body: 1
-	response: code 201
+	response: code 204
 
 - repost post, hacer repost a un post. El valor del body es el id de post
 
@@ -112,7 +118,7 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 
 	request: DELETE /api/metrics/repost/{post_id}
 		body: 1
-	response: code 201
+	response: code 204
 	
 # USERS
 
@@ -136,15 +142,222 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 		body:
 			{
 				"name": "userName",
-				"mail": "string",
-				"firstName": "nombre de pila",
+				"mail": "correo electronico",
+				"firstName": "nombre",
 				"surname": "apellido",
-				"pass": "contraseña",
-				"profileImg": "ruta/imagen",
-				"role": "user"
+				"pass": "contraseña"
 			}
 	
 	response: code 201
+
+ - Get user page, obtiene los datos del usuario autenticado a traves del JWT
+	
+	request: GET /api/users/page
+
+	response:
+		{
+			"name": "string",
+			"profile_img": "ruta/imagen",
+			"posts": 100,
+			"followed": 100,
+			"followers": 100
+		}
+
+ - Get other user page, obtiene los datos de cualquier usuario a traves de su user name
+	
+	request: GET /api/users/page/{user_name}
+
+	response:
+		{
+			"name": "string",
+			"profile_img": "ruta/imagen",
+			"posts": 100,
+			"followed": 100,
+			"followers": 100
+		}
+
+ - Get user posts, obtiene las publicaciones del usuario autenticado a través de JWT
+	
+	request: GET /api/users/posts
+
+	reponse:
+		{
+			"id": 1,
+			"userName": "string",
+			"createdAt": "2022-03-10T12:15:50",
+			"type": "song o album",
+			"contentId": 1,
+			"name": "songName o albumName",
+			"coverImg": "ruta/cover"
+		}
+
+ - Get other user posts, obtiene las publicaciones de cualquier usuario a traves del user name
+	
+	request: GET /api/users/posts/{user_name}
+
+	reponse:
+		{
+			"id": 1,
+			"userName": "string",
+			"createdAt": "2022-03-10T12:15:50",
+			"type": "song o album",
+			"contentId": 1,
+			"name": "songName o albumName",
+			"coverImg": "ruta/cover"
+		}
+
+	IMPORTANTE: En los endpoint de users/posts no está la información del audio de la canción (canciones en caso de album) Cuando se traigan esta información se podrán listar los posts pero hará falta por cada uno de los posts hacer una petición a los endpoint de song (información detallada en el apartado songs), en caso de:
+
+		"type": "song" -> GET /api/songs/{id} del que se utilizara solo la propiedad audio
+
+		"type": "album" -> GET /api/songs/albums/{album_id} del que se utilizarán name y audio de cada canción del array obtenido
+
+ - Update user field, actualiza un campo del usuario a traves de la url. el campo field de la url solo puede ser "mail" o "profileimg"
+	
+	request: PATCH /api/users/update/{field}/{value}
+
+	response: code 200
+
+- Update user password, actualiza la contraseña del usuario a traves del body. Se deberá especificar la contraseña actual para cambiarla.
+
+	request: PATCH /api/users/update/password
+		body:
+			{
+				"oldPass": "contraseña anterior",
+				"newPass": "nueva contraseña"
+			}
+
+	response: code 200
+
+ - Delete user, borra la cuenta de usuario permanentemente.
+
+	request: DELETE /api/users/{user_name}
+
+	response: code 204
+
+# FOLLOWS
+
+ - Get followed, obtiene una lista con los usuarios a los que sigue el usuario autenticado a traves del JWT
+
+	request: GET /api/follows/followed
+
+	response:
+		[
+		{
+			"name": "string",
+			"profileImg": "string"
+		},
+		{
+			"name": "string",
+			"profileImg": "string"
+		}
+		]
+ 
+ - Get other user followed, obtiene una lista con los usuarios a los que sigue otro usuario a través del user name
+
+	request: GET /api/follows/followed/{user_name}
+
+	response:
+		[
+		{
+			"name": "string",
+			"profileImg": "string"
+		},
+		{
+			"name": "string",
+			"profileImg": "string"
+		}
+		]
+
+ - Get followers, obtiene una lista con los usuarios que siguen a al usuario autenticado a través del JWT
+
+	request: GET /api/follows/followers
+
+	response:
+		[
+		{
+			"name": "string",
+			"profileImg": "string"
+		},
+		{
+			"name": "string",
+			"profileImg": "string"
+		}
+		]
+
+ - Get other user followers, obtiene una lista con los usuarios que siguen a otro usuario a traves del user name
+
+	request: GET /api/follows/followers/{user_name}
+
+	response:
+		[
+		{
+			"name": "string",
+			"profileImg": "string"
+		},
+		{
+			"name": "string",
+			"profileImg": "string"
+		}
+		]
+
+ - Get follow, obtiene si el usuario autenticado sigue a un usuario
+
+	request: GET /api/follows/follow/{user_name}
+
+	response: 
+		si lo sigue: code 200
+		si no lo sigue: code 404
+	
+ - Follow, el usario autenticado sigue a un usuario
+
+	request: POST /api/follows/follow/{user_name}
+
+	response: code 201
+
+ - Unfollow, el usario autenticado deja de seguir a un usuario
+
+	request: DELETE /api/follows/follow/{user_name}
+
+	response: code code 204
+
+
+# SONGS
+
+ - Get song, obtiene una canción por id
+
+	request: GET /api/songs/{id}
+
+	response:
+		{
+			"id": 9007199254740991,
+			"name": "string",
+			"coverImg": "string",
+			"date": "2022-03-10T12:15:50",
+			"audio": "string"
+		}
+
+ - Get songs by album, obtiene una canción por el id del album
+
+	request: GET /api/songs/albums/{album_id}
+
+	response:
+		[
+		{
+			"id": 9007199254740991,
+			"name": "string",
+			"coverImg": "string",
+			"date": "2022-03-10T12:15:50",
+			"audio": "string"
+		},
+		{
+			"id": 9007199254740991,
+			"name": "string",
+			"coverImg": "string",
+			"date": "2022-03-10T12:15:50",
+			"audio": "string"
+		}
+		]
 
 # POSTS
 
@@ -206,3 +419,29 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 				"ruta"
 			]
 		}
+
+# NOTIFICATIONS
+
+- Get user notifications, obtener las notificaciones del usuario autenticado a traves del JWT. El contentId es el id del contenido notificado para redirigir a el mas adelante.
+
+	request: GET /api/notifications
+
+	response:
+		[
+		{
+			"type": "repost, rate o follow",
+			"createdAt": "2022-03-10T12:15:50",
+			"actionUserName": "usuario que realiza la accion",
+			"profileImg": "su imagen de perfil",
+			"contentUserName": "usuario que recibe notificacion",
+			"contentId": 1
+		},
+		{
+			"type": "repost, rate o follow",
+			"createdAt": "2022-03-10T12:15:50",
+			"actionUserName": "usuario que realiza la accion",
+			"profileImg": "su imagen de perfil",
+			"contentUserName": "usuario que recibe notificacion",
+			"contentId": 1
+		}
+		]

@@ -97,14 +97,13 @@ FROM rates ra JOIN posts p ON ra.post_id = p.id JOIN users u ON ra.user_name = u
 
 -- USER PAGE INFO VIEW
 CREATE VIEW user_page_view (name, profile_img, posts, followed, followers) AS
-SELECT u.name, u.profile_img,
-(SELECT COUNT(*) FROM posts WHERE user_name = u.name) AS posts,
-COUNT(DISTINCT f1.followed) AS followed,
-COUNT(DISTINCT f2.followed) AS followers
-FROM users u
-LEFT JOIN follows f1 ON u.name = f1.follower
-LEFT JOIN follows f2 ON u.name = f2.followed
-GROUP BY u.name, u.profile_img;
+SELECT
+  u.name,
+  u.profile_img,
+  (SELECT COUNT(*) FROM posts p WHERE p.user_name = u.name) AS posts,
+  (SELECT COUNT(*) FROM follows f WHERE f.follower = u.name) AS followed,
+  (SELECT COUNT(*) FROM follows f WHERE f.followed = u.name) AS followers
+FROM users u;
 
 -- USER PAGE POSTS DTO VIEW
 CREATE OR REPLACE VIEW user_page_posts_view AS
