@@ -21,19 +21,22 @@ interface Song {
   shares: number;
 }
 
-// MusicPlayer espera una prop song, pero realmente usa el contexto. Vamos a hacerla opcional.
 interface MusicPlayerProps {
-  song?: Song; // Ahora es opcional
+  song?: Song;
 }
 
-const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
+const MusicPlayer: React.FC<MusicPlayerProps> = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(50);
-  const { currentSong } = usePlayer(); // Accede a la canción actual desde el contexto
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const { playlist, playlistIndex, setPlaylistIndex } = usePlayer();
 
-  const isSmallScreen = useMediaQuery('(max-width: 600px)'); // Detectar tamaño de pantalla
+  const currentSong = playlist[playlistIndex];
+
+  const isSmallScreen = useMediaQuery('(max-width: 600px)');
 
   const handlePlayPause = () => {
     if (audioRef.current) {
@@ -47,43 +50,88 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
   };
 
   const handleSeek = (event: Event, newValue: number | number[]) => {
-	event;
-    if (audioRef.current) {
-      const seekTime = (newValue as number / 100) * audioRef.current.duration; // Calcula el tiempo al que se debe mover
-      audioRef.current.currentTime = seekTime; // Actualiza el tiempo actual del audio
-      setProgress(newValue as number); // Actualiza el progreso en el estado
-      console.log(`Progreso actualizado: ${newValue}%`);
+    if (audioRef.current && duration && !isNaN(duration)) {
+      const seekTime = (newValue as number / 100) * duration;
+      audioRef.current.currentTime = seekTime;
+      setProgress(newValue as number);
     }
   };
 
   const handleVolumeChange = (event: Event, newValue: number | number[]) => {
-	event;
     if (audioRef.current) {
-      const volumeValue = (newValue as number) / 100; // Normaliza el volumen entre 0 y 1
-      audioRef.current.volume = volumeValue; // Actualiza el volumen del audio
-      setVolume(newValue as number); // Actualiza el volumen en el estado
-      console.log(`Volumen actualizado: ${newValue}%`);
+      const volumeValue = (newValue as number) / 100;
+      audioRef.current.volume = volumeValue;
+      setVolume(newValue as number);
+    }
+  };
+
+  const handlePrev = () => {
+    if (playlist.length > 0 && playlistIndex > 0) {
+      setPlaylistIndex(playlistIndex - 1);
+      setIsPlaying(true);
+    }
+  };
+
+  const handleNext = () => {
+    if (playlist.length > 0 && playlistIndex < playlist.length - 1) {
+      setPlaylistIndex(playlistIndex + 1);
+      setIsPlaying(true);
     }
   };
 
   useEffect(() => {
     if (audioRef.current && currentSong) {
-        audioRef.current.src = currentSong.audioSrc; // Actualiza la fuente del audio
-        console.log(`Canción cargada en el reproductor: ${currentSong.title} (${currentSong.audioSrc})`);
-        if (isPlaying) {
-          audioRef.current.play();
-          setIsPlaying(true);
-          console.log('Reproduciendo automáticamente la nueva canción');
-        
-      } else {
-        console.log('No hay ninguna canción cargada en el reproductor');
+      audioRef.current.src = currentSong.audioSrc;
+      if (isPlaying) {
+        audioRef.current.play();
       }
     }
-  }, [song, isPlaying, currentSong]);
+  }, [currentSong, isPlaying]);
 
   useEffect(() => {
-    // Efecto para manejar cambios en el estado de reproducción
-  }, [song, isPlaying]);
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleLoadedMetadata = () => {
+      setDuration(audio.duration);
+    };
+
+    const handleTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+      setProgress((audio.currentTime / (audio.duration || 1)) * 100);
+    };
+
+    const handleEnded = () => {
+      if (playlist.length > 0 && playlistIndex < playlist.length - 1) {
+        setPlaylistIndex(playlistIndex + 1);
+        setIsPlaying(true);
+      } else {
+        audio.currentTime = 0;
+        setIsPlaying(false);
+      }
+    };
+
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, [audioRef, currentSong, playlist, playlistIndex]);
+
+  const formatTime = (secs: number) => {
+    const minutes = Math.floor(secs / 60);
+    const seconds = Math.floor(secs % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
+  useEffect(() => {
+    setProgress(0);
+    setCurrentTime(0);
+  }, [currentSong]);
 
   if (!currentSong) {
     return (
@@ -110,7 +158,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
         >
           Reproductor
         </Typography>
-        
         <Box
           component="img"
           src={Logo}
@@ -122,7 +169,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
             opacity: 0.8
           }}
         />
-
         <Typography 
           variant="body1" 
           sx={{ 
@@ -139,7 +185,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
   }
 
   return isSmallScreen ? (
-    /* 🔹 Vista móvil: barra superior */
     <Box
       sx={{
         position: 'fixed',
@@ -163,7 +208,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
       <audio ref={audioRef} preload="metadata" />
     </Box>
   ) : (
-    /* 🔹 Vista escritorio: reproductor completo */
     <Box
       sx={{
         width: { xs: '100%', sm: '100%' },
@@ -196,15 +240,12 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
         },
       }}
     >
-      {/* 🔹 Información de la canción */}
       <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#307cbe' }}>
         {currentSong ? currentSong.title : 'Ninguna canción cargada'}
       </Typography>
       <Typography variant="subtitle1" sx={{ color: '#307cbe' }}>
-        {song ? song.username : ''}
+        {currentSong ? currentSong.username : ''}
       </Typography>
-
-      {/* 🔹 Imagen de portada */}
       <Box 
         component="img" 
         src={currentSong.coverImg || Logo} 
@@ -214,28 +255,35 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
           aspectRatio: '1/1',
           objectFit: 'cover',
           marginTop: '10px',
-          marginX: '-20px', // Compensar el padding del contenedor
-          maxWidth: 'calc(100% + 40px)', // Asegurar que llegue de lado a lado
+          marginX: '-20px',
+          maxWidth: 'calc(100% + 40px)',
         }} />
-
-      {/* 🔹 Slider para duración */}
-      <Slider value={progress} onChange={handleSeek} aria-label="Duración" sx={{ width: '80%', marginTop: '10px', color: 'white' }} />
-
-      {/* 🔹 Controles de reproducción */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '80%' }}>
+        <Typography variant="caption">{formatTime(currentTime)}</Typography>
+        <Typography variant="caption">{formatTime(duration)}</Typography>
+      </Box>
+      <Slider
+        value={progress}
+        onChange={handleSeek}
+        aria-label="Duración"
+        sx={{ width: '80%', marginTop: '10px', color: 'white' }}
+        disabled={!duration || isNaN(duration)}
+      />
       <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
-        <IconButton sx={{ color: 'white' }}><SkipPreviousIcon fontSize="large" /></IconButton>
+        <IconButton onClick={handlePrev} sx={{ color: 'white' }}>
+          <SkipPreviousIcon fontSize="large" />
+        </IconButton>
         <IconButton onClick={handlePlayPause} sx={{ color: 'white' }}>
           {isPlaying ? <PauseIcon fontSize="large" /> : <PlayArrowIcon fontSize="large" />}
         </IconButton>
-        <IconButton sx={{ color: 'white' }}><SkipNextIcon fontSize="large" /></IconButton>
+        <IconButton onClick={handleNext} sx={{ color: 'white' }}>
+          <SkipNextIcon fontSize="large" />
+        </IconButton>
       </Box>
-
-      {/* 🔹 Slider para volumen */}
       <Box sx={{ display: 'flex', alignItems: 'center', width: '80%', marginTop: '10px' }}>
         <VolumeUpIcon />
         <Slider value={volume} onChange={handleVolumeChange} aria-label="Volumen" sx={{ color: 'white' }} />
       </Box>
-
       <audio ref={audioRef} preload="metadata" />
     </Box>
   );

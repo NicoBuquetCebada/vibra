@@ -1,35 +1,53 @@
 import React, { createContext, useContext, useState } from 'react';
 
-interface Song {
+export interface Song {
   id: number;
   title: string;
   audioSrc: string;
   profilePic: string;
   username: string;
   coverImg?: string;
+  description?: string;
+  likes?: number;
+  comments?: number;
+  shares?: number;
+  postId?: number;
 }
 
 interface PlayerContextProps {
-  currentSong: Song | null;
-  setCurrentSong: (song: Song) => void;
+  playlist: Song[];
+  setPlaylist: (songs: Song[]) => void;
+  playlistIndex: number;
+  setPlaylistIndex: (idx: number) => void;
+  isPlaying: boolean;
+  setIsPlaying: (playing: boolean) => void;
 }
 
 const PlayerContext = createContext<PlayerContextProps | undefined>(undefined);
 
 export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentSong, setCurrentSong] = useState<Song | null>(null);
+  const [playlist, setPlaylist] = useState<Song[]>([]);
+  const [playlistIndex, setPlaylistIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   return (
-    <PlayerContext.Provider value={{ currentSong, setCurrentSong }}>
+    <PlayerContext.Provider
+      value={{
+        playlist,
+        setPlaylist,
+        playlistIndex,
+        setPlaylistIndex,
+        isPlaying,
+        setIsPlaying,
+      }}
+    >
       {children}
     </PlayerContext.Provider>
   );
 };
 
 export const usePlayer = () => {
-  const context = useContext(PlayerContext);
-  if (!context) {
-    throw new Error('usePlayer must be used within a PlayerProvider');
-  }
-  return context;
+  const ctx = useContext(PlayerContext);
+  if (!ctx) throw new Error('usePlayer debe usarse dentro de PlayerProvider');
+  return ctx;
 };
