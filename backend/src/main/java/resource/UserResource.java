@@ -1,6 +1,7 @@
 package resource;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -23,6 +24,8 @@ import model.UserPagePost;
 import model.dto.LoginDTO;
 import model.dto.PassChangeDTO;
 import model.dto.RegisterDTO;
+import service.RateService;
+import service.SaveService;
 import service.UserPageService;
 import service.UserService;
 
@@ -36,6 +39,10 @@ public class UserResource {
 	@Inject UserPageService ups;
 
 	@Inject UserService us;
+
+	@Inject RateService rs;
+
+	@Inject SaveService ss;
 
 
 
@@ -103,6 +110,32 @@ public class UserResource {
 	@Path("/posts/{user_name}")
 	public Uni<List<UserPagePost>> getOtherUserPosts(@PathParam("user_name") String userName) {
 		return ups.getPostsByUserName(userName);
+	}
+
+	@GET
+	@Path("/rates")
+	public Uni<List<UserPagePost>> getUserRates() {
+		return us.getUserByToken(securityIdentity)
+			.flatMap(user ->
+				rs.getRatesByUser(user.name)
+					.map(rates -> rates.stream()
+						.map(rate -> rate.post.id)
+						.collect(Collectors.toList()))
+					.<List<UserPagePost>>flatMap(postIds -> ups.getPostsByIdList(postIds))
+			);
+	}
+
+	@GET
+	@Path("/saves")
+	public Uni<List<UserPagePost>> getUserSaves() {
+		return us.getUserByToken(securityIdentity)
+			.flatMap(user ->
+				ss.getSavesByUser(user.name)
+					.map(saves -> saves.stream()
+						.map(save -> save.post.id)
+						.collect(Collectors.toList()))
+					.<List<UserPagePost>>flatMap(postIds -> ups.getPostsByIdList(postIds))
+			);
 	}
 	
 

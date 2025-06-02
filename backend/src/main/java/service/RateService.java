@@ -1,6 +1,7 @@
 package service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -52,6 +53,10 @@ public class RateService {
 
 	public Uni<Rate> getRatesByPost(Long post, User user) {
 		return Rate.find("post.id = ?1 AND user = ?2", post, user).firstResult();
+	}
+
+	public Uni<List<Rate>> getRatesByUser(String userName) {
+		return Rate.find("user.name", userName).list();
 	}
 
 }

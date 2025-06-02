@@ -38,4 +38,13 @@ public class UserPageService {
 		return us.getUserByName(userName)
 			.flatMap(user -> UserPagePost.find("userName = ?1 ORDER BY createdAt DESC", user.name).list());
 	}
+
+	public Uni<UserPagePost> getPostById(Long postId) {
+		return UserPagePost.find("id", postId).firstResult();
+	}
+	
+	public Uni<List<UserPagePost>> getPostsByIdList(List<Long> postIds) {
+		return UserPagePost.find("id IN ?1 ORDER BY createdAt DESC", postIds).list();
+	}
+
 }
