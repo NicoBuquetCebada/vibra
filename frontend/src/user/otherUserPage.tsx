@@ -3,7 +3,7 @@ import { Container, Box, Avatar, Typography, Paper, Alert, Button, Dialog, Dialo
 import { useParams, useNavigate } from 'react-router-dom';
 import MusicPlayer from '../home/components/musicPlayer';
 import BottomNav from '../components/bottom-navigation';
-import { getOtherUserPage, getOtherUserPosts, getOtherUserFollowers, getOtherUserFollowed, getUserReposts, fetchWithAuth } from '../api';
+import { getOtherUserPage, getOtherUserPosts, getOtherUserFollowers, getOtherUserFollowed, getUserReposts, followUser, unfollowUser, fetchWithAuth, getFollowed, getOtherUserReposts } from '../api';
 import SongCard from '../home/components/songCard';
 import PersonIcon from '@mui/icons-material/Person';
 import { AuthContext } from '../context/auth-context';
@@ -106,12 +106,13 @@ const OtherUserPage: React.FC = () => {
     fetchUserPosts();
   }, [username]);
 
+  // Traer los reposts del usuario visitado
   useEffect(() => {
     const fetchReposts = async () => {
       setLoadingReposts(true);
       try {
-        if (userData?.name) {
-          const data = await getUserReposts(userData.name);
+        if (username) {
+          const data = await getOtherUserReposts(username);
           const repostsWithAudio = await Promise.all(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             data.map(async (post: any) => {
@@ -136,8 +137,8 @@ const OtherUserPage: React.FC = () => {
       }
       setLoadingReposts(false);
     };
-    if (userData) fetchReposts();
-  }, [userData]);
+    fetchReposts();
+  }, [username]);
 
   const handleOpenList = async (type: 'followers' | 'followed') => {
     setDialogTitle(type === 'followers' ? 'Seguidores' : 'Seguidos');
@@ -159,9 +160,37 @@ const OtherUserPage: React.FC = () => {
     setUserList([]);
   };
 
-  // Simulación de follow/unfollow (ajusta con tu API real)
-  const handleFollowToggle = () => {
-    setIsFollowing((prev) => !prev);
+  // Comprobar si el usuario actual sigue al usuario visitado
+  useEffect(() => {
+    const checkFollowing = async () => {
+      if (!username || !user) return;
+      try {
+        const followed = await getFollowed();
+        const isUserFollowed = followed.some((u: any) => u.name === username);
+        setIsFollowing(isUserFollowed);
+      } catch {
+        setIsFollowing(false);
+      }
+    };
+    checkFollowing();
+  }, [username, user]);
+
+  // Manejar seguir/dejar de seguir
+  const handleFollowToggle = async () => {
+    if (!username) return;
+    try {
+      if (isFollowing) {
+        console.log('DELETE unfollow:', `/api/follows/follow/${username}`);
+        await unfollowUser(username);
+        setIsFollowing(false);
+      } else {
+        console.log('POST follow:', `/api/follows/follow/${username}`);
+        await followUser(username);
+        setIsFollowing(true);
+      }
+    } catch (error) {
+      console.error('Error en follow/unfollow:', error);
+    }
   };
 
   // Renderizado de pestañas

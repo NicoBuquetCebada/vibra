@@ -3,7 +3,7 @@ import { Container, Box, Avatar, Typography, Paper, Tabs, Tab, CircularProgress,
 import { useNavigate } from 'react-router-dom';
 import MusicPlayer from '../home/components/musicPlayer';
 import BottomNav from '../components/bottom-navigation';
-import { fetchWithAuth, getFollowers, getFollowed, getSavedPosts, getUserReposts } from '../api';
+import { fetchWithAuth, getFollowers, getFollowed, getUserSaves, getUserReposts, getUserRates, getSong, getSongsByAlbum } from '../api';
 import SongCard from '../home/components/songCard';
 import TuneIcon from '@mui/icons-material/Tune';
 import PersonIcon from '@mui/icons-material/Person';
@@ -89,10 +89,12 @@ const UserPage: React.FC = () => {
   const [posts, setPosts] = useState<UserPagePost[]>([]);
   const [reposts, setReposts] = useState<UserPagePost[]>([]);
   const [saves, setSaves] = useState<UserPagePost[]>([]);
+  const [rates, setRates] = useState<UserPagePost[]>([]);
   const [tab, setTab] = useState(0);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [loadingReposts, setLoadingReposts] = useState(true);
   const [loadingSaves, setLoadingSaves] = useState(true);
+  const [loadingRates, setLoadingRates] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTitle, setDialogTitle] = useState('');
   const [userList, setUserList] = useState<{ name: string; profile_img?: string }[]>([]);
@@ -102,8 +104,20 @@ const UserPage: React.FC = () => {
   const fetchReposts = async () => {
     setLoadingReposts(true);
     try {
-      const data = await getUserReposts(userData?.name || '');
-      setReposts(data);
+      const data = await getUserReposts();
+      const repostsWithAudio = await Promise.all(
+        data.map(async (post) => {
+          if (post.type === 'song') {
+            const songData = await getSong(post.contentId);
+            return { ...post, song: { name: post.name, audio: songData.audio } };
+          } else if (post.type === 'album') {
+            const albumSongs = await getSongsByAlbum(post.contentId);
+            return { ...post, album: { name: post.name, songs: albumSongs } };
+          }
+          return post;
+        })
+      );
+      setReposts(repostsWithAudio);
     } catch {
       setReposts([]);
     }
@@ -113,12 +127,47 @@ const UserPage: React.FC = () => {
   const fetchSaves = async () => {
     setLoadingSaves(true);
     try {
-      const data = await getSavedPosts();
-      setSaves(data);
+      const data = await getUserSaves();
+      const savesWithAudio = await Promise.all(
+        data.map(async (save) => {
+          if (save.type === 'song') {
+            const songData = await getSong(save.contentId);
+            return { ...save, song: { name: save.name, audio: songData.audio } };
+          } else if (save.type === 'album') {
+            const albumSongs = await getSongsByAlbum(save.contentId);
+            return { ...save, album: { name: save.name, songs: albumSongs } };
+          }
+          return save;
+        })
+      );
+      setSaves(savesWithAudio);
     } catch {
       setSaves([]);
     }
     setLoadingSaves(false);
+  };
+
+  const fetchRates = async () => {
+    setLoadingRates(true);
+    try {
+      const rates = await getUserRates();
+      const ratesWithAudio = await Promise.all(
+        rates.map(async (rate) => {
+          if (rate.type === 'song') {
+            const songData = await getSong(rate.contentId);
+            return { ...rate, song: { name: rate.name, audio: songData.audio } };
+          } else if (rate.type === 'album') {
+            const albumSongs = await getSongsByAlbum(rate.contentId);
+            return { ...rate, album: { name: rate.name, songs: albumSongs } };
+          }
+          return rate;
+        })
+      );
+      setRates(ratesWithAudio);
+    } catch {
+      setRates([]);
+    }
+    setLoadingRates(false);
   };
 
   useEffect(() => {
@@ -155,6 +204,7 @@ const UserPage: React.FC = () => {
   useEffect(() => {
     if (userData) {
       fetchReposts();
+      fetchRates();
       fetchSaves();
     }
   }, [userData]);
@@ -231,16 +281,10 @@ const UserPage: React.FC = () => {
         <Typography variant="body2" color="text.secondary">No hay publicaciones.</Typography>
       ) : (
         posts.map((post, idx) => {
-          console.log('[UserPage] post recibido:', post);
           const songCardData = userPagePostToSongCard(post, userData, idx);
-          console.log(
-            `[SongCard] Post: ${post.name} | Tipo: ${post.type} | audioSrc:`,
-            songCardData.audioSrc,
-            songCardData
-          );
           return (
             <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
-              <SongCard song={songCardData} onUserClick={() => navigate('/profile')} />
+              <SongCard song={songCardData} onUserClick={() => navigate('/profile')} onSaveChange={fetchSaves} onRateChange={fetchRates}/>
             </Box>
           );
         })
@@ -255,13 +299,28 @@ const UserPage: React.FC = () => {
           const songCardData = userPagePostToSongCard(post, userData, idx);
           return (
             <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
-              <SongCard song={songCardData} onUserClick={() => navigate('/profile')} />
+              <SongCard song={songCardData} onUserClick={() => navigate('/profile')} onSaveChange={fetchSaves} onRateChange={fetchRates}/>
             </Box>
           );
         })
       );
     }
     if (tab === 2) {
+      if (loadingRates) return <Box sx={{ textAlign: 'center', mt: 4 }}><CircularProgress /></Box>;
+      return rates.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">No hay rates.</Typography>
+      ) : (
+        rates.map((post, idx) => {
+          const songCardData = userPagePostToSongCard(post, userData, idx);
+          return (
+            <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
+              <SongCard song={songCardData} onUserClick={() => navigate('/profile')} onSaveChange={fetchSaves} onRateChange={fetchRates}/>
+            </Box>
+          );
+        })
+      );
+    }
+    if (tab === 3) {
       if (loadingSaves) return <Box sx={{ textAlign: 'center', mt: 4 }}><CircularProgress /></Box>;
       return saves.length === 0 ? (
         <Typography variant="body2" color="text.secondary">No hay guardados.</Typography>
@@ -270,7 +329,7 @@ const UserPage: React.FC = () => {
           const songCardData = userPagePostToSongCard(post, userData, idx);
           return (
             <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
-              <SongCard song={songCardData} onUserClick={() => navigate('/profile')} />
+              <SongCard song={songCardData} onUserClick={() => navigate('/profile')} onSaveChange={fetchSaves} onRateChange={fetchRates}/>
             </Box>
           );
         })
@@ -434,7 +493,7 @@ const UserPage: React.FC = () => {
           <Tabs value={tab} onChange={(_, v) => setTab(v)} centered>
             <Tab label="Posts" />
             <Tab label="Reposts" />
-            {/* Solo muestra "Guardados" si es tu perfil */}
+            <Tab label="Rates" />
             {userData && /* lógica para saber si es tu perfil */ true && (
               <Tab label="Guardados" />
             )}

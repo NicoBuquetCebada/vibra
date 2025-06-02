@@ -492,3 +492,41 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 			"contentId": 1
 		}
 		]
+
+# REPOST
+
+- Get user reposts, obtiene las publicaciones que el usuario autenticado ha hecho repost a través del JWT
+
+    request: GET /api/users/reposts
+
+    response:
+        [
+            {
+                "id": 1,
+                "userName": "string",
+                "createdAt": "2022-03-10T12:15:50",
+                "type": "song o album",
+                "contentId": 1,
+                "name": "songName o albumName",
+                "coverImg": "ruta/cover"
+            },
+            ...
+        ]
+
+- Get other user reposts, obtiene las publicaciones que otro usuario ha hecho repost a través de su user name
+
+    request: GET /api/users/reposts/{user_name}
+
+    response:
+        [
+            {
+                "id": 1,
+                "userName": "string",
+                "createdAt": "2022-03-10T12:15:50",
+                "type": "song o album",
+                "contentId": 1,
+                "name": "songName o albumName",
+                "coverImg": "ruta/cover"
+            },
+            ...
+        ]

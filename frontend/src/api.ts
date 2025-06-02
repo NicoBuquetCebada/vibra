@@ -101,10 +101,16 @@ export const getSavedPosts = async () => {
 };
 
 // Obtener todos los reposts de un usuario (puede ser el autenticado o cualquier otro)
-export const getUserReposts = async (userName: string) => {
-  // Simulación: GET /api/metrics/reposts/{userName}
-  const res = await fetchWithAuth(`/api/metrics/reposts/${userName}`);
-  if (!res.ok) throw new Error('Error al obtener reposts del usuario');
+export const getUserReposts = async () => {
+  const res = await fetchWithAuth('/api/users/reposts');
+  if (!res.ok) throw new Error('Error al obtener los reposts del usuario');
+  return res.json();
+};
+
+// Obtener todos los reposts de otro usuario por su nombre
+export const getOtherUserReposts = async (userName: string) => {
+  const res = await fetchWithAuth(`/api/users/reposts/${userName}`);
+  if (!res.ok) throw new Error('Error al obtener los reposts de otro usuario');
   return res.json();
 };
 
@@ -182,6 +188,25 @@ export const deleteUser = async (userName: string) => {
 };
 
 // -------- FOLLOWS --------
+
+// Seguir a un usuario
+export const followUser = async (userName: string) => {
+  const res = await fetchWithAuth(`/api/follows/follow/${userName}`, {
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error('Error al seguir al usuario');
+  return res;
+};
+
+// Dejar de seguir a un usuario
+export const unfollowUser = async (userName: string) => {
+  const res = await fetchWithAuth(`/api/follows/unfollow/${userName}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Error al dejar de seguir al usuario');
+  return res;
+};
+
 export const getFollowed = async () => {
   const res = await fetchWithAuth('/api/follows/followed');
   if (!res.ok) throw new Error('Error al obtener seguidos');
@@ -265,5 +290,19 @@ export const uploadMultipleFiles = async (files: File[]) => {
 export const getNotifications = async () => {
   const res = await fetchWithAuth('/api/notifications');
   if (!res.ok) throw new Error('Error al obtener notificaciones');
+  return res.json();
+};
+
+// Obtener todos los rates del usuario autenticado
+export const getUserRates = async () => {
+  const res = await fetchWithAuth('/api/users/rates');
+  if (!res.ok) throw new Error('Error al obtener rates del usuario');
+  return res.json();
+};
+
+// Obtener todos los saves del usuario autenticado
+export const getUserSaves = async () => {
+  const res = await fetchWithAuth('/api/users/saves');
+  if (!res.ok) throw new Error('Error al obtener los guardados del usuario');
   return res.json();
 };

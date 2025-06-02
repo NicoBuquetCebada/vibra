@@ -5,9 +5,10 @@ import { getPostMetrics, ratePost, updateRate } from '../../api';
 
 interface RateProps {
   postId: number;
+  onRateChange?: () => void; // Añadido para refrescar rating desde el padre
 }
 
-const Rate: React.FC<RateProps> = ({ postId }) => {
+const Rate: React.FC<RateProps> = ({ postId, onRateChange }) => {
   const [rating, setRating] = useState(0);
   const [hasRating, setHasRating] = useState(false);
 
@@ -32,14 +33,17 @@ const Rate: React.FC<RateProps> = ({ postId }) => {
 
     try {
       if (hasRating) {
-        // Actualizar rating existente
+        // Solo actualiza el rate, no refresques la lista
         await updateRate(postId, value);
+        setRating(value);
+        // NO llames a onRateChange aquí
       } else {
-        // Crear nuevo rating
+        // Es un nuevo rate, refresca la lista
         await ratePost(postId, value);
         setHasRating(true);
+        setRating(value);
+        if (onRateChange) onRateChange();
       }
-      setRating(value);
     } catch (error) {
       if (error instanceof Error) {
         console.error('Error al calificar post:', error.message);

@@ -27,10 +27,13 @@ export interface SongCardProps {
   isRepost?: boolean;
   repostUser?: { name: string; profileImg: string };
   onRepostUserClick?: () => void;
+  onSaveChange?: () => void; // Añade esta prop
+  onRateChange?: () => void;
+
 }
 
 const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
-  ({ song, repostUser, isRepost }, ref) => {
+  ({ song, repostUser, isRepost, onSaveChange, onRateChange }, ref) => {
     const {setPlaylist, setPlaylistIndex } = usePlayer();
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [hover, setHover] = useState(false);
@@ -233,7 +236,7 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
             zIndex: 10 // Siempre visible en móviles
           }}
         >
-          <Rate postId={song.postId} />
+          <Rate postId={song.postId} onRateChange={onRateChange}/>
           <Box
             sx={{
               display: 'flex',
@@ -244,8 +247,8 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
             }}
           >
             <RepostButton postId={song.postId} />
-            <SaveButton postId={song.postId} />
-          </Box>
+            <SaveButton postId={song.postId} onSaveChange={onSaveChange} />          
+            </Box>
         </Box>
 
         {/* Audio */}
