@@ -83,8 +83,10 @@ DROP TABLE IF EXISTS user_page_posts_view CASCADE;
 -- SEARCH BAR VIEW
 CREATE OR REPLACE VIEW search_view (name, id, type) AS
 SELECT name, NULL::BIGINT AS id, 'user' AS type, profile_img AS img FROM users UNION ALL
-SELECT name, id, 'song' AS type, cover_img AS img FROM songs UNION ALL
-SELECT name, id, 'album' AS type, cover_img AS img FROM albums;
+SELECT name, p.id AS id, 'song' AS type, cover_img AS img FROM songs s
+JOIN posts p ON p.song_id = s.id UNION ALL
+SELECT name, p.id AS id, 'album' AS type, cover_img AS img FROM albums a 
+JOIN posts p ON p.album_id = a.id;
 
 -- NOTIFICATIONS VIEW
 CREATE OR REPLACE VIEW notifications_view (type, created_at, action_user, profile_img, content_user, content_id) AS

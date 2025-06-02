@@ -56,7 +56,7 @@ ROOT PATH: http://localhost:8080
 			"reposted": true
 		}
 
-search, buscador de usuarios, albumes y canciones. Se introduce el texto a buscar y devuelve nombre, id (en caso de user es null) y tipo (user, song, album)
+search, buscador de usuarios, albumes y canciones. Se introduce el texto a buscar y devuelve nombre, id del post (en caso de user es null) y tipo (user, song, album)
 
 	request: GET /api/home/search/{search}
 
@@ -206,11 +206,43 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 			"coverImg": "ruta/cover"
 		}
 
-	IMPORTANTE: En los endpoint de users/posts no está la información del audio de la canción (canciones en caso de album) Cuando se traigan esta información se podrán listar los posts pero hará falta por cada uno de los posts hacer una petición a los endpoint de song (información detallada en el apartado songs), en caso de:
+ - Get user rates, obtiene las publicaciones puntuadas del usuario autenticado a través de JWT
+	
+	request: GET /api/users/rates
+
+	reponse:
+		{
+			"id": 1,
+			"userName": "string",
+			"createdAt": "2022-03-10T12:15:50",
+			"type": "song o album",
+			"contentId": 1,
+			"name": "songName o albumName",
+			"coverImg": "ruta/cover"
+		}
+
+ - Get user saves, obtiene las publicaciones guardadas del usuario autenticado a través de JWT
+	
+	request: GET /api/users/saves
+
+	reponse:
+		{
+			"id": 1,
+			"userName": "string",
+			"createdAt": "2022-03-10T12:15:50",
+			"type": "song o album",
+			"contentId": 1,
+			"name": "songName o albumName",
+			"coverImg": "ruta/cover"
+		}
+
+	IMPORTANTE: En los endpoint de users/posts, users/saves y users/rates no está la información del audio de la canción (canciones en caso de album) Cuando se traigan esta información se podrán listar los posts pero hará falta por cada uno de los posts hacer una petición a los endpoint de song (información detallada en el apartado songs), en caso de:
 
 		"type": "song" -> GET /api/songs/{id} del que se utilizara solo la propiedad audio
 
 		"type": "album" -> GET /api/songs/albums/{album_id} del que se utilizarán name y audio de cada canción del array obtenido
+
+	FIN DEL AVISO
 
  - Update user field, actualiza un campo del usuario a traves de la url. el campo field de la url solo puede ser "mail" o "profileimg"
 	
@@ -393,6 +425,21 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 			}
 
 	response: code 201
+
+ - Get post by id, obtener la información relevante de un post a traves de su id (en la barra de busqueda se da el id del post. Este se podrá buscar a través de este endpoint)
+
+	request: GET /api/posts/{post_id}
+
+	response: 
+		{
+			"id": 1,
+			"userName": "nico",
+			"createdAt": "2024-03-17T09:00:00",
+			"type": "song",
+			"contentId": 4,
+			"name": "mastercaster",
+			"coverImg": "http://localhost:8080/api/media/defaultc.png"
+		}
 
 # MEDIA
 
