@@ -27,7 +27,7 @@ public class UserService {
 	// User of constructor
 	public User userOfRegister(RegisterDTO register) {
 		String hashedPass = hashPass(register.pass);
-		return new User(register.name, register.firstName, register.surname, register.mail, hashedPass, "http://localhost:8080/media/defaultu", "user");
+		return new User(register.name, register.firstName, register.surname, register.mail, hashedPass, "http://localhost:8080/media/defaultu.png", "user");
 	}
 
 	//Information requests

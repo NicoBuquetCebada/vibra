@@ -28,8 +28,8 @@ public class MediaResource {
     private static final Tika tika = new Tika();
 
     private static final Set<String> ALLOWED_TYPES = Set.of(
-            "image/jpeg", "image/png", "image/webp",
-            "audio/mpeg", "audio/wav", "video/mp4"
+            "image/jpeg", "image/png", "image/gif", "image/webp",
+            "audio/mpeg", "audio/wav"
     );
 
     @POST
