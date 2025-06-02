@@ -13,7 +13,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [user, setUser] = useState<{ name: string } | null>(null); // Añadido para almacenar información del usuario
+  const [user] = useState<{ name: string } | null>(null); // Añadido para almacenar información del usuario
 
   // Si el token no es válido, lo eliminamos y forzamos logout
   React.useEffect(() => {

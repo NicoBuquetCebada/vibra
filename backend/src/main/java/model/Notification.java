@@ -2,7 +2,6 @@ package model;
 
 import java.time.LocalDateTime;
 
-import org.hibernate.annotations.Immutable;
 
 import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
