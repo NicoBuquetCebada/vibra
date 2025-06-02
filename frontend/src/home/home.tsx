@@ -379,7 +379,7 @@ function MusicHome() {
           overflowY: 'auto',
           paddingTop: { xs: '100px', md: '100px' },
           paddingBottom: '70px',
-          backgroundColor: '#e8e8e8',
+          backgroundColor: 'transparent', // Fondo transparente para ver partículas
           position: 'relative',
         }}
       >

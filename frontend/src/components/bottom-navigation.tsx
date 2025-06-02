@@ -21,16 +21,19 @@ const BottomNav: React.FC<BottomNavProps> = ({ handleNavigation }) => {
         right: 0,
         width: '100%',
         zIndex: 1000,
-        backgroundColor: '#145a96',
+        background: 'linear-gradient(90deg, #f7f7f7 0%, #e3e6ea 100%)', // Fondo gris neutro
+        boxShadow: '0 -2px 16px 0 rgba(48,124,190,0.10)',
+        borderTop: '1.5px solid #e0e7ef',
         paddingTop: '8px',
         paddingBottom: '8px',
+        backdropFilter: 'blur(6px)',
       }}
     >
-      <BottomNavigationAction icon={<HomeIcon sx={{ color: '#fff' }} />} onClick={() => handleNavigation('/home')} />
-      <BottomNavigationAction icon={<SearchIcon sx={{ color: '#fff' }} />} onClick={() => handleNavigation('/search')} />
-      <BottomNavigationAction icon={<AddCircleIcon sx={{ fontSize: '2rem', color: '#fff' }} />} onClick={() => handleNavigation('/upload')} />
-      <BottomNavigationAction icon={<NotificationsIcon sx={{ color: '#fff' }} />} onClick={() => handleNavigation('/notifications')} />
-      <BottomNavigationAction icon={<PersonIcon sx={{ color: '#fff' }} />} onClick={() => handleNavigation('/profile')} />
+      <BottomNavigationAction icon={<HomeIcon sx={{ color: '#307cbe', transition: 'color 0.2s, transform 0.2s', '&:hover': { color: '#145a96', transform: 'scale(1.13) rotate(-8deg)' } }} />} onClick={() => handleNavigation('/home')} />
+      <BottomNavigationAction icon={<SearchIcon sx={{ color: '#307cbe', transition: 'color 0.2s, transform 0.2s', '&:hover': { color: '#145a96', transform: 'scale(1.13) rotate(-8deg)' } }} />} onClick={() => handleNavigation('/search')} />
+      <BottomNavigationAction icon={<AddCircleIcon sx={{ color: '#307cbe', transition: 'color 0.2s, transform 0.2s', '&:hover': { color: '#145a96', transform: 'scale(1.13) rotate(-8deg)' } }} />} onClick={() => handleNavigation('/upload')} />
+      <BottomNavigationAction icon={<NotificationsIcon sx={{ color: '#307cbe', transition: 'color 0.2s, transform 0.2s', '&:hover': { color: '#145a96', transform: 'scale(1.13) rotate(-8deg)' } }} />} onClick={() => handleNavigation('/notifications')} />
+      <BottomNavigationAction icon={<PersonIcon sx={{ color: '#307cbe', transition: 'color 0.2s, transform 0.2s', '&:hover': { color: '#145a96', transform: 'scale(1.13) rotate(-8deg)' } }} />} onClick={() => handleNavigation('/profile')} />
     </BottomNavigation>
   );
 };

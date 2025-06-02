@@ -273,12 +273,13 @@ const CreatePost: React.FC = () => {
                 sx={{
                   backgroundColor: '#fff',
                   borderRadius: 1,
+                  width: { xs: '100%', sm: '420px' },
+                  alignSelf: 'center',
                 }}
               />
-              
               <Box 
                 sx={{ 
-                  width: '60%',
+                  width: { xs: '100%', sm: '320px' }, // Más pequeño
                   aspectRatio: '1/1',
                   mx: 'auto',
                   display: 'flex',
@@ -308,7 +309,7 @@ const CreatePost: React.FC = () => {
                   >
                     <AddIcon sx={{ fontSize: 40 }} />
                     <Typography variant="body2" sx={{ textAlign: 'center', px: 2 }}>
-                      Añadir imagen de portada
+                      IMAGEN DE PORTADA
                     </Typography>
                     <input
                       type="file"
@@ -330,11 +331,12 @@ const CreatePost: React.FC = () => {
                   />
                 )}
               </Box>
-
               <Box sx={{ 
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 2,
+                width: { xs: '100%', sm: '420px' },
+                alignSelf: 'center',
               }}>
                 <Button
                   variant={songData.audio ? 'contained' : 'outlined'}
@@ -374,7 +376,6 @@ const CreatePost: React.FC = () => {
                   />
                 )}
               </Box>
-
               <Button 
                 variant="contained" 
                 color="primary" 
@@ -385,6 +386,8 @@ const CreatePost: React.FC = () => {
                   py: 1.5,
                   borderRadius: '20px',
                   boxShadow: 2,
+                  width: { xs: '100%', sm: '420px' },
+                  alignSelf: 'center',
                 }}
               >
                 Publicar
@@ -402,12 +405,13 @@ const CreatePost: React.FC = () => {
                 sx={{
                   backgroundColor: '#fff',
                   borderRadius: 1,
+                  width: { xs: '100%', sm: '420px' },
+                  alignSelf: 'center',
                 }}
               />
-              
               <Box 
                 sx={{ 
-                  width: '60%',
+                  width: { xs: '100%', sm: '320px' }, // Más pequeño
                   aspectRatio: '1/1',
                   mx: 'auto',
                   display: 'flex',
@@ -437,7 +441,7 @@ const CreatePost: React.FC = () => {
                   >
                     <AddIcon sx={{ fontSize: 40 }} />
                     <Typography variant="body2" sx={{ textAlign: 'center', px: 2 }}>
-                      Añadir portada del álbum
+                      IMAGEN DE PORTADA
                     </Typography>
                     <input
                       type="file"
@@ -458,7 +462,6 @@ const CreatePost: React.FC = () => {
                   />
                 )}
               </Box>
-
               {/* Lista de canciones */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {albumSongs.map((song, index) => (
@@ -472,6 +475,8 @@ const CreatePost: React.FC = () => {
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 2,
+                      width: { xs: '100%', sm: '420px' },
+                      alignSelf: 'center',
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -484,6 +489,9 @@ const CreatePost: React.FC = () => {
                         label="Nombre de la canción"
                         value={song.name}
                         onChange={(e) => handleAlbumSongChange(index, 'name', e.target.value)}
+                        sx={{
+                          width: { xs: '100%', sm: '340px' },
+                        }}
                       />
                       <IconButton
                         size="small"
@@ -492,7 +500,8 @@ const CreatePost: React.FC = () => {
                       >
                         <DeleteIcon />
                       </IconButton>
-                    </Box>                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    </Box>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
                       <Button
                         variant={song.audio ? 'contained' : 'outlined'}
                         component="label"
@@ -536,7 +545,6 @@ const CreatePost: React.FC = () => {
                   </Box>
                 ))}
               </Box>
-
               {/* Botón para añadir nueva canción */}
               <Button
                 onClick={handleAddNewSong}
@@ -553,12 +561,13 @@ const CreatePost: React.FC = () => {
                   '&:hover': {
                     backgroundColor: '#f5f5f5',
                     borderColor: '#307cbe'
-                  }
+                  },
+                  width: { xs: '100%', sm: '420px' },
+                  alignSelf: 'center',
                 }}
               >
                 Añadir Canción
               </Button>
-
               <Button 
                 variant="contained" 
                 color="primary" 
@@ -569,6 +578,8 @@ const CreatePost: React.FC = () => {
                   py: 1.5,
                   borderRadius: '20px',
                   boxShadow: 2,
+                  width: { xs: '100%', sm: '420px' },
+                  alignSelf: 'center',
                 }}
               >
                 Publicar Álbum
