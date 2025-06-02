@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Box, Button, TextField, Typography, Container, Alert, Snackbar, IconButton } from '@mui/material';
+import { Box, Button, TextField, Typography, Container, Alert, IconButton, CircularProgress } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import AudiotrackIcon from '@mui/icons-material/Audiotrack';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import BottomNav from '../components/bottom-navigation';
 import Logo from '../assets/logo.png';
-import { fetchWithAuth } from '../api';
+import { fetchWithAuth, addSongPost, addAlbumPost } from '../api'; // <-- importa los métodos
 
 interface Song {
   name: string;
@@ -21,8 +21,11 @@ const CreatePost: React.FC = () => {
   const [albumCover, setAlbumCover] = useState<File | null>(null);
   const [albumSongs, setAlbumSongs] = useState<Song[]>([]);
   const [error, setError] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSongChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, files } = event.target;
@@ -44,7 +47,7 @@ const CreatePost: React.FC = () => {
     setAlbumSongs(prev => [...prev, { name: '', image: null, audio: null }]);
   };
 
-  const handleAlbumSongChange = (index: number, field: keyof Song, value: any) => {
+  const handleAlbumSongChange = <K extends keyof Song>(index: number, field: K, value: Song[K]) => {
     setAlbumSongs(prev => prev.map((song, i) => 
       i === index ? { ...song, [field]: value } : song
     ));
@@ -66,6 +69,7 @@ const CreatePost: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
       if (!isAlbum) {
         if (!songData.name || !songData.audio) {
@@ -73,35 +77,46 @@ const CreatePost: React.FC = () => {
           return;
         }
 
-        const formData = new FormData();
-        if (songData.image) formData.append('file', songData.image);
-        if (songData.audio) formData.append('file', songData.audio);
+        let coverImgUrl = "";
+        let audioUrl = "";
 
-        const uploadRes = await fetchWithAuth('/api/media/upload/multi', {
-          method: 'POST',
-          body: formData,
-        });
+        if (songData.image) {
+          // Si hay imagen, sube imagen y audio
+          const formData = new FormData();
+          formData.append('file', songData.image);
+          formData.append('file', songData.audio);
 
-        if (!uploadRes.ok) throw new Error('Error al subir archivos');
-        const uploadData = await uploadRes.json();
-        const [coverImgUrl, audioUrl] = uploadData.urls;
+          const uploadRes = await fetchWithAuth('/api/media/upload/multi', {
+            method: 'POST',
+            body: formData,
+          });
 
-        const postRes = await fetchWithAuth('/api/posts/song', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            songName: songData.name,
-            coverImg: coverImgUrl,
-            audio: audioUrl,
-          }),
-        });
+          if (!uploadRes.ok) throw new Error('Error al subir archivos');
+          const uploadData = await uploadRes.json();
+          [coverImgUrl, audioUrl] = uploadData.urls;
+        } else {
+          // Solo sube el audio
+          const formData = new FormData();
+          formData.append('file', songData.audio);
 
-        if (!postRes.ok) throw new Error('Error al crear el post');
+          const uploadRes = await fetchWithAuth('/api/media/upload/multi', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!uploadRes.ok) throw new Error('Error al subir archivos');
+          const uploadData = await uploadRes.json();
+          audioUrl = uploadData.urls[0];
+          coverImgUrl = ""; // Imagen vacía
+        }
+
+        await addSongPost(songData.name, coverImgUrl, audioUrl);
+
         setSuccessMessage('Canción publicada con éxito');
-        setTimeout(() => navigate('/home'), 1200);
+        setTimeout(() => navigate('/home', { state: { successMessage: isAlbum ? 'Álbum publicado con éxito' : 'Canción publicada con éxito' } }), 1200);
       } else {
-        if (!albumName || !albumCover || albumSongs.length === 0) {
-          setError('El nombre del álbum, la portada y al menos una canción son obligatorios.');
+        if (!albumName || albumSongs.length === 0) {
+          setError('El nombre del álbum y al menos una canción son obligatorios.');
           return;
         }
 
@@ -110,43 +125,70 @@ const CreatePost: React.FC = () => {
           return;
         }
 
-        const formData = new FormData();
-        formData.append('file', albumCover);
-        albumSongs.forEach(song => {
-          if (song.audio) formData.append('file', song.audio);
-        });
+        let coverImgUrl = "";
+        let audioUrls: string[] = [];
 
-        const uploadRes = await fetchWithAuth('/api/media/upload/multi', {
-          method: 'POST',
-          body: formData,
-        });
+        if (albumCover) {
+          // Si hay portada, sube portada y audios
+          const formData = new FormData();
+          formData.append('file', albumCover);
+          albumSongs.forEach(song => {
+            if (song.audio) formData.append('file', song.audio);
+          });
 
-        if (!uploadRes.ok) throw new Error('Error al subir archivos');
-        const uploadData = await uploadRes.json();
-        const [coverImgUrl, ...audioUrls] = uploadData.urls;
+          const uploadRes = await fetchWithAuth('/api/media/upload/multi', {
+            method: 'POST',
+            body: formData,
+          });
 
-        const postRes = await fetchWithAuth('/api/posts/album', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            albumName,
-            coverImg: coverImgUrl,
-            songs: albumSongs.map((song, index) => ({
-              name: song.name,
-              audio: audioUrls[index]
-            }))
-          }),
-        });
+          if (!uploadRes.ok) throw new Error('Error al subir archivos');
+          const uploadData = await uploadRes.json();
+          [coverImgUrl, ...audioUrls] = uploadData.urls;
+        } else {
+          // Solo sube los audios
+          const formData = new FormData();
+          albumSongs.forEach(song => {
+            if (song.audio) formData.append('file', song.audio);
+          });
 
-        if (!postRes.ok) throw new Error('Error al crear el álbum');
+          const uploadRes = await fetchWithAuth('/api/media/upload/multi', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!uploadRes.ok) throw new Error('Error al subir archivos');
+          const uploadData = await uploadRes.json();
+          coverImgUrl = ""; // Portada vacía
+          audioUrls = uploadData.urls;
+        }
+
+        // Usa el método de la API
+        await addAlbumPost(
+          albumName,
+          coverImgUrl,
+          albumSongs.map((song, index) => ({
+            name: song.name,
+            audio: audioUrls[index]
+          }))
+        );
+
         setSuccessMessage('Álbum publicado con éxito');
-        setTimeout(() => navigate('/home'), 1200);
+        setTimeout(() => navigate('/home', { state: { successMessage: isAlbum ? 'Álbum publicado con éxito' : 'Canción publicada con éxito' } }), 1200);
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Error:', error);
       setError('Error al subir. Inténtalo de nuevo.');
+      setLoading(false); // Solo aquí
     }
   };
+
+  React.useEffect(() => {
+    if (location.state?.successMessage) {
+      setSuccessMessage(location.state.successMessage);
+      // Limpia el estado para que no se repita al refrescar
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   return (
     <Box 
@@ -522,7 +564,7 @@ const CreatePost: React.FC = () => {
                 color="primary" 
                 fullWidth 
                 onClick={handleSubmit}
-                disabled={!albumName || !albumCover || albumSongs.length === 0}
+                disabled={!albumName || albumSongs.length === 0}
                 sx={{
                   py: 1.5,
                   borderRadius: '20px',
@@ -538,12 +580,21 @@ const CreatePost: React.FC = () => {
 
       <BottomNav handleNavigation={navigate} />
 
-      <Snackbar
-        open={!!successMessage}
-        autoHideDuration={3000}
-        onClose={() => setSuccessMessage(null)}
-        message={successMessage}
-      />
+      {loading && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0, left: 0, width: '100vw', height: '100vh',
+            bgcolor: 'rgba(255,255,255,0.6)',
+            zIndex: 2000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <CircularProgress size={70} color="primary" />
+        </Box>
+      )}
     </Box>
   );
 };

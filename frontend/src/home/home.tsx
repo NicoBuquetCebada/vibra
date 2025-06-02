@@ -2,13 +2,15 @@ import { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import { Container, Box, Typography, CircularProgress, IconButton, Avatar, Tooltip } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SearchIcon from '@mui/icons-material/Search';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import SongCard from './components/songCard';
 import MusicPlayer from './components/musicPlayer';
 import BottomNav from '../components/bottom-navigation';
 import { fetchWithAuth } from '../api';
 import { AuthContext } from '../context/auth-context';
 import Logo from '../assets/basic_logo.png';
+import Snackbar from '@mui/material/Snackbar';
+
 
 // Tipos para los objetos de la API
 interface User {
@@ -107,6 +109,8 @@ function MusicHome() {
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const location = useLocation();
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Función para manejar clics fuera del buscador
   useEffect(() => {
@@ -327,6 +331,15 @@ function MusicHome() {
       }
     };
   }, []);
+
+  // Manejo del mensaje de éxito
+  useEffect(() => {
+    if (location.state?.successMessage) {
+      setSuccessMessage(location.state.successMessage);
+      // Limpia el estado para que no se repita al refrescar
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   return (
       <Container
@@ -573,6 +586,13 @@ function MusicHome() {
           {posts.map((post, index) => {
             const songCardData = postToSongCard(post, index);
 
+            // Añade este console.log:
+            console.log(
+              `[Home] Post: ${songCardData.title} | Tipo: ${post.content} | audioSrc:`,
+              songCardData.audioSrc,
+              songCardData
+            );
+
             // Función para navegación inteligente
             const handleUserClick = (username: string) => {
               console.log('Navigating to user:', username);
@@ -710,6 +730,14 @@ function MusicHome() {
           <MusicPlayer />
         </Box>
         <BottomNav handleNavigation={handleNavigation} />
+
+        {/* Snackbar para mensajes de éxito */}
+        <Snackbar
+          open={!!successMessage}
+          autoHideDuration={3000}
+          onClose={() => setSuccessMessage(null)}
+          message={successMessage}
+        />
       </Container>
   );
 }

@@ -1,144 +1,72 @@
 import React, { useEffect, useState } from 'react';
 import { Container, List, ListItem, ListItemAvatar, Avatar, ListItemText, Typography, CircularProgress, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-// import { fetchWithAuth } from '../api';
+import { getNotifications } from '../api'; // Importa la función real
 import BottomNav from '../components/bottom-navigation';
 import MusicPlayer from '../home/components/musicPlayer';
 
-interface NotificationPost {
-  id: number;
+interface NotificationApi {
+  actionUserName: string;
+  contentId: number;
+  contentUserName: string;
   createdAt: string;
-  user: {
-    name: string;
-    profile_img?: string;
-  };
-  type: 'post' | 'repost' | 'rate';
-  content: string;
-  originalUser?: { name: string; profile_img?: string }; // solo para repost y rate
-  rateValue?: number; // solo para rate
+  profileImg: string;
+  type: 'post' | 'repost' | 'rate' | 'follow';
+  rateValue?: number;
 }
 
-// Array estático de usuarios seguidos (simula lo que devolvería la API)
-const staticNotifications: NotificationPost[] = [
-  {
-    id: 1,
-    createdAt: new Date().toISOString(),
-    user: { name: 'jorge', profile_img: '' },
-    type: 'post',
-    content: '¡Nuevo álbum disponible!',
-  },
-  {
-    id: 2,
-    createdAt: new Date(Date.now() - 3600 * 1000).toISOString(),
-    user: { name: 'maria', profile_img: '' },
-    type: 'post',
-    content: 'He subido una nueva canción',
-  },
-  {
-    id: 3,
-    createdAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-    user: { name: 'david', profile_img: '' },
-    type: 'post',
-    content: '¡Escucha mi último single!',
-  },
-  // Ejemplo de repost
-  {
-    id: 4,
-    createdAt: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
-    user: { name: 'lucia', profile_img: '' },
-    type: 'repost',
-    content: 'Ha hecho repost de una publicación',
-    originalUser: { name: 'jorge', profile_img: '' },
-  },
-  // Ejemplo de rate
-  {
-    id: 5,
-    createdAt: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
-    user: { name: 'ana', profile_img: '' },
-    type: 'rate',
-    content: 'Ha valorado una publicación',
-    originalUser: { name: 'maria', profile_img: '' },
-    rateValue: 5,
-  },
-  // Más ejemplos
-  {
-    id: 6,
-    createdAt: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
-    user: { name: 'carlos', profile_img: '' },
-    type: 'repost',
-    content: 'Ha hecho repost de una publicación',
-    originalUser: { name: 'david', profile_img: '' },
-  },
-  {
-    id: 7,
-    createdAt: new Date(Date.now() - 6 * 3600 * 1000).toISOString(),
-    user: { name: 'sofia', profile_img: '' },
-    type: 'rate',
-    content: 'Ha valorado una publicación',
-    originalUser: { name: 'lucia', profile_img: '' },
-    rateValue: 4,
-  },
-  {
-    id: 8,
-    createdAt: new Date(Date.now() - 7 * 3600 * 1000).toISOString(),
-    user: { name: 'alberto', profile_img: '' },
-    type: 'post',
-    content: '¡Nuevo single en camino!',
-  },
-];
-
 const NotificationList: React.FC = () => {
-  const [notifications, setNotifications] = useState<NotificationPost[]>([]);
+  const [notifications, setNotifications] = useState<NotificationApi[]>([]);
   const [loading, setLoading] = useState(true);
-  const [followedUsers, setFollowedUsers] = useState<string[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      // Filtra las notificaciones solo de usuarios seguidos
-      const filtered = staticNotifications.filter(
-        notif => followedUsers.includes(notif.user.name)
-      );
-      setNotifications(filtered);
-      setLoading(false);
-    }, 700);
-  }, [followedUsers]);
+    const fetchNotifications = async () => {
+      setLoading(true);
+      try {
+        const data = await getNotifications();
+        console.log('Notificaciones recibidas:', data); // <-- Aquí imprimes la respuesta
 
-  useEffect(() => {
-    // Simulación de fetch
-    const fetchFollowed = async () => {
-      // const res = await fetchWithAuth('/api/users/followed');
-      // const data = await res.json();
-      // setFollowedUsers(data.map(u => u.name));
-      setFollowedUsers(['jorge', 'lucia', 'sofia']); // temporal
+        setNotifications(data);
+      } catch {
+        setNotifications([]);
+      }
+      setLoading(false);
     };
-    fetchFollowed();
+    fetchNotifications();
   }, []);
 
   // Función para renderizar el mensaje según el tipo
-  const renderNotificationText = (notif: NotificationPost) => {
+  const renderNotificationText = (notif: NotificationApi) => {
     if (notif.type === 'post') {
       return (
         <span>
-          <b>{notif.user.name}</b> ha publicado algo nuevo
+          <b>{notif.actionUserName}</b> ha publicado algo nuevo
         </span>
       );
     }
     if (notif.type === 'repost') {
       return (
         <span>
-          <b>{notif.user.name}</b> ha hecho repost de una publicación de <b>{notif.originalUser?.name}</b>
+          <b>{notif.actionUserName}</b> ha hecho repost de una publicación de <b>{notif.contentUserName}</b>
         </span>
       );
     }
     if (notif.type === 'rate') {
       return (
         <span>
-          <b>{notif.user.name}</b> ha valorado una publicación de <b>{notif.originalUser?.name}</b> con <b>{notif.rateValue} ⭐</b>
+          <b>{notif.actionUserName}</b> ha valorado una publicación de <b>{notif.contentUserName}</b> con <b>{notif.rateValue} ⭐</b>
         </span>
       );
     }
+    if (notif.type === 'follow') {
+      return (
+        <span>
+          <b>{notif.actionUserName}</b> ha comenzado a seguirte
+        </span>
+      );
+    }
+    
     return null;
   };
 
@@ -190,39 +118,41 @@ const NotificationList: React.FC = () => {
           </Typography>
         ) : (
           <List>
-            {notifications.map((notif) => (
-              <Box
-                key={notif.id}
-                sx={{
-                  mb: 2,
-                  backgroundColor: 'white',
-                  borderRadius: 2,
-                  boxShadow: 1,
-                  p: 2,
-                  transition: 'box-shadow 0.2s',
-                  '&:hover': { boxShadow: 4, backgroundColor: '#f0f6ff' },
-                }}
-              >
-                <ListItem alignItems="flex-start" sx={{ cursor: 'pointer', p: 0 }}
-                  onClick={() => navigate(`/profile/${notif.user.name}`)}
-                  disableGutters
+            {notifications
+              .filter((notif) => notif.actionUserName)
+              .map((notif) => (
+                <Box
+                  key={notif.contentId}
+                  sx={{
+                    mb: 2,
+                    backgroundColor: 'white',
+                    borderRadius: 2,
+                    boxShadow: 1,
+                    p: 2,
+                    transition: 'box-shadow 0.2s',
+                    '&:hover': { boxShadow: 4, backgroundColor: '#f0f6ff' },
+                  }}
                 >
-                  <ListItemAvatar>
-                    <Avatar src={notif.user.profile_img || undefined}>
-                      {!notif.user.profile_img && notif.user.name[0]?.toUpperCase()}
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={renderNotificationText(notif)}
-                    secondary={
-                      <Typography variant="body2" color="text.secondary">
-                        {new Date(notif.createdAt).toLocaleString()}
-                      </Typography>
-                    }
-                  />
-                </ListItem>
-              </Box>
-            ))}
+                  <ListItem alignItems="flex-start" sx={{ cursor: 'pointer', p: 0 }}
+                    onClick={() => navigate(`/profile/${notif.actionUserName}`)}
+                    disableGutters
+                  >
+                    <ListItemAvatar>
+                      <Avatar src={notif.profileImg || undefined}>
+                        {!notif.profileImg && notif.actionUserName[0]?.toUpperCase()}
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={renderNotificationText(notif)}
+                      secondary={
+                        <Typography variant="body2" color="text.secondary">
+                          {new Date(notif.createdAt).toLocaleString()}
+                        </Typography>
+                      }
+                    />
+                  </ListItem>
+                </Box>
+              ))}
           </List>
         )}
       </Box>
