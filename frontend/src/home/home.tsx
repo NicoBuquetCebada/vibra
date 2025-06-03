@@ -8,6 +8,7 @@ import MusicPlayer from './components/musicPlayer';
 import BottomNav from '../components/bottom-navigation';
 import { fetchWithAuth } from '../api';
 import { AuthContext } from '../context/auth-context';
+import { usePlayer } from '../context/player-context';
 import Logo from '../assets/basic_logo.png';
 import Snackbar from '@mui/material/Snackbar';
 
@@ -111,6 +112,9 @@ function MusicHome() {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const location = useLocation();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
+  // CORREGIDO: usar usePlayer como hook
+  const { setPlaylist, setPlaylistIndex } = usePlayer();
 
   // Función para manejar clics fuera del buscador
   useEffect(() => {
@@ -341,6 +345,29 @@ function MusicHome() {
     }
   }, [location.state]);
 
+  // --- NUEVO: función para reproducir publicación por índice ---
+  const playPublication = (postIdx: number) => {
+    const post = posts[postIdx];
+    if (!post) return;
+    setActivePostIndex(postIdx);
+    // Adaptar a SongCard
+    const songCardData = postToSongCard(post, postIdx);
+    setPlaylist([songCardData]);
+    setPlaylistIndex(0);
+  };
+
+  // --- NUEVO: callbacks para MusicPlayer ---
+  const handlePrevPublication = () => {
+    if (activePostIndex !== null && activePostIndex > 0) {
+      playPublication(activePostIndex - 1);
+    }
+  };
+  const handleNextPublication = () => {
+    if (activePostIndex !== null && activePostIndex < posts.length - 1) {
+      playPublication(activePostIndex + 1);
+    }
+  };
+
   return (
       <Container
         className="scrollable-container"
@@ -352,7 +379,7 @@ function MusicHome() {
           overflowY: 'auto',
           paddingTop: { xs: '100px', md: '100px' },
           paddingBottom: '70px',
-          backgroundColor: '#e8e8e8',
+          backgroundColor: 'transparent', // Fondo transparente para ver partículas
           position: 'relative',
         }}
       >
@@ -627,6 +654,8 @@ function MusicHome() {
                     : undefined
                 }
                 ref={index === posts.length - 1 ? observerRef : null}
+                // --- NUEVO: al hacer play, reproducir publicación y actualizar índice ---
+                onPlay={() => playPublication(index)}
               />
             );
           })}
@@ -727,7 +756,10 @@ function MusicHome() {
           }}
         >
           {/* El reproductor obtiene la canción actual del contexto, no necesita prop song */}
-          <MusicPlayer />
+          <MusicPlayer 
+            onPrevPublication={handlePrevPublication}
+            onNextPublication={handleNextPublication}
+          />
         </Box>
         <BottomNav handleNavigation={handleNavigation} />
 

@@ -289,7 +289,7 @@ const UserPage: React.FC = () => {
         overflowY: 'auto',
         paddingTop: { xs: '32px', md: '32px' },
         paddingBottom: '70px',
-        backgroundColor: '#e8e8e8',
+        backgroundColor: 'transparent', // Fondo transparente para ver partículas
         position: 'relative',
       }}
     >

@@ -23,19 +23,19 @@ interface Song {
 
 interface MusicPlayerProps {
   song?: Song;
+  onPrevPublication?: () => void;
+  onNextPublication?: () => void;
 }
 
-const MusicPlayer: React.FC<MusicPlayerProps> = () => {
+const MusicPlayer: React.FC<MusicPlayerProps> = ({ onPrevPublication, onNextPublication }) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const { playlist, playlistIndex, setPlaylistIndex, isPlaying, setIsPlaying } = usePlayer();
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(50);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const { playlist, playlistIndex, setPlaylistIndex } = usePlayer();
 
   const currentSong = playlist[playlistIndex];
-
   const isSmallScreen = useMediaQuery('(max-width: 600px)');
 
   const handlePlayPause = () => {
@@ -51,9 +51,13 @@ const MusicPlayer: React.FC<MusicPlayerProps> = () => {
 
   const handleSeek = (event: Event, newValue: number | number[]) => {
     if (audioRef.current && duration && !isNaN(duration)) {
-      const seekTime = (newValue as number / 100) * duration;
+      const seekTime = Math.min((newValue as number / 100) * duration, duration - 0.1); // Evita saltar al final exacto
       audioRef.current.currentTime = seekTime;
       setProgress(newValue as number);
+      // Si estaba reproduciendo, sigue reproduciendo
+      if (isPlaying) {
+        audioRef.current.play();
+      }
     }
   };
 
@@ -65,28 +69,49 @@ const MusicPlayer: React.FC<MusicPlayerProps> = () => {
     }
   };
 
+  // Cambia de publicación (no solo de canción en la playlist)
   const handlePrev = () => {
-    if (playlist.length > 0 && playlistIndex > 0) {
-      setPlaylistIndex(playlistIndex - 1);
-      setIsPlaying(true);
+    if (audioRef.current && audioRef.current.currentTime > 2) {
+      audioRef.current.currentTime = 0;
+      if (!isPlaying) {
+        setIsPlaying(true);
+        audioRef.current.play();
+      }
+    } else if (onPrevPublication) {
+      onPrevPublication();
     }
   };
 
   const handleNext = () => {
-    if (playlist.length > 0 && playlistIndex < playlist.length - 1) {
-      setPlaylistIndex(playlistIndex + 1);
-      setIsPlaying(true);
+    if (onNextPublication) {
+      onNextPublication();
     }
   };
 
   useEffect(() => {
     if (audioRef.current && currentSong) {
       audioRef.current.src = currentSong.audioSrc;
+      audioRef.current.currentTime = 0;
+      setIsPlaying(true); // Siempre reproducir automáticamente al cambiar de canción
+      setProgress(0);
+      setCurrentTime(0);
+      // Forzar play inmediato
+      setTimeout(() => {
+        audioRef.current && audioRef.current.play();
+      }, 0);
+    }
+    // eslint-disable-next-line
+  }, [currentSong]);
+
+  useEffect(() => {
+    if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.play();
+      } else {
+        audioRef.current.pause();
       }
     }
-  }, [currentSong, isPlaying]);
+  }, [isPlaying]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -102,11 +127,9 @@ const MusicPlayer: React.FC<MusicPlayerProps> = () => {
     };
 
     const handleEnded = () => {
-      if (playlist.length > 0 && playlistIndex < playlist.length - 1) {
-        setPlaylistIndex(playlistIndex + 1);
-        setIsPlaying(true);
+      if (onNextPublication) {
+        onNextPublication();
       } else {
-        audio.currentTime = 0;
         setIsPlaying(false);
       }
     };
@@ -120,7 +143,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [audioRef, currentSong, playlist, playlistIndex]);
+  }, [audioRef, currentSong, onNextPublication]);
 
   const formatTime = (secs: number) => {
     const minutes = Math.floor(secs / 60);
