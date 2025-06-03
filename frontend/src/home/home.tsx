@@ -1,17 +1,14 @@
 import { useState, useEffect, useRef, useCallback, useContext } from 'react';
-import { Container, Box, Typography, CircularProgress, IconButton, Avatar, Tooltip } from '@mui/material';
+import { Container, Box, Typography, CircularProgress, Avatar, Snackbar } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate, useLocation } from 'react-router-dom';
 import SongCard from './components/songCard';
 import MusicPlayer from './components/musicPlayer';
-import BottomNav from '../components/bottom-navigation';
 import { fetchWithAuth } from '../api';
 import { AuthContext } from '../context/auth-context';
 import { usePlayer } from '../context/player-context';
-import Logo from '../assets/basic_logo.png';
-import Snackbar from '@mui/material/Snackbar';
-
+import NavigationWrapper from '../components/NavigationWrapper';
 
 // Tipos para los objetos de la API
 interface User {
@@ -113,7 +110,6 @@ function MusicHome() {
   const location = useLocation();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
-  // CORREGIDO: usar usePlayer como hook
   const { setPlaylist, setPlaylistIndex } = usePlayer();
 
   // Función para manejar clics fuera del buscador
@@ -123,7 +119,6 @@ function MusicHome() {
         setShowResults(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -134,29 +129,20 @@ function MusicHome() {
   useEffect(() => {
     const container = document.querySelector('.scrollable-container');
     if (!container) return;
-
     const handleScroll = () => {
       const currentScrollTop = container.scrollTop;
-      
-      // Mostrar la barra cuando estamos en la parte superior
       if (currentScrollTop <= 10) {
         setIsSearchBarVisible(true);
         return;
       }
-
-      // Determinar la dirección del scroll y actualizar la visibilidad
       if (currentScrollTop > lastScrollTop.current) {
-        // Scrolling hacia abajo
         setIsSearchBarVisible(false);
-        setShowResults(false); // Ocultar resultados al scrollear
+        setShowResults(false);
       } else {
-        // Scrolling hacia arriba
         setIsSearchBarVisible(true);
       }
-
       lastScrollTop.current = currentScrollTop;
     };
-
     container.addEventListener('scroll', handleScroll);
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
@@ -168,31 +154,23 @@ function MusicHome() {
       const res = await fetchWithAuth(`/api/home?page=${pageNum}`);
       if (!res.ok) throw new Error('Error al obtener publicaciones');
       const data: PostApi[] = await res.json();
-      
-      // No hay más posts si recibimos menos de 2
-      if (data.length < 2) {
-        setHasMore(false);
-      }
-      
+      if (data.length < 2) setHasMore(false);
       setPosts(prev => {
-        if (pageNum === 0) {
-          return data;
-        }
-        // Evitar duplicados comparando por createdAt
-        const newPosts = data.filter(newPost => 
+        if (pageNum === 0) return data;
+        const newPosts = data.filter(newPost =>
           !prev.some(existingPost => existingPost.createdAt === newPost.createdAt)
         );
         return [...prev, ...newPosts];
       });
-      
-      setLastLoadedPage(pageNum);      } catch (e) {
-        setHasMore(false);
-        if (e instanceof Error) {
-          console.error('Error al obtener publicaciones:', e.message);
-        }
-      } finally {
-        setLoading(false);
+      setLastLoadedPage(pageNum);
+    } catch (e) {
+      setHasMore(false);
+      if (e instanceof Error) {
+        console.error('Error al obtener publicaciones:', e.message);
       }
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   // Inicialización: carga de las dos primeras páginas
@@ -200,26 +178,17 @@ function MusicHome() {
     const initialLoad = async () => {
       setLoading(true);
       try {
-        // Cargamos las páginas 0 y 1 en paralelo
         const [page0Res, page1Res] = await Promise.all([
           fetchWithAuth('/api/home?page=0'),
           fetchWithAuth('/api/home?page=1')
         ]);
-        
         if (!page0Res.ok || !page1Res.ok) throw new Error('Error en la carga inicial');
-        
         const page0Data: PostApi[] = await page0Res.json();
         const page1Data: PostApi[] = await page1Res.json();
-        
-        // Combinamos los resultados
         const allPosts = [...page0Data, ...page1Data];
         setPosts(allPosts);
         setLastLoadedPage(1);
-        
-        // Si alguna página tiene menos de 2 posts, no hay más
-        if (page0Data.length < 2 || page1Data.length < 2) {
-          setHasMore(false);
-        }
+        if (page0Data.length < 2 || page1Data.length < 2) setHasMore(false);
       } catch (e) {
         console.error('Error en la carga inicial:', e);
         setHasMore(false);
@@ -227,7 +196,6 @@ function MusicHome() {
         setLoading(false);
       }
     };
-    
     if (authContext?.token) {
       initialLoad();
     }
@@ -236,39 +204,28 @@ function MusicHome() {
   // Scroll infinito con IntersectionObserver
   useEffect(() => {
     if (!observerRef.current || !hasMore || loading) return;
-    
     const handleObserver = async (entries: IntersectionObserverEntry[]) => {
       const target = entries[0];
       if (target.isIntersecting && !loading && hasMore) {
-        // Cargar las siguientes dos páginas
         const nextPage = lastLoadedPage + 1;
         const nextNextPage = lastLoadedPage + 2;
-        
         setLoading(true);
         try {
           const [page1Res, page2Res] = await Promise.all([
             fetchWithAuth(`/api/home?page=${nextPage}`),
             fetchWithAuth(`/api/home?page=${nextNextPage}`)
           ]);
-          
           if (!page1Res.ok || !page2Res.ok) throw new Error('Error cargando más posts');
-          
           const page1Data: PostApi[] = await page1Res.json();
           const page2Data: PostApi[] = await page2Res.json();
-          
           setPosts(prev => {
-            const newPosts = [...page1Data, ...page2Data].filter(newPost => 
+            const newPosts = [...page1Data, ...page2Data].filter(newPost =>
               !prev.some(existingPost => existingPost.createdAt === newPost.createdAt)
             );
             return [...prev, ...newPosts];
           });
-          
           setLastLoadedPage(nextNextPage);
-          
-          // Si alguna página tiene menos de 2 posts, no hay más
-          if (page1Data.length < 2 || page2Data.length < 2) {
-            setHasMore(false);
-          }
+          if (page1Data.length < 2 || page2Data.length < 2) setHasMore(false);
         } catch (e) {
           console.error('Error cargando más posts:', e);
           setHasMore(false);
@@ -277,57 +234,48 @@ function MusicHome() {
         }
       }
     };
-    
     const observer = new IntersectionObserver(handleObserver, {
       root: null,
       rootMargin: '20px',
       threshold: 1.0
     });
-    
     observer.observe(observerRef.current);
     return () => observer.disconnect();
   }, [observerRef, loading, hasMore, lastLoadedPage, fetchPosts]);
-
-  const handleNavigation = (path: string) => {
-    navigate(path);
-  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
   };
 
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+
   const handleSearch = async (query: string) => {
     setSearchTerm(query);
-    
     if (query.trim() === '') {
       setShowResults(false);
       setSearchResults([]);
       return;
     }
-
-    // Clear previous timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-
-    // Set new timeout for debounce
     searchTimeoutRef.current = setTimeout(async () => {
       try {
         const response = await fetchWithAuth(`/api/home/search/${encodeURIComponent(query)}`);
         if (!response.ok) throw new Error('Error en la búsqueda');
-        
         const results: SearchResult[] = await response.json();
-        setSearchResults(results.slice(0, 5)); // Limitar a 5 resultados
+        setSearchResults(results.slice(0, 5));
         setShowResults(true);
       } catch (error) {
         console.error('Error al buscar:', error);
         setSearchResults([]);
       }
-    }, 300); // 300ms de debounce
+    }, 300);
   };
 
-  // Limpiar timeout al desmontar
   useEffect(() => {
     return () => {
       if (searchTimeoutRef.current) {
@@ -336,27 +284,22 @@ function MusicHome() {
     };
   }, []);
 
-  // Manejo del mensaje de éxito
   useEffect(() => {
     if (location.state?.successMessage) {
       setSuccessMessage(location.state.successMessage);
-      // Limpia el estado para que no se repita al refrescar
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
 
-  // --- NUEVO: función para reproducir publicación por índice ---
   const playPublication = (postIdx: number) => {
     const post = posts[postIdx];
     if (!post) return;
     setActivePostIndex(postIdx);
-    // Adaptar a SongCard
     const songCardData = postToSongCard(post, postIdx);
     setPlaylist([songCardData]);
     setPlaylistIndex(0);
   };
 
-  // --- NUEVO: callbacks para MusicPlayer ---
   const handlePrevPublication = () => {
     if (activePostIndex !== null && activePostIndex > 0) {
       playPublication(activePostIndex - 1);
@@ -369,6 +312,7 @@ function MusicHome() {
   };
 
   return (
+    <NavigationWrapper>
       <Container
         className="scrollable-container"
         sx={{
@@ -379,39 +323,10 @@ function MusicHome() {
           overflowY: 'auto',
           paddingTop: { xs: '100px', md: '100px' },
           paddingBottom: '70px',
-          backgroundColor: 'transparent', // Fondo transparente para ver partículas
+          backgroundColor: 'transparent',
           position: 'relative',
         }}
       >
-        {/* Logo que funciona como botón de logout */}
-        <Tooltip title="Cerrar sesión" arrow placement="bottom">
-          <IconButton 
-            onClick={handleLogout} 
-            sx={{ 
-              position: 'fixed', 
-              top: 19, 
-              left: 16, 
-              zIndex: 2000,
-              background: 'rgba(255,255,255,0.8)',
-              padding: '6px',
-              '&:hover': {
-                background: 'rgba(255,255,255,0.9)',
-              }
-            }}
-          >
-            <Box
-              component="img"
-              src={Logo}
-              alt="Logo"
-              sx={{
-                width: '40px',
-                height: '40px',
-                objectFit: 'contain'
-              }}
-            />
-          </IconButton>
-        </Tooltip>
-
         {/* Barra de búsqueda */}
         <Box
           ref={searchContainerRef}
@@ -504,11 +419,7 @@ function MusicHome() {
                     result.type === 'user' ? (
                       <Avatar 
                         src={result.img}
-                        sx={{ 
-                          width: 40, 
-                          height: 40, 
-                          mr: 2,
-                        }}
+                        sx={{ width: 40, height: 40, mr: 2 }}
                       />
                     ) : (
                       <Box
@@ -526,12 +437,7 @@ function MusicHome() {
                   ) : (
                     result.type === 'user' ? (
                       <Avatar 
-                        sx={{ 
-                          width: 40, 
-                          height: 40, 
-                          mr: 2,
-                          backgroundColor: '#307cbe' 
-                        }}
+                        sx={{ width: 40, height: 40, mr: 2, backgroundColor: '#307cbe' }}
                       />
                     ) : (
                       <Box
@@ -557,19 +463,13 @@ function MusicHome() {
                   <Box>
                     <Typography 
                       variant="body1" 
-                      sx={{ 
-                        fontWeight: 500,
-                        color: '#424242'
-                      }}
+                      sx={{ fontWeight: 500, color: '#424242' }}
                     >
                       {result.name}
                     </Typography>
                     <Typography 
                       variant="caption" 
-                      sx={{ 
-                        color: 'text.secondary',
-                        textTransform: 'capitalize'
-                      }}
+                      sx={{ color: 'text.secondary', textTransform: 'capitalize' }}
                     >
                       {result.type === 'user' ? 'Usuario' : result.type === 'song' ? 'Canción' : 'Álbum'}
                     </Typography>
@@ -596,7 +496,6 @@ function MusicHome() {
             </Box>
           )}
         </Box>
-
         <Box
           sx={{
             flex: 1,
@@ -612,26 +511,13 @@ function MusicHome() {
         >
           {posts.map((post, index) => {
             const songCardData = postToSongCard(post, index);
-
-            // Añade este console.log:
-            console.log(
-              `[Home] Post: ${songCardData.title} | Tipo: ${post.content} | audioSrc:`,
-              songCardData.audioSrc,
-              songCardData
-            );
-
-            // Función para navegación inteligente
             const handleUserClick = (username: string) => {
-              console.log('Navigating to user:', username);
-              console.log('Current user:', authContext?.user?.name);
               if (username === authContext?.user?.name) {
                 navigate('/profile');
               } else {
                 navigate(`/profile/${username}`);
               }
             };
-
-            // Para repostUser (si existe)
             const handleRepostUserClick = (repostUser?: { name: string }) => {
               if (!repostUser) return;
               if (repostUser.name === authContext?.user?.name) {
@@ -640,7 +526,6 @@ function MusicHome() {
                 navigate(`/profile/${repostUser.name}`);
               }
             };
-
             return (
               <SongCard
                 key={index}
@@ -654,7 +539,6 @@ function MusicHome() {
                     : undefined
                 }
                 ref={index === posts.length - 1 ? observerRef : null}
-                // --- NUEVO: al hacer play, reproducir publicación y actualizar índice ---
                 onPlay={() => playPublication(index)}
               />
             );
@@ -674,8 +558,8 @@ function MusicHome() {
                 flexDirection: 'column', 
                 alignItems: 'center', 
                 py: 4,
-                pb: { xs: 16, md: 12 }, // Padding bottom más grande para móviles
-                visibility: 'hidden', // Inicialmente oculto
+                pb: { xs: 16, md: 12 },
+                visibility: 'hidden',
                 animation: 'showEndMessage 0.5s ease-in-out forwards',
                 '@keyframes showEndMessage': {
                   '0%': {
@@ -746,24 +630,20 @@ function MusicHome() {
             position: 'fixed',
             top: 0,
             right: 0,
-            height: 'calc(100vh - 12px)', // Reducir altura para dejar margen abajo
+            height: 'calc(100vh - 12px)',
             backgroundColor: '#f5f5f5',
-            margin: '0 0 12px 12px', // Margen izquierdo y inferior
+            margin: '0 0 12px 12px',
             padding: 0,
-            boxShadow: '-8px 8px 12px rgba(0, 0, 0, 0.15)', // Sombra más pronunciada
+            boxShadow: '-8px 8px 12px rgba(0, 0, 0, 0.15)',
             overflow: 'hidden',
-            borderRadius: '0 0 0 12px', // Esquina inferior izquierda redondeada
+            borderRadius: '0 0 0 12px',
           }}
         >
-          {/* El reproductor obtiene la canción actual del contexto, no necesita prop song */}
           <MusicPlayer 
             onPrevPublication={handlePrevPublication}
             onNextPublication={handleNextPublication}
           />
         </Box>
-        <BottomNav handleNavigation={handleNavigation} />
-
-        {/* Snackbar para mensajes de éxito */}
         <Snackbar
           open={!!successMessage}
           autoHideDuration={3000}
@@ -771,6 +651,7 @@ function MusicHome() {
           message={successMessage}
         />
       </Container>
+    </NavigationWrapper>
   );
 }
 

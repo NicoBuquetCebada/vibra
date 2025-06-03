@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { Container, Typography, Box, Paper, TextField, Button, Alert, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, IconButton, Avatar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { getUserPage, updateUserField, updateUserPassword, deleteUser } from '../api';
 import BottomNav from '../components/bottom-navigation';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
+import { AuthContext } from '../context/auth-context'; // Asegúrate de importar el contexto
 
 const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
+  const auth = useContext(AuthContext);
   const [form, setForm] = useState<{
     mail: string;
     pass: string;
@@ -23,6 +25,7 @@ const SettingsPage: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
   const [previewImg, setPreviewImg] = useState<string>('');
 
   useEffect(() => {
@@ -130,6 +133,12 @@ const SettingsPage: React.FC = () => {
     }
     setLoading(false);
     setOpenDialog(false);
+  };
+
+  // Cerrar sesión
+  const handleLogout = () => {
+    if (auth?.logout) auth.logout();
+    navigate('/login');
   };
 
   return (
@@ -248,15 +257,36 @@ const SettingsPage: React.FC = () => {
           >
             Guardar contraseña
           </Button>
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={handleOpenDialog}
-            disabled={loading}
-            sx={{ mt: 2 }}
+          <Box
+            sx={{
+              mt: 2,
+              display: 'flex',
+              flexDirection: 'row',
+              gap: 2,
+              width: '100%',
+              maxWidth: { xs: '100%', sm: 480 },
+              mx: { xs: 0, sm: 'auto' },
+              flex: 1,
+              justifyContent: 'flex-end',
+            }}
           >
-            Borrar usuario
-          </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => setOpenLogoutDialog(true)}
+              disabled={loading}
+            >
+              Cerrar sesión
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={handleOpenDialog}
+              disabled={loading}
+            >
+              Borrar usuario
+            </Button>
+          </Box>
           {success && <Alert severity="success">{success}</Alert>}
           {error && <Alert severity="error">{error}</Alert>}
         </Box>
@@ -276,6 +306,24 @@ const SettingsPage: React.FC = () => {
           </Button>
           <Button onClick={handleDelete} color="error" variant="contained" disabled={loading}>
             Confirmar borrado
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Diálogo de confirmación de logout */}
+      <Dialog open={openLogoutDialog} onClose={() => setOpenLogoutDialog(false)}>
+        <DialogTitle>¿Cerrar sesión?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            ¿Seguro que quieres cerrar sesión?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenLogoutDialog(false)} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={handleLogout} color="error" variant="contained">
+            Cerrar sesión
           </Button>
         </DialogActions>
       </Dialog>

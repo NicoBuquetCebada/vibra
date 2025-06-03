@@ -1,9 +1,14 @@
 import { useState, useEffect, useContext } from 'react';
-import { Container, Box, Typography, CircularProgress } from '@mui/material';
+import { Container, Box, Typography, CircularProgress, useMediaQuery, IconButton, Tooltip, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import SongCard from '../home/components/songCard';
 import MusicPlayer from '../home/components/musicPlayer';
-import BottomNav from '../components/bottom-navigation';
+import HomeIcon from '@mui/icons-material/Home';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import PersonIcon from '@mui/icons-material/Person';
+import LogoutIcon from '@mui/icons-material/Logout';
+import Logo from '../assets/basic_logo.png';
 import { fetchWithAuth } from '../api';
 import { AuthContext } from '../context/auth-context';
 import { postToSongCard, PostApi } from '../home/home';
@@ -12,6 +17,8 @@ const PostPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
   const [post, setPost] = useState<PostApi | null>(null);
   const [loading, setLoading] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const isMobile = useMediaQuery('(max-width:900px)');
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
 
@@ -37,6 +44,12 @@ const PostPage: React.FC = () => {
 
   const handleNavigation = (path: string) => {
     navigate(path);
+    setDrawerOpen(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
   };
 
   return (
@@ -49,10 +62,152 @@ const PostPage: React.FC = () => {
         overflowY: 'auto',
         paddingTop: { xs: '32px', md: '32px' },
         paddingBottom: '70px',
-        backgroundColor: 'transparent', // Fondo transparente para ver partículas
+        backgroundColor: 'transparent',
         position: 'relative',
       }}
     >
+      {/* Botón menú solo en desktop */}
+      {!isMobile && (
+        <Tooltip title="Menú" arrow placement="bottom">
+          <IconButton
+            onClick={() => setDrawerOpen(true)}
+            sx={{
+              position: 'fixed',
+              top: 19,
+              left: 16,
+              zIndex: 2000,
+              boxShadow: '0 2px 8px rgba(48,124,190,0.18)',
+              background: 'rgba(255,255,255,0.8)',
+              padding: '6px',
+              '&:hover': { background: 'rgba(255,255,255,0.9)' },
+            }}
+          >
+            <Box
+              component="img"
+              src={Logo}
+              alt="Logo"
+              sx={{ width: '40px', height: '40px', objectFit: 'contain' }}
+            />
+          </IconButton>
+        </Tooltip>
+      )}
+
+      {/* Drawer lateral solo en desktop */}
+      {!isMobile && (
+        <Drawer
+          anchor="left"
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          PaperProps={{
+            sx: {
+              width: '340px',
+              background: '#f7fafd',
+              boxShadow: '8px 0 24px rgba(48,124,190,0.10)',
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+            }
+          }}
+        >
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              py: 3,
+              borderBottom: '1px solid #e3e6ea',
+              mb: 1,
+            }}
+          >
+            <Box
+              component="img"
+              src={Logo}
+              alt="Logo Vibra"
+              sx={{ width: 80, height: 80, objectFit: 'contain' }}
+            />
+          </Box>
+          <List>
+            <ListItem
+              sx={{
+                backgroundColor: '#f7fafd',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#e3e6ea' },
+              }}
+              component="button"
+              onClick={() => handleNavigation('/home')}
+            >
+              <ListItemIcon><HomeIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+              <ListItemText primary="Inicio" />
+            </ListItem>
+            <Divider />
+            <ListItem
+              sx={{
+                backgroundColor: '#f7fafd',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#e3e6ea' },
+              }}
+              component="button"
+              onClick={() => handleNavigation('/upload')}
+            >
+              <ListItemIcon><AddCircleIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+              <ListItemText primary="Subir" />
+            </ListItem>
+            <Divider />
+            <ListItem
+              sx={{
+                backgroundColor: '#f7fafd',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#e3e6ea' },
+              }}
+              component="button"
+              onClick={() => handleNavigation('/notifications')}
+            >
+              <ListItemIcon><NotificationsIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+              <ListItemText primary="Notificaciones" />
+            </ListItem>
+            <Divider />
+            <ListItem
+              sx={{
+                backgroundColor: '#f7fafd',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#e3e6ea' },
+              }}
+              component="button"
+              onClick={() => handleNavigation('/profile')}
+            >
+              <ListItemIcon><PersonIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+              <ListItemText primary="Perfil" />
+            </ListItem>
+            <Divider />
+          </List>
+          <Box sx={{ flexGrow: 1 }} />
+          <List>
+            <ListItem
+              sx={{
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#ffeaea' },
+              }}
+              component="button"
+              onClick={handleLogout}
+            >
+              <ListItemIcon><LogoutIcon sx={{ color: '#e53935' }} /></ListItemIcon>
+              <ListItemText primary="Cerrar sesión" />
+            </ListItem>
+          </List>
+        </Drawer>
+      )}
+
       {/* Publicación */}
       <Box
         sx={{
@@ -108,7 +263,6 @@ const PostPage: React.FC = () => {
       >
         <MusicPlayer />
       </Box>
-      <BottomNav handleNavigation={handleNavigation} />
     </Container>
   );
 };
