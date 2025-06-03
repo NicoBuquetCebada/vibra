@@ -306,3 +306,9 @@ export const getUserSaves = async () => {
   if (!res.ok) throw new Error('Error al obtener los guardados del usuario');
   return res.json();
 };
+
+export const getPostById = async (postId: number) => {
+  const res = await fetchWithAuth(`/api/posts/${postId}`);
+  if (!res.ok) throw new Error('Error al obtener el post');
+  return res.json();
+};

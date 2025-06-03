@@ -6,11 +6,12 @@ import { getPostMetrics, savePost, deleteSave } from '../../api';
 
 interface SaveButtonProps {
   postId: number;
-  onSaveChange?: () => void; // Añadido para refrescar saves desde el padre
+  isSaved?: boolean;
+  onSave?: () => void;
 }
 
-const SaveButton: React.FC<SaveButtonProps> = ({ postId, onSaveChange }) => {
-  const [saved, setSaved] = useState(false);
+const SaveButton: React.FC<SaveButtonProps> = ({ postId, isSaved, onSave }) => {
+  const [saved, setSaved] = useState(isSaved || false);
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -35,8 +36,8 @@ const SaveButton: React.FC<SaveButtonProps> = ({ postId, onSaveChange }) => {
         await savePost(postId);
         setSaved(true);
       }
-      if (onSaveChange) {
-        onSaveChange(); // Llama a la función pasada por prop para refrescar saves
+      if (onSave) {
+        onSave(); // Llama a la función pasada por prop para refrescar saves
       }
     } catch (error) {
       console.error('Error:', error);

@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Box, Avatar, Typography, Paper, Tabs, Tab, CircularProgress, Button, List, ListItem, ListItemAvatar, ListItemText, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Fab, Tooltip } from '@mui/material';
+import { Container, Box, Avatar, Typography, Paper, Tabs, Tab, CircularProgress, Button, List, ListItem, ListItemAvatar, ListItemText, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Fab, Tooltip, IconButton, Drawer, ListItemIcon, Divider, useMediaQuery } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MusicPlayer from '../home/components/musicPlayer';
-import BottomNav from '../components/bottom-navigation';
 import { fetchWithAuth, getFollowers, getFollowed, getUserSaves, getUserReposts, getUserRates, getSong, getSongsByAlbum } from '../api';
 import SongCard from '../home/components/songCard';
 import TuneIcon from '@mui/icons-material/Tune';
 import PersonIcon from '@mui/icons-material/Person';
+import HomeIcon from '@mui/icons-material/Home';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import LogoutIcon from '@mui/icons-material/Logout';
+import Logo from '../assets/basic_logo.png';
 
 interface UserData {
   name: string;
@@ -84,6 +88,8 @@ export function userPagePostToSongCard(
 
 const UserPage: React.FC = () => {
   const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width:900px)');
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const [userData, setUserData] = useState<UserData | null>(null);
   const [posts, setPosts] = useState<UserPagePost[]>([]);
@@ -338,6 +344,16 @@ const UserPage: React.FC = () => {
     return null;
   };
 
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setDrawerOpen(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+  };
+
   return (
     <Container
       sx={{
@@ -348,10 +364,153 @@ const UserPage: React.FC = () => {
         overflowY: 'auto',
         paddingTop: { xs: '32px', md: '32px' },
         paddingBottom: '70px',
-        backgroundColor: 'transparent', // Fondo transparente para ver partículas
+        backgroundColor: 'transparent',
         position: 'relative',
       }}
     >
+      {/* Botón menú solo en desktop */}
+      {!isMobile && (
+        <Tooltip title="Menú" arrow placement="bottom">
+          <IconButton
+            onClick={() => setDrawerOpen(true)}
+            sx={{
+              position: 'fixed',
+              top: 19,
+              left: 16,
+              zIndex: 2000,
+              boxShadow: '0 2px 8px rgba(48,124,190,0.18)',
+              background: 'rgba(255,255,255,0.8)',
+              padding: '6px',
+              marginTop: '18px',
+              '&:hover': { background: 'rgba(255,255,255,0.9)' },
+            }}
+          >
+            <Box
+              component="img"
+              src={Logo}
+              alt="Logo"
+              sx={{ width: '40px', height: '40px', objectFit: 'contain' }}
+            />
+          </IconButton>
+        </Tooltip>
+      )}
+
+      {/* Drawer lateral solo en desktop */}
+      {!isMobile && (
+        <Drawer
+          anchor="left"
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          PaperProps={{
+            sx: {
+              width: '340px',
+              background: '#f7fafd',
+              boxShadow: '8px 0 24px rgba(48,124,190,0.10)',
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+            }
+          }}
+        >
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              py: 3,
+              borderBottom: '1px solid #e3e6ea',
+              mb: 1,
+            }}
+          >
+            <Box
+              component="img"
+              src={Logo}
+              alt="Logo Vibra"
+              sx={{ width: 80, height: 80, objectFit: 'contain' }}
+            />
+          </Box>
+          <List>
+            <ListItem
+              sx={{
+                backgroundColor: '#f7fafd',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#e3e6ea' },
+              }}
+              component="button"
+              onClick={() => handleNavigation('/home')}
+            >
+              <ListItemIcon><HomeIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+              <ListItemText primary="Inicio" />
+            </ListItem>
+            <Divider />
+            <ListItem
+              sx={{
+                backgroundColor: '#f7fafd',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#e3e6ea' },
+              }}
+              component="button"
+              onClick={() => handleNavigation('/upload')}
+            >
+              <ListItemIcon><AddCircleIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+              <ListItemText primary="Subir" />
+            </ListItem>
+            <Divider />
+            <ListItem
+              sx={{
+                backgroundColor: '#f7fafd',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#e3e6ea' },
+              }}
+              component="button"
+              onClick={() => handleNavigation('/notifications')}
+            >
+              <ListItemIcon><NotificationsIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+              <ListItemText primary="Notificaciones" />
+            </ListItem>
+            <Divider />
+            <ListItem
+              sx={{
+                backgroundColor: '#f7fafd',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#e3e6ea' },
+              }}
+              component="button"
+              onClick={() => handleNavigation('/profile')}
+            >
+              <ListItemIcon><PersonIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+              <ListItemText primary="Perfil" />
+            </ListItem>
+            <Divider />
+          </List>
+          <Box sx={{ flexGrow: 1 }} />
+          <List>
+            <ListItem
+              sx={{
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#ffeaea' },
+              }}
+              component="button"
+              onClick={handleLogout}
+            >
+              <ListItemIcon><LogoutIcon sx={{ color: '#e53935' }} /></ListItemIcon>
+              <ListItemText primary="Cerrar sesión" />
+            </ListItem>
+          </List>
+        </Drawer>
+      )}
+
       {/* Contenido principal */}
       <Box
         sx={{
@@ -371,7 +530,10 @@ const UserPage: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '16px',
-            position: 'relative', // Para posicionar el botón dentro
+            position: 'relative',
+            maxWidth: { xs: '100%', sm: '1000px' }, // Limita el ancho en desktop
+            ml: { xs: 0, sm: 8 },                  // Añade margen izquierdo en desktop
+            mt: { xs: 2, sm: 0 },                  // Un poco de margen arriba en móvil
           }}
         >
           {/* Avatar del usuario */}
@@ -526,8 +688,8 @@ const UserPage: React.FC = () => {
         <MusicPlayer />
       </Box>
 
-      <BottomNav handleNavigation={navigate}  />
-
+      {/* Eliminado <BottomNav /> */}
+      {/* ...Dialog de seguidores/seguidos... */}
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="xs">
         <DialogTitle>{dialogTitle}</DialogTitle>
         <DialogContent>

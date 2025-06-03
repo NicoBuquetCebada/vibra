@@ -36,52 +36,38 @@ export interface PostApi {
 }
 
 // Adaptador para transformar PostApi a Song (para SongCard)
-export function postToSongCard(post: PostApi, index: number) {
-  // Si es post de canción
+export function postToSongCard(post: PostApi, index: number, profileImgOverride?: string) {
+  const profilePic =
+    profileImgOverride ||
+    post.user?.profileImg ||
+    '';
+
+  let title = 'Publicación';
+  let audioSrc = '';
+  let albumSongs = undefined;
+
   if (post.content === 'song' && post.song) {
-    return {
-      id: index,
-      title: post.song.name,
-      audioSrc: post.song.audio,
-      profilePic: post.user.profileImg,
-      username: post.user.name,
-      coverImg: post.coverImg,
-      postId: post.postId,
-    };
+    title = post.song.name;
+    audioSrc = post.song.audio;
+  } else if (post.content === 'album' && post.album) {
+    title = post.album.name;
+    audioSrc = post.album.songs[0]?.audio || '';
+    albumSongs = post.album.songs;
+  } else if (post.type === 'repost' && post.song) {
+    title = post.song.name;
+    audioSrc = post.song.audio;
   }
-  // Si es post de álbum
-  if (post.content === 'album' && post.album) {
-    return {
-      id: index,
-      title: post.album.name,
-      audioSrc: post.album.songs[0]?.audio || '',
-      profilePic: post.user.profileImg,
-      username: post.user.name,
-      coverImg: post.coverImg,
-      postId: post.postId,
-    };
-  }
-  // Si es repost
-  if (post.type === 'repost' && post.song) {
-    return {
-      id: index,
-      title: post.song.name,
-      audioSrc: post.song.audio,
-      profilePic: post.user.profileImg, // user original
-      username: post.user.name,
-      coverImg: post.coverImg,
-      postId: post.postId,
-    };
-  }
-  // Fallback
+
   return {
     id: index,
-    title: 'Publicación',
-    audioSrc: '',
-    profilePic: post.user.profileImg,
-    username: post.user.name,
+    title,
+    audioSrc,
+    profilePic,
+    username: post.user?.name || '',
     coverImg: post.coverImg,
     postId: post.postId,
+    type: post.content,
+    albumSongs,
   };
 }
 

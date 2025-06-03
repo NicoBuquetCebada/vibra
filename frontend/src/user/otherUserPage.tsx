@@ -1,11 +1,15 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Container, Box, Avatar, Typography, Paper, Alert, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, List, ListItem, ListItemAvatar, ListItemText, CircularProgress, Tabs, Tab } from '@mui/material';
+import { Container, Box, Avatar, Typography, Paper, Alert, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, List, ListItem, ListItemAvatar, ListItemText, CircularProgress, Tabs, Tab, Tooltip, IconButton, Drawer, ListItemIcon, Divider, useMediaQuery } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import MusicPlayer from '../home/components/musicPlayer';
-import BottomNav from '../components/bottom-navigation';
 import { getOtherUserPage, getOtherUserPosts, getOtherUserFollowers, getOtherUserFollowed, followUser, unfollowUser, fetchWithAuth, getFollowed, getOtherUserReposts } from '../api';
 import SongCard from '../home/components/songCard';
 import PersonIcon from '@mui/icons-material/Person';
+import HomeIcon from '@mui/icons-material/Home';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import LogoutIcon from '@mui/icons-material/Logout';
+import Logo from '../assets/basic_logo.png';
 import { AuthContext } from '../context/auth-context';
 
 interface UserData {
@@ -34,8 +38,8 @@ export interface UserPagePost {
   contentId: number;
   name: string;
   coverImg?: string;
-  song?: SongObj;   // <-- Añade esto
-  album?: AlbumObj; // <-- Y esto
+  song?: SongObj;
+  album?: AlbumObj;
 }
 
 const OtherUserPage: React.FC = () => {
@@ -54,6 +58,9 @@ const OtherUserPage: React.FC = () => {
   const [loadingReposts, setLoadingReposts] = useState(true);
   const auth  = useContext(AuthContext);
   const user = auth?.user;
+
+  const isMobile = useMediaQuery('(max-width:900px)');
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -80,7 +87,6 @@ const OtherUserPage: React.FC = () => {
       }
       try {
         const data = await getOtherUserPosts(username);
-        // Para cada post, pide el audio si es song o las canciones si es album
         const postsWithAudio = await Promise.all(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           data.map(async (post: any) => {
@@ -106,7 +112,6 @@ const OtherUserPage: React.FC = () => {
     fetchUserPosts();
   }, [username]);
 
-  // Traer los reposts del usuario visitado
   useEffect(() => {
     const fetchReposts = async () => {
       setLoadingReposts(true);
@@ -160,7 +165,6 @@ const OtherUserPage: React.FC = () => {
     setUserList([]);
   };
 
-  // Comprobar si el usuario actual sigue al usuario visitado
   useEffect(() => {
     const checkFollowing = async () => {
       if (!username || !user) return;
@@ -176,16 +180,13 @@ const OtherUserPage: React.FC = () => {
     checkFollowing();
   }, [username, user]);
 
-  // Manejar seguir/dejar de seguir
   const handleFollowToggle = async () => {
     if (!username) return;
     try {
       if (isFollowing) {
-        console.log('DELETE unfollow:', `/api/follows/follow/${username}`);
         await unfollowUser(username);
         setIsFollowing(false);
       } else {
-        console.log('POST follow:', `/api/follows/follow/${username}`);
         await followUser(username);
         setIsFollowing(true);
       }
@@ -194,7 +195,16 @@ const OtherUserPage: React.FC = () => {
     }
   };
 
-  // Renderizado de pestañas
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setDrawerOpen(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+  };
+
   const renderTabContent = () => {
     if (tab === 0) {
       return posts.length === 0 && !error ? (
@@ -202,9 +212,7 @@ const OtherUserPage: React.FC = () => {
           No hay publicaciones.
         </Typography>
       ) : (
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        posts.map((post, idx) => {
-          // Mapeo igual que en userPagePostToSongCard
+        posts.map((post) => {
           let audioSrc = '';
           if (post.song && post.song.audio) {
             audioSrc = post.song.audio;
@@ -234,8 +242,7 @@ const OtherUserPage: React.FC = () => {
           No hay reposts.
         </Typography>
       ) : (
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        reposts.map((post, idx) => {
+        reposts.map((post) => {
           let audioSrc = '';
           if (post.song && post.song.audio) {
             audioSrc = post.song.audio;
@@ -271,10 +278,153 @@ const OtherUserPage: React.FC = () => {
         overflowY: 'auto',
         paddingTop: { xs: '32px', md: '32px' },
         paddingBottom: '70px',
-        backgroundColor: 'transparent', // Fondo transparente para ver partículas
+        backgroundColor: 'transparent',
         position: 'relative',
       }}
     >
+      {/* Botón menú solo en desktop */}
+      {!isMobile && (
+        <Tooltip title="Menú" arrow placement="bottom">
+          <IconButton
+            onClick={() => setDrawerOpen(true)}
+            sx={{
+              position: 'fixed',
+              top: 19,
+              left: 16,
+              zIndex: 2000,
+              boxShadow: '0 2px 8px rgba(48,124,190,0.18)',
+              background: 'rgba(255,255,255,0.8)',
+              padding: '6px',
+              marginTop: '18px',
+              '&:hover': { background: 'rgba(255,255,255,0.9)' },
+            }}
+          >
+            <Box
+              component="img"
+              src={Logo}
+              alt="Logo"
+              sx={{ width: '40px', height: '40px', objectFit: 'contain' }}
+            />
+          </IconButton>
+        </Tooltip>
+      )}
+
+      {/* Drawer lateral solo en desktop */}
+      {!isMobile && (
+        <Drawer
+          anchor="left"
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          PaperProps={{
+            sx: {
+              width: '340px',
+              background: '#f7fafd',
+              boxShadow: '8px 0 24px rgba(48,124,190,0.10)',
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+            }
+          }}
+        >
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              py: 3,
+              borderBottom: '1px solid #e3e6ea',
+              mb: 1,
+            }}
+          >
+            <Box
+              component="img"
+              src={Logo}
+              alt="Logo Vibra"
+              sx={{ width: 80, height: 80, objectFit: 'contain' }}
+            />
+          </Box>
+          <List>
+            <ListItem
+              sx={{
+                backgroundColor: '#f7fafd',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#e3e6ea' },
+              }}
+              component="button"
+              onClick={() => handleNavigation('/home')}
+            >
+              <ListItemIcon><HomeIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+              <ListItemText primary="Inicio" />
+            </ListItem>
+            <Divider />
+            <ListItem
+              sx={{
+                backgroundColor: '#f7fafd',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#e3e6ea' },
+              }}
+              component="button"
+              onClick={() => handleNavigation('/upload')}
+            >
+              <ListItemIcon><AddCircleIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+              <ListItemText primary="Subir" />
+            </ListItem>
+            <Divider />
+            <ListItem
+              sx={{
+                backgroundColor: '#f7fafd',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#e3e6ea' },
+              }}
+              component="button"
+              onClick={() => handleNavigation('/notifications')}
+            >
+              <ListItemIcon><NotificationsIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+              <ListItemText primary="Notificaciones" />
+            </ListItem>
+            <Divider />
+            <ListItem
+              sx={{
+                backgroundColor: '#f7fafd',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#e3e6ea' },
+              }}
+              component="button"
+              onClick={() => handleNavigation('/profile')}
+            >
+              <ListItemIcon><PersonIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+              <ListItemText primary="Perfil" />
+            </ListItem>
+            <Divider />
+          </List>
+          <Box sx={{ flexGrow: 1 }} />
+          <List>
+            <ListItem
+              sx={{
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#ffeaea' },
+              }}
+              component="button"
+              onClick={handleLogout}
+            >
+              <ListItemIcon><LogoutIcon sx={{ color: '#e53935' }} /></ListItemIcon>
+              <ListItemText primary="Cerrar sesión" />
+            </ListItem>
+          </List>
+        </Drawer>
+      )}
+
       {/* Contenido principal */}
       <Box
         sx={{
@@ -295,6 +445,9 @@ const OtherUserPage: React.FC = () => {
             alignItems: 'center',
             gap: '16px',
             position: 'relative',
+            maxWidth: { xs: '100%', sm: '1000px' }, // Limita el ancho en desktop
+            ml: { xs: 0, sm: 8 },                  // Añade margen izquierdo en desktop
+            mt: { xs: 2, sm: 0 },                  // Un poco de margen arriba en móvil
           }}
         >
           {/* Avatar del usuario */}
@@ -430,8 +583,6 @@ const OtherUserPage: React.FC = () => {
       >
         <MusicPlayer />
       </Box>
-
-      <BottomNav handleNavigation={navigate} />
 
       {/* Diálogo de Seguidores y Seguidos */}
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="xs">

@@ -5,10 +5,12 @@ import { getPostMetrics, repostPost, deleteRepost } from '../../api';
 
 interface RepostButtonProps {
   postId: number;
+  isReposted?: boolean;
+  onRepost?: () => void;
 }
 
-const RepostButton: React.FC<RepostButtonProps> = ({ postId }) => {
-  const [reposted, setReposted] = useState(false);
+const RepostButton: React.FC<RepostButtonProps> = ({ postId, isReposted, onRepost }) => {
+  const [reposted, setReposted] = useState(isReposted || false);
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -32,6 +34,9 @@ const RepostButton: React.FC<RepostButtonProps> = ({ postId }) => {
         console.log(`Llamando a repostPost para el postId: ${postId}`);
         await repostPost(postId);
         setReposted(true);
+      }
+      if (onRepost) {
+        onRepost();
       }
     } catch (error) {
       console.error('Error:', error);

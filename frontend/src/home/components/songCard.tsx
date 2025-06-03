@@ -7,7 +7,7 @@ import SaveButton from './save';
 import Logo from '../../assets/logo.png';
 import { usePlayer } from '../../context/player-context';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../../context/auth-context'; // Importa el contexto
+import { AuthContext } from '../../context/auth-context';
 
 interface Song {
   id: number;
@@ -17,34 +17,54 @@ interface Song {
   username: string;
   coverImg?: string;
   postId: number;
-  type?: string; // 'song' o 'album'
-  albumSongs?: { name: string; audio: string }[]; // <-- Añade esto
+  type?: string;
+  albumSongs?: { name: string; audio: string }[];
 }
 
 export interface SongCardProps {
-  song: Song; // o el tipo que uses
+  song: Song;
   onUserClick?: () => void;
   isRepost?: boolean;
   repostUser?: { name: string; profileImg: string };
   onRepostUserClick?: () => void;
-  onPlay?: () => void; // NUEVO: callback para play externo
-  onSaveChange?: () => void; // Añade esta prop
+  onPlay?: () => void;
+  onSaveChange?: () => void;
   onRateChange?: () => void;
-
+  // Añadidos:
+  userRate?: number | null;
+  isSaved?: boolean;
+  isReposted?: boolean;
+  onRate?: (rate: number) => void;
+  onSave?: () => void;
+  onRepost?: () => void;
 }
 
 const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
-  ({ song, repostUser, isRepost, onPlay, onSaveChange, onRateChange }, ref) => {
-    const {setPlaylist, setPlaylistIndex } = usePlayer();
+  (
+    {
+      song,
+      repostUser,
+      isRepost,
+      onPlay,
+      onSaveChange,
+      onRateChange,
+      userRate,
+      isSaved,
+      isReposted,
+      onRate,
+      onSave,
+      onRepost,
+    },
+    ref
+  ) => {
+    const { setPlaylist, setPlaylistIndex } = usePlayer();
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [hover, setHover] = useState(false);
     const navigate = useNavigate();
     const authContext = useContext(AuthContext);
 
-    // Usuario autenticado
     const authenticatedUser = authContext?.user?.name;
 
-    // Handler para el usuario del post
     const handleUserClick = () => {
       if (authenticatedUser && song.username === authenticatedUser) {
         navigate('/profile');
@@ -53,7 +73,6 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
       }
     };
 
-    // Handler para el usuario del repost
     const handleRepostUserClick = () => {
       if (authenticatedUser && repostUser && repostUser.name === authenticatedUser) {
         navigate('/profile');
@@ -64,13 +83,10 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
 
     const handlePlay = () => {
       if (onPlay) {
-        onPlay(); // Si viene de Home, controla el flujo global
+        onPlay();
         return;
       }
       if (song.type === 'album' && Array.isArray(song.albumSongs) && song.albumSongs.length > 0) {
-        // Mapea las canciones del álbum al formato Song
-          console.log('[SongCard AlbumSongs]', song.albumSongs);
-
         const playlist = song.albumSongs.map((track, idx) => ({
           id: idx,
           title: track.name,
@@ -81,10 +97,10 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
           postId: song.postId,
           type: 'album'
         }));
-        setPlaylist(playlist);      // <-- solo el array
-        setPlaylistIndex(0);        // <-- selecciona la primera canción
+        setPlaylist(playlist);
+        setPlaylistIndex(0);
       } else {
-        setPlaylist([song]);        // <-- playlist de una sola canción
+        setPlaylist([song]);
         setPlaylistIndex(0);
       }
     };
@@ -115,7 +131,6 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
             <Avatar
               src={repostUser.profileImg}
               sx={{ width: 28, height: 28, mr: 1, cursor: 'pointer' }}
-              // onClick={handleRepostUserClick}
             />
             <Typography
               variant="caption"
@@ -152,7 +167,7 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
           <Avatar
             src={song.profilePic}
             sx={{ cursor: 'pointer' }}
-            // onClick={handleUserClick}
+            onClick={handleUserClick}
           />
           <Typography
             variant="subtitle2"
@@ -210,11 +225,11 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
               padding: 0,
               width: '45px',
               height: '45px',
-              "&:hover": { 
-                background: "#145a96", 
-                color: "white" 
+              "&:hover": {
+                background: "#145a96",
+                color: "white"
               },
-              zIndex: 10, // Siempre visible en móviles
+              zIndex: 10,
             }}
           >
             <PlayArrowIcon fontSize="large" />
@@ -227,8 +242,8 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
         {/* Caja interactiva que aparece desde abajo en hover */}
         <Box
           sx={{
-            position: { xs: 'relative', md: 'absolute' }, // En móviles, posición relativa para que siempre sea visible
-            bottom: { xs: '0px', md: hover ? '10px' : '-70px' }, // En móviles, siempre visible en la parte inferior
+            position: { xs: 'relative', md: 'absolute' },
+            bottom: { xs: '0px', md: hover ? '10px' : '-70px' },
             left: '10px',
             right: '10px',
             borderRadius: 2,
@@ -236,12 +251,16 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
             justifyContent: 'space-between',
             alignItems: 'center',
             padding: '8px',
-            transition: { xs: 'none', md: 'bottom 0.4s ease-in-out, opacity 0.4s ease-in-out' }, // Sin transición en móviles
+            transition: { xs: 'none', md: 'bottom 0.4s ease-in-out, opacity 0.4s ease-in-out' },
             opacity: { xs: 1, md: hover ? 1 : 0 },
-            zIndex: 10 // Siempre visible en móviles
+            zIndex: 10
           }}
         >
-          <Rate postId={song.postId} onRateChange={onRateChange}/>
+          <Rate
+            postId={song.postId}
+            value={typeof userRate === 'number' ? userRate : undefined}
+            onRate={onRate}
+          />
           <Box
             sx={{
               display: 'flex',
@@ -251,9 +270,17 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
               gap: 0,
             }}
           >
-            <RepostButton postId={song.postId} />
-            <SaveButton postId={song.postId} onSaveChange={onSaveChange} />          
-            </Box>
+            <RepostButton
+              postId={song.postId}
+              isReposted={!!isReposted}
+              onRepost={onRepost}
+            />
+            <SaveButton
+              postId={song.postId}
+              isSaved={!!isSaved}
+              onSave={onSave}
+            />
+          </Box>
         </Box>
 
         {/* Audio */}
@@ -264,5 +291,3 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
 );
 
 export default SongCard;
-
-// En tu función de mapeo para SongCard:

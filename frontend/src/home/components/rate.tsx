@@ -5,10 +5,11 @@ import { getPostMetrics, ratePost, updateRate } from '../../api';
 
 interface RateProps {
   postId: number;
-  onRateChange?: () => void; // Añadido para refrescar rating desde el padre
+  value?: number;
+  onRate?: (rate: number) => void;
 }
 
-const Rate: React.FC<RateProps> = ({ postId, onRateChange }) => {
+const Rate: React.FC<RateProps> = ({ postId, onRate }) => {
   const [rating, setRating] = useState(0);
   const [hasRating, setHasRating] = useState(false);
 
@@ -42,7 +43,7 @@ const Rate: React.FC<RateProps> = ({ postId, onRateChange }) => {
         await ratePost(postId, value);
         setHasRating(true);
         setRating(value);
-        if (onRateChange) onRateChange();
+        if (onRate) onRate(value);
       }
     } catch (error) {
       if (error instanceof Error) {
