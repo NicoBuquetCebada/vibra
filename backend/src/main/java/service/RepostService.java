@@ -10,6 +10,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import model.Repost;
+import model.Save;
 import model.User;
 
 @ApplicationScoped
@@ -49,5 +50,9 @@ public class RepostService {
 					.onItem().transform(ignore -> Response.status(204).build())
 			);
     }
+
+		public Uni<List<Repost>> getRepostsByUser(String userName) {
+		return Repost.find("user.name", userName).list();
+	}
 
 }
