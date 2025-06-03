@@ -72,7 +72,6 @@ const NotificationList: React.FC = () => {
 
   return (
     <Container
-      className="scrollable-container"
       sx={{
         display: 'flex',
         flexDirection: 'row',
@@ -81,7 +80,7 @@ const NotificationList: React.FC = () => {
         overflowY: 'auto',
         paddingTop: { xs: '32px', md: '32px' },
         paddingBottom: '70px',
-        backgroundColor: '#e8e8e8',
+        backgroundColor: 'transparent', // Fondo transparente para ver partículas
         position: 'relative',
       }}
     >
