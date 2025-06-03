@@ -104,7 +104,6 @@ function MusicHome() {
   const [posts, setPosts] = useState<PostApi[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [lastLoadedPage, setLastLoadedPage] = useState(-1);
   const observerRef = useRef<HTMLDivElement | null>(null);
   const searchContainerRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
@@ -113,8 +112,12 @@ function MusicHome() {
   const location = useLocation();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
-  // CORREGIDO: usar usePlayer como hook
   const { setPlaylist, setPlaylistIndex } = usePlayer();
+
+  // NUEVO: referencias para control de paginación
+  const requestedPagesRef = useRef<Set<number>>(new Set());
+  const emptyPagesRef = useRef<Set<number>>(new Set());
+  const lastLoadedPageRef = useRef<number>(-1);
 
   // Función para manejar clics fuera del buscador
   useEffect(() => {
@@ -161,132 +164,66 @@ function MusicHome() {
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Cargar posts de la API
+  // Cargar posts de la API (una sola página)
   const fetchPosts = useCallback(async (pageNum: number) => {
+    if (requestedPagesRef.current.has(pageNum) || !hasMore) return; // No repetir ni pedir si ya no hay más
     setLoading(true);
     try {
       const res = await fetchWithAuth(`/api/home?page=${pageNum}`);
       if (!res.ok) throw new Error('Error al obtener publicaciones');
       const data: PostApi[] = await res.json();
-      
-      // No hay más posts si recibimos menos de 2
-      if (data.length < 2) {
+      requestedPagesRef.current.add(pageNum);
+      if (data.length === 0) {
         setHasMore(false);
+        setLoading(false);
+        return;
       }
-      
       setPosts(prev => {
-        if (pageNum === 0) {
-          return data;
-        }
-        // Evitar duplicados comparando por createdAt
-        const newPosts = data.filter(newPost => 
-          !prev.some(existingPost => existingPost.createdAt === newPost.createdAt)
-        );
+        // Evitar duplicados por createdAt
+        const newPosts = data.filter(newPost => !prev.some(existingPost => existingPost.createdAt === newPost.createdAt));
         return [...prev, ...newPosts];
       });
-      
-      setLastLoadedPage(pageNum);      } catch (e) {
-        setHasMore(false);
-        if (e instanceof Error) {
-          console.error('Error al obtener publicaciones:', e.message);
-        }
-      } finally {
-        setLoading(false);
+      lastLoadedPageRef.current = pageNum;
+    } catch (e) {
+      setHasMore(false);
+      if (e instanceof Error) {
+        console.error('Error al obtener publicaciones:', e.message);
       }
-  }, []);
-
-  // Inicialización: carga de las dos primeras páginas
-  useEffect(() => {
-    const initialLoad = async () => {
-      setLoading(true);
-      try {
-        // Cargamos las páginas 0 y 1 en paralelo
-        const [page0Res, page1Res] = await Promise.all([
-          fetchWithAuth('/api/home?page=0'),
-          fetchWithAuth('/api/home?page=1')
-        ]);
-        
-        if (!page0Res.ok || !page1Res.ok) throw new Error('Error en la carga inicial');
-        
-        const page0Data: PostApi[] = await page0Res.json();
-        const page1Data: PostApi[] = await page1Res.json();
-        
-        // Combinamos los resultados
-        const allPosts = [...page0Data, ...page1Data];
-        setPosts(allPosts);
-        setLastLoadedPage(1);
-        
-        // Si alguna página tiene menos de 2 posts, no hay más
-        if (page0Data.length < 2 || page1Data.length < 2) {
-          setHasMore(false);
-        }
-      } catch (e) {
-        console.error('Error en la carga inicial:', e);
-        setHasMore(false);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    if (authContext?.token) {
-      initialLoad();
+    } finally {
+      setLoading(false);
     }
+  }, [hasMore]);
+
+  // Inicialización: solo página 0
+  useEffect(() => {
+    if (authContext?.token) {
+      setPosts([]);
+      requestedPagesRef.current = new Set();
+      lastLoadedPageRef.current = -1;
+      setHasMore(true);
+      fetchPosts(0);
+    }
+    // eslint-disable-next-line
   }, [authContext?.token]);
 
   // Scroll infinito con IntersectionObserver
   useEffect(() => {
     if (!observerRef.current || !hasMore || loading) return;
-    
-    const handleObserver = async (entries: IntersectionObserverEntry[]) => {
+    const handleObserver = (entries: IntersectionObserverEntry[]) => {
       const target = entries[0];
       if (target.isIntersecting && !loading && hasMore) {
-        // Cargar las siguientes dos páginas
-        const nextPage = lastLoadedPage + 1;
-        const nextNextPage = lastLoadedPage + 2;
-        
-        setLoading(true);
-        try {
-          const [page1Res, page2Res] = await Promise.all([
-            fetchWithAuth(`/api/home?page=${nextPage}`),
-            fetchWithAuth(`/api/home?page=${nextNextPage}`)
-          ]);
-          
-          if (!page1Res.ok || !page2Res.ok) throw new Error('Error cargando más posts');
-          
-          const page1Data: PostApi[] = await page1Res.json();
-          const page2Data: PostApi[] = await page2Res.json();
-          
-          setPosts(prev => {
-            const newPosts = [...page1Data, ...page2Data].filter(newPost => 
-              !prev.some(existingPost => existingPost.createdAt === newPost.createdAt)
-            );
-            return [...prev, ...newPosts];
-          });
-          
-          setLastLoadedPage(nextNextPage);
-          
-          // Si alguna página tiene menos de 2 posts, no hay más
-          if (page1Data.length < 2 || page2Data.length < 2) {
-            setHasMore(false);
-          }
-        } catch (e) {
-          console.error('Error cargando más posts:', e);
-          setHasMore(false);
-        } finally {
-          setLoading(false);
-        }
+        const nextPage = lastLoadedPageRef.current + 1;
+        fetchPosts(nextPage);
       }
     };
-    
     const observer = new IntersectionObserver(handleObserver, {
       root: null,
       rootMargin: '20px',
       threshold: 1.0
     });
-    
     observer.observe(observerRef.current);
     return () => observer.disconnect();
-  }, [observerRef, loading, hasMore, lastLoadedPage, fetchPosts]);
+  }, [observerRef, loading, hasMore, fetchPosts]);
 
   const handleNavigation = (path: string) => {
     navigate(path);
