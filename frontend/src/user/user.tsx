@@ -106,7 +106,7 @@ const UserPage: React.FC = () => {
     try {
       const data = await getUserReposts();
       const repostsWithAudio = await Promise.all(
-        data.map(async (post) => {
+        data.map(async (post: UserPagePost) => {
           if (post.type === 'song') {
             const songData = await getSong(post.contentId);
             return { ...post, song: { name: post.name, audio: songData.audio } };
@@ -129,7 +129,7 @@ const UserPage: React.FC = () => {
     try {
       const data = await getUserSaves();
       const savesWithAudio = await Promise.all(
-        data.map(async (save) => {
+        data.map(async (save: UserPagePost) => {
           if (save.type === 'song') {
             const songData = await getSong(save.contentId);
             return { ...save, song: { name: save.name, audio: songData.audio } };
@@ -152,7 +152,7 @@ const UserPage: React.FC = () => {
     try {
       const rates = await getUserRates();
       const ratesWithAudio = await Promise.all(
-        rates.map(async (rate) => {
+        rates.map(async (rate: UserPagePost) => {
           if (rate.type === 'song') {
             const songData = await getSong(rate.contentId);
             return { ...rate, song: { name: rate.name, audio: songData.audio } };

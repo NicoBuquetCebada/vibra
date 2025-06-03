@@ -3,7 +3,7 @@ import { Container, Box, Avatar, Typography, Paper, Alert, Button, Dialog, Dialo
 import { useParams, useNavigate } from 'react-router-dom';
 import MusicPlayer from '../home/components/musicPlayer';
 import BottomNav from '../components/bottom-navigation';
-import { getOtherUserPage, getOtherUserPosts, getOtherUserFollowers, getOtherUserFollowed, getUserReposts, followUser, unfollowUser, fetchWithAuth, getFollowed, getOtherUserReposts } from '../api';
+import { getOtherUserPage, getOtherUserPosts, getOtherUserFollowers, getOtherUserFollowed, followUser, unfollowUser, fetchWithAuth, getFollowed, getOtherUserReposts } from '../api';
 import SongCard from '../home/components/songCard';
 import PersonIcon from '@mui/icons-material/Person';
 import { AuthContext } from '../context/auth-context';
@@ -166,6 +166,7 @@ const OtherUserPage: React.FC = () => {
       if (!username || !user) return;
       try {
         const followed = await getFollowed();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const isUserFollowed = followed.some((u: any) => u.name === username);
         setIsFollowing(isUserFollowed);
       } catch {
