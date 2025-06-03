@@ -50,4 +50,8 @@ public class RepostService {
 			);
     }
 
+	public Uni<List<Repost>> getRepostsByUser(String userName) {
+		return Repost.find("user.name", userName).list();
+	}
+
 }
