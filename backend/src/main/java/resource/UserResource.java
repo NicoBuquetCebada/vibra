@@ -25,6 +25,7 @@ import model.dto.LoginDTO;
 import model.dto.PassChangeDTO;
 import model.dto.RegisterDTO;
 import service.RateService;
+import service.RepostService;
 import service.SaveService;
 import service.UserPageService;
 import service.UserService;
@@ -43,6 +44,8 @@ public class UserResource {
 	@Inject RateService rs;
 
 	@Inject SaveService ss;
+
+	@Inject RepostService res;
 
 
 
@@ -134,9 +137,30 @@ public class UserResource {
 					.map(saves -> saves.stream()
 						.map(save -> save.post.id)
 						.collect(Collectors.toList()))
-					.<List<UserPagePost>>flatMap(postIds -> ups.getPostsByIdList(postIds))
+						.<List<UserPagePost>>flatMap(postIds -> ups.getPostsByIdList(postIds))
+			);
+	}
+
+	@GET
+	@Path("/reposts")
+	public Uni<List<UserPagePost>> getUserReposts() {
+		return us.getUserByToken(securityIdentity)
+			.flatMap(user ->
+				res.getRepostsByUser(user.name)
+					.map(resposts -> resposts.stream()
+						.map(repost -> repost.post.id)
+						.collect(Collectors.toList()))
+						.<List<UserPagePost>>flatMap(postIds -> ups.getPostsByIdList(postIds))
 			);
 	}
 	
+	@GET
+	@Path("/reposts/{user_name}")
+	public Uni<List<UserPagePost>> getUserReposts(@PathParam("user_name") String userName) {
+		return res.getRepostsByUser(userName)
+				.map(resposts -> resposts.stream()
+					.map(repost -> repost.post.id).collect(Collectors.toList()))
+					.<List<UserPagePost>>flatMap(postIds -> ups.getPostsByIdList(postIds));
+	}
 
 }
