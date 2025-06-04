@@ -99,9 +99,13 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
         }));
         setPlaylist(playlist);
         setPlaylistIndex(0);
+        console.log('Cargando álbum en el reproductor:', playlist);
+
       } else {
         setPlaylist([song]);
         setPlaylistIndex(0);
+        console.log('Cargando canción en el reproductor:', song);
+
       }
     };
 

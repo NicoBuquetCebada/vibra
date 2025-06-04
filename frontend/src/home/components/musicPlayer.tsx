@@ -71,20 +71,42 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ onPrevPublication, onNextPubl
 
   // Cambia de publicación (no solo de canción en la playlist)
   const handlePrev = () => {
-    if (audioRef.current && audioRef.current.currentTime > 2) {
+    if (playlistIndex > 0) {
+      setPlaylistIndex(playlistIndex - 1);
+      const prevSong = playlist[playlistIndex - 1];
+      audioRef.current.src = prevSong.audioSrc;
       audioRef.current.currentTime = 0;
-      if (!isPlaying) {
+
+      // Esperar a que el archivo esté listo antes de reproducir
+      audioRef.current.addEventListener('canplay', () => {
         setIsPlaying(true);
         audioRef.current.play();
-      }
+      }, { once: true });
+
+      console.log('Anterior canción en el reproductor:', prevSong);
     } else if (onPrevPublication) {
       onPrevPublication();
+      console.log('Pasando a la publicación anterior');
     }
   };
 
   const handleNext = () => {
-    if (onNextPublication) {
+    if (playlistIndex < playlist.length - 1) {
+      setPlaylistIndex(playlistIndex + 1);
+      const nextSong = playlist[playlistIndex + 1];
+      audioRef.current.src = nextSong.audioSrc;
+      audioRef.current.currentTime = 0;
+
+      // Esperar a que el archivo esté listo antes de reproducir
+      audioRef.current.addEventListener('canplay', () => {
+        setIsPlaying(true);
+        audioRef.current.play();
+      }, { once: true });
+
+      console.log('Siguiente canción en el reproductor:', nextSong);
+    } else if (onNextPublication) {
       onNextPublication();
+      console.log('Pasando a la siguiente publicación');
     }
   };
 
@@ -92,15 +114,17 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ onPrevPublication, onNextPubl
     if (audioRef.current && currentSong) {
       audioRef.current.src = currentSong.audioSrc;
       audioRef.current.currentTime = 0;
-      setIsPlaying(true); // Siempre reproducir automáticamente al cambiar de canción
       setProgress(0);
       setCurrentTime(0);
-      // Forzar play inmediato
-      setTimeout(() => {
-        audioRef.current && audioRef.current.play();
-      }, 0);
+
+      // Esperar a que el archivo esté listo antes de reproducir
+      audioRef.current.addEventListener('canplay', () => {
+        setIsPlaying(true);
+        audioRef.current.play();
+      }, { once: true });
+
+      console.log('Cargando nueva canción en el reproductor:', currentSong);
     }
-    // eslint-disable-next-line
   }, [currentSong]);
 
   useEffect(() => {

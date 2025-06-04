@@ -11,6 +11,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import LogoutIcon from '@mui/icons-material/Logout';
 import Logo from '../assets/basic_logo.png';
 import { AuthContext } from '../context/auth-context';
+import { userPagePostToSongCard } from './user';
 
 interface UserData {
   name: string;
@@ -61,6 +62,9 @@ const OtherUserPage: React.FC = () => {
 
   const isMobile = useMediaQuery('(max-width:900px)');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [playlist, setPlaylist] = useState<Song[]>([]);
+  const [playlistIndex, setPlaylistIndex] = useState(0);
+  const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -108,11 +112,6 @@ const OtherUserPage: React.FC = () => {
       }
     };
 
-    fetchUserData();
-    fetchUserPosts();
-  }, [username]);
-
-  useEffect(() => {
     const fetchReposts = async () => {
       setLoadingReposts(true);
       try {
@@ -142,6 +141,8 @@ const OtherUserPage: React.FC = () => {
       }
       setLoadingReposts(false);
     };
+    fetchUserData();
+    fetchUserPosts();
     fetchReposts();
   }, [username]);
 
@@ -266,6 +267,45 @@ const OtherUserPage: React.FC = () => {
       );
     }
     return null;
+  };
+
+  const playPublication = (postIdx: number) => {
+    const post = posts[postIdx];
+    if (!post) return;
+
+    const songCardData = otherUserPagePostToSongCard(post, userData!, postIdx);
+
+    if (songCardData.type === 'album' && Array.isArray(songCardData.albumSongs)) {
+      // Si es un álbum, configura el playlist con todas las canciones del álbum
+      setPlaylist(songCardData.albumSongs);
+      console.log('Cargando álbum en el reproductor:', songCardData.albumSongs);
+    } else {
+      // Si es una canción, configura el playlist con una sola canción
+      setPlaylist([songCardData]);
+      console.log('Cargando canción en el reproductor:', songCardData);
+    }
+
+    setPlaylistIndex(0);
+    setActivePostIndex(postIdx);
+  };
+
+  const handleNextPublication = () => {
+    if (playlistIndex < playlist.length - 1) {
+      setPlaylistIndex(playlistIndex + 1);
+    } else if (activePostIndex !== null) {
+      playPublication(activePostIndex + 1);
+    }
+  };
+
+  const handlePrevPublication = () => {
+    if (playlistIndex > 0) {
+      setPlaylistIndex(playlistIndex - 1);
+
+      // Log para verificar el botón "Anterior"
+      console.log('Anterior canción/publicación:', playlist[playlistIndex - 1]);
+    } else if (activePostIndex !== null && activePostIndex > 0) {
+      playPublication(activePostIndex - 1);
+    }
   };
 
   return (
@@ -581,7 +621,10 @@ const OtherUserPage: React.FC = () => {
           borderRadius: '0 0 0 12px',
         }}
       >
-        <MusicPlayer />
+        <MusicPlayer 
+          onPrevPublication={handlePrevPublication}
+          onNextPublication={handleNextPublication}
+        />
       </Box>
 
       {/* Diálogo de Seguidores y Seguidos */}
@@ -640,3 +683,59 @@ const OtherUserPage: React.FC = () => {
 };
 
 export default OtherUserPage;
+
+export function otherUserPagePostToSongCard(
+  post: UserPagePost,
+  userData: UserData,
+  index: number
+) {
+  // Si es post de canción
+  if (post.type === 'song' && post.song) {
+    return {
+      id: index,
+      title: post.song.name,
+      audioSrc: post.song.audio,
+      profilePic: userData.profile_img,
+      username: post.userName,
+      coverImg: post.coverImg,
+      postId: post.id,
+      type: post.type,
+    };
+  }
+
+  // Si es post de álbum
+  if (post.type === 'album' && post.album && post.album.songs.length > 0) {
+    return {
+      id: index,
+      title: post.album.name,
+      audioSrc: post.album.songs[0].audio, // Primera canción del álbum
+      profilePic: userData.profile_img,
+      username: post.userName,
+      coverImg: post.coverImg,
+      postId: post.id,
+      type: post.type,
+      albumSongs: post.album.songs.map((song, idx) => ({
+        id: idx,
+        title: song.name,
+        audioSrc: song.audio,
+        profilePic: userData.profile_img,
+        username: post.userName,
+        coverImg: post.coverImg,
+        postId: post.id,
+        type: 'album',
+      })),
+    };
+  }
+
+  // Fallback para otros tipos
+  return {
+    id: index,
+    title: post.name,
+    audioSrc: '',
+    profilePic: userData.profile_img,
+    username: post.userName,
+    coverImg: post.coverImg,
+    postId: post.id,
+    type: post.type,
+  };
+}

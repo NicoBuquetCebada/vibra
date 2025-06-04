@@ -53,7 +53,16 @@ export function postToSongCard(post: PostApi, index: number, profileImgOverride?
   } else if (post.content === 'album' && post.album) {
     title = post.album.name;
     audioSrc = post.album.songs[0]?.audio || '';
-    albumSongs = post.album.songs;
+    albumSongs = post.album.songs.map((track, idx) => ({
+      id: idx,
+      title: track.name,
+      audioSrc: track.audio,
+      profilePic,
+      username: post.user?.name || '',
+      coverImg: post.coverImg,
+      postId: post.postId,
+      type: 'album',
+    }));
   } else if (post.type === 'repost' && post.song) {
     title = post.song.name;
     audioSrc = post.song.audio;
@@ -68,7 +77,7 @@ export function postToSongCard(post: PostApi, index: number, profileImgOverride?
     coverImg: post.coverImg,
     postId: post.postId,
     type: post.content,
-    albumSongs,
+    albumSongs, // Incluye las canciones del álbum
   };
 }
 
@@ -283,9 +292,21 @@ function MusicHome() {
     const post = posts[postIdx];
     if (!post) return;
     setActivePostIndex(postIdx);
+
     const songCardData = postToSongCard(post, postIdx);
-    setPlaylist([songCardData]);
+
+    if (songCardData.type === 'album' && Array.isArray(songCardData.albumSongs)) {
+      // Si es un álbum, configura el playlist con todas las canciones del álbum
+      setPlaylist(songCardData.albumSongs);
+    } else {
+      // Si es una canción, configura el playlist con una sola canción
+      setPlaylist([songCardData]);
+    }
+
     setPlaylistIndex(0);
+
+    // Log para verificar qué se carga en el reproductor
+    console.log('Cargando en el reproductor:', songCardData.type === 'album' ? songCardData.albumSongs : songCardData);
   };
 
   const handlePrevPublication = () => {

@@ -105,6 +105,9 @@ const UserPage: React.FC = () => {
   const [dialogTitle, setDialogTitle] = useState('');
   const [userList, setUserList] = useState<{ name: string; profile_img?: string }[]>([]);
   const [loadingList, setLoadingList] = useState(false);
+  const [playlist, setPlaylist] = useState<any[]>([]);
+  const [playlistIndex, setPlaylistIndex] = useState(0);
+  const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
 
   // Mueve estas funciones AQUÍ, fuera del useEffect:
   const fetchReposts = async () => {
@@ -352,6 +355,49 @@ const UserPage: React.FC = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
+  };
+
+  const playPublication = (postIdx: number) => {
+    const post = posts[postIdx];
+    if (!post) return;
+
+    const songCardData = userPagePostToSongCard(post, userData!, postIdx);
+
+    if (songCardData.type === 'album' && Array.isArray(songCardData.albumSongs)) {
+      // Si es un álbum, configura el playlist con todas las canciones del álbum
+      setPlaylist(songCardData.albumSongs);
+    } else {
+      // Si es una canción, configura el playlist con una sola canción
+      setPlaylist([songCardData]);
+    }
+
+    setPlaylistIndex(0);
+    setActivePostIndex(postIdx); // Actualiza el índice de la publicación activa
+
+    // Log para verificar qué se carga en el reproductor
+    console.log('Cargando en el reproductor:', songCardData.type === 'album' ? songCardData.albumSongs : songCardData);
+  };
+
+  const handlePrevPublication = () => {
+    if (playlistIndex > 0) {
+      setPlaylistIndex(playlistIndex - 1);
+
+      // Log para verificar el botón "Anterior"
+      console.log('Anterior canción/publicación:', playlist[playlistIndex - 1]);
+    } else if (activePostIndex !== null && activePostIndex > 0) {
+      playPublication(activePostIndex - 1);
+    }
+  };
+
+  const handleNextPublication = () => {
+    if (playlistIndex < playlist.length - 1) {
+      setPlaylistIndex(playlistIndex + 1);
+
+      // Log para verificar el botón "Siguiente"
+      console.log('Siguiente canción/publicación:', playlist[playlistIndex + 1]);
+    } else if (activePostIndex !== null && activePostIndex < posts.length - 1) {
+      playPublication(activePostIndex + 1);
+    }
   };
 
   return (
@@ -685,7 +731,10 @@ const UserPage: React.FC = () => {
           borderRadius: '0 0 0 12px',
         }}
       >
-        <MusicPlayer />
+        <MusicPlayer 
+          onPrevPublication={handlePrevPublication}
+          onNextPublication={handleNextPublication}
+        />
       </Box>
 
       {/* Eliminado <BottomNav /> */}

@@ -26,9 +26,14 @@ interface PlayerContextProps {
 const PlayerContext = createContext<PlayerContextProps | undefined>(undefined);
 
 export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [playlist, setPlaylist] = useState<Song[]>([]);
+  const [playlist, setPlaylistState] = useState<Song[]>([]);
   const [playlistIndex, setPlaylistIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  const setPlaylist = (songs: Song[]) => {
+    console.log('Configurando playlist:', songs);
+    setPlaylistState(songs);
+  };
 
   return (
     <PlayerContext.Provider
