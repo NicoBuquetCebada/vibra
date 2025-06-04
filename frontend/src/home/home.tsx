@@ -33,6 +33,7 @@ export interface PostApi {
   album?: AlbumObj;
   coverImg: string;
   postId: number;
+  id: number;
 }
 
 // Adaptador para transformar PostApi a Song (para SongCard)
@@ -172,6 +173,7 @@ function MusicHome() {
         const page0Data: PostApi[] = await page0Res.json();
         const page1Data: PostApi[] = await page1Res.json();
         const allPosts = [...page0Data, ...page1Data];
+        console.log('Publicaciones cargadas:', allPosts); // 👀
         setPosts(allPosts);
         setLastLoadedPage(1);
         if (page0Data.length < 2 || page1Data.length < 2) setHasMore(false);

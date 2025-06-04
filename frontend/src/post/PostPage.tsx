@@ -9,125 +9,43 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
 import Logo from '../assets/basic_logo.png';
-import {
-  getPostById,
-  getOtherUserPage,
-  getSong,
-  getSongsByAlbum,
-  getUserRates,
-  getUserSaves,
-  getUserReposts,
-  ratePost,
-  updateRate,
-  savePost,
-  deleteSave,
-  repostPost,
-  deleteRepost
-} from '../api';
+import { getHome } from '../api'; // Importamos el endpoint de getHome
 import { AuthContext } from '../context/auth-context';
 import { postToSongCard, PostApi } from '../home/home';
 
 const PostPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
   const [post, setPost] = useState<PostApi | null>(null);
-  const [profileImg, setProfileImg] = useState<string>('');
-  const [userName, setUserName] = useState<string>('');
-  const [songName, setSongName] = useState<string>('');
-  const [albumName, setAlbumName] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [userRate, setUserRate] = useState<number | null>(null);
-  const [isSaved, setIsSaved] = useState<boolean>(false);
-  const [isReposted, setIsReposted] = useState<boolean>(false);
   const isMobile = useMediaQuery('(max-width:900px)');
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
 
   // Cargar todos los datos necesarios al entrar en la página
   useEffect(() => {
-    const fetchAll = async () => {
+    const fetchPost = async () => {
       setLoading(true);
       try {
-        // 1. Obtener el post
-        const postData = await getPostById(Number(postId));
-        setPost(postData);
-
-        // 2. Obtener datos del usuario
-        let userData = null;
-        if (postData?.userName) {
-          userData = await getOtherUserPage(postData.userName);
-          setProfileImg(userData.profile_img || '');
-          setUserName(userData.name || postData.userName || '');
+        // Obtener todos los posts y filtrar por el ID
+        const allPosts = await getHome();
+        const filteredPost = allPosts.find((p: PostApi) => p.postId === Number(postId));
+        if (filteredPost) {
+          setPost(filteredPost);
+        } else {
+          setPost(null); // Si no se encuentra el post, lo dejamos como null
         }
-
-        // 3. Obtener datos de la canción o álbum
-        if (postData.type === 'song') {
-          const songData = await getSong(postData.contentId);
-          setSongName(songData.name || '');
-        } else if (postData.type === 'album') {
-          const albumData = await getSongsByAlbum(postData.contentId);
-          setAlbumName(albumData.name || '');
-        }
-
-        // 4. Saber si el usuario ha hecho rate/save/repost
-        const [rates, saves,] = await Promise.all([
-          getUserRates(),
-          getUserSaves(),
-          // getUserReposts()
-        ]);
-        const rateObj = rates.find((r: any) => r.postId === postData.id);
-        setUserRate(rateObj ? rateObj.rate : null);
-        setIsSaved(saves.some((s: any) => s.postId === postData.id));
-        // setIsReposted(reposts.some((r: any) => r.postId === postData.id));
       } catch (e) {
         setPost(null);
       } finally {
         setLoading(false);
       }
     };
+
     if (authContext?.token && postId) {
-      fetchAll();
+      fetchPost();
     }
   }, [authContext?.token, postId]);
-
-  // Métodos para ratear, guardar y repostear
-  const handleRate = async (rate: number) => {
-    if (!post) return;
-    try {
-      if (userRate === null) {
-        await ratePost(post.postId, rate);
-      } else {
-        await updateRate(post.postId, rate);
-      }
-      setUserRate(rate);
-    } catch (e) {}
-  };
-
-  const handleSave = async () => {
-    if (!post) return;
-    try {
-      if (isSaved) {
-        await deleteSave(post.postId);
-        setIsSaved(false);
-      } else {
-        await savePost(post.postId);
-        setIsSaved(true);
-      }
-    } catch (e) {}
-  };
-
-  const handleRepost = async () => {
-    if (!post) return;
-    try {
-      if (isReposted) {
-        await deleteRepost(post.postId);
-        setIsReposted(false);
-      } else {
-        await repostPost(post.postId);
-        setIsReposted(true);
-      }
-    } catch (e) {}
-  };
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -319,18 +237,10 @@ const PostPage: React.FC = () => {
         ) : post ? (
           <SongCard
             song={{
-              ...postToSongCard(post, 0, profileImg),
-              username: userName || post.user.name || '',
-              title: songName || albumName  || '',
+              ...postToSongCard(post, 0),
+              username: post.user.name || '',
             }}
-            isRepost={post.type === 'repost'}
-            repostUser={post.type === 'repost' ? post.repostUser : undefined}
-            userRate={userRate}
-            isSaved={isSaved}
-            isReposted={isReposted}
-            onRate={handleRate}
-            onSave={handleSave}
-            onRepost={handleRepost}
+            isRepost={false} // Forzamos a que no se muestre como repost
           />
         ) : (
           <Typography variant="body1" color="error" sx={{ mt: 4 }}>
