@@ -362,9 +362,6 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
                         transition: 'all 0.3s ease-in-out',
                       }}
                     >
-                      {/* DEBUG: Agregar múltiples console.log */}
-                      
-                      
                       {/* Título del álbum */}
                       <Typography 
                         variant="h6" 
@@ -414,9 +411,13 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
                               fontWeight: 400,
                               color: '#fff',
                               textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                              
+                              '&:hover': {
+                                background: 'rgba(255,255,255,0.2)',
+                              },
+                              transition: 'all 0.2s ease-in-out',
                             }}
                           >
+                            {/* Número de track */}
                             <Box
                               sx={{
                                 width: '20px',
@@ -434,10 +435,55 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
                             >
                               {idx + 1}
                             </Box>
-                            <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {/* Mostrar diferentes propiedades posibles */}
-                              {track.title || `Track ${idx + 1}` || JSON.stringify(track)}
+                            
+                            {/* Nombre de la canción */}
+                            <Box sx={{ 
+                              overflow: 'hidden', 
+                              textOverflow: 'ellipsis', 
+                              whiteSpace: 'nowrap',
+                              flex: 1,
+                              mr: 1
+                            }}>
+                              {track.title || `Track ${idx + 1}`}
                             </Box>
+                            
+                            {/* Botón de play individual */}
+                            <Tooltip title={`Vibra con ${track.title || `Track ${idx + 1}`}`} arrow placement="left">
+                              <IconButton
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Evitar que se active el play del álbum completo
+                                  
+                                  // Crear playlist del álbum y empezar desde la canción seleccionada
+                                  const playlist = song.albumSongs!.map((albumTrack, albumIdx) => ({
+                                    id: albumIdx,
+                                    title: albumTrack.title,
+                                    audioSrc: albumTrack.audioSrc,
+                                    profilePic: song.profilePic,
+                                    username: song.username,
+                                    coverImg: song.coverImg,
+                                    postId: song.postId,
+                                    type: 'album'
+                                  }));
+                                  
+                                  setPlaylist(playlist);
+                                  setPlaylistIndex(idx); // Empezar desde la canción clickeada
+                                  console.log(`Reproduciendo canción ${idx + 1} del álbum:`, track.title);
+                                }}
+                                sx={{
+                                  width: '24px',
+                                  height: '24px',
+                                  backgroundColor: 'rgba(48, 124, 190, 0.8)',
+                                  color: 'white',
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(48, 124, 190, 1)',
+                                    transform: 'scale(1.1)',
+                                  },
+                                  transition: 'all 0.2s ease-in-out',
+                                }}
+                              >
+                                <PlayArrowIcon sx={{ fontSize: '14px' }} />
+                              </IconButton>
+                            </Tooltip>
                           </Box>
                         ))}
                       </Box>

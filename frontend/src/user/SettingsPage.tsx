@@ -285,7 +285,7 @@ const [form, setForm] = useState<{
             <Divider />
           </List>
           <Box sx={{ flexGrow: 1 }} />
-          <List>
+          <List sx={{paddingBottom: '0px'}}>
             <ListItem
               sx={{
                 border: 'none',

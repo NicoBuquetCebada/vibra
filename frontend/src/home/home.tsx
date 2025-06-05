@@ -645,7 +645,7 @@ function MusicHome() {
             padding: 0,
             boxShadow: '-8px 8px 12px rgba(0, 0, 0, 0.15)',
             overflow: 'hidden',
-            borderRadius: '12px 0 0 12px',
+            
           }}
         >
           <MusicPlayer 

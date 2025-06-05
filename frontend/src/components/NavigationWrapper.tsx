@@ -158,7 +158,7 @@ const NavigationWrapper: React.FC<NavigationWrapperProps> = ({ children, logoBut
               </ListItem>
             </List>
             <Box sx={{ flexGrow: 1 }} />
-            <List>
+            <List sx={{paddingBottom: 0}}>
               <ListItem
                 sx={{
                   border: 'none',

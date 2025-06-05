@@ -428,7 +428,7 @@ const OtherUserPage: React.FC = () => {
             <Divider />
           </List>
           <Box sx={{ flexGrow: 1 }} />
-          <List>
+          <List sx={{paddingBottom: '0px'}}>
             <ListItem
               sx={{
                 border: 'none',
@@ -598,7 +598,6 @@ const OtherUserPage: React.FC = () => {
           padding: 0,
           boxShadow: '-8px 8px 12px rgba(0,0,0,0.15)',
           overflow: 'hidden',
-          borderRadius: '12px 0 0 12px',
         }}
       >
         <MusicPlayer 

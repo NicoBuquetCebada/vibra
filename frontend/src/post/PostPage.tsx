@@ -264,7 +264,6 @@ const PostPage: React.FC = () => {
           padding: 0,
           boxShadow: '-8px 8px 12px rgba(0, 0, 0, 0.15)',
           overflow: 'hidden',
-          borderRadius: '0 0 0 12px',
         }}
       >
         <MusicPlayer />
