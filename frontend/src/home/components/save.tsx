@@ -57,7 +57,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({ postId, isSaved, onSave }) => {
         onClick={handleSave}
         disabled={loading}
         sx={{
-          color: saved ? 'rgb(255, 230, 2)' : '#757575',
+          color: saved ? '#307cbe' : '#757575',
           transition: 'all 0.2s ease-in-out',
         }}
       >

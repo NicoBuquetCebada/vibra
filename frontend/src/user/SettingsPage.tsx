@@ -210,8 +210,7 @@ const [form, setForm] = useState<{
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              py: 3,
-              borderBottom: '1px solid #e3e6ea',
+              mt: 1,
               mb: 1,
             }}
           >
@@ -219,10 +218,11 @@ const [form, setForm] = useState<{
               component="img"
               src={Logo}
               alt="Logo Vibra"
-              sx={{ width: 80, height: 80, objectFit: 'contain' }}
+              sx={{ width: 40, height: 40, objectFit: 'contain' }}
             />
           </Box>
           <List>
+            <Divider />
             <ListItem
               sx={{
                 backgroundColor: '#f7fafd',

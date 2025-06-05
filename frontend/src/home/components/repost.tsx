@@ -56,7 +56,7 @@ const RepostButton: React.FC<RepostButtonProps> = ({ postId, isReposted, onRepos
         onClick={handleRepost}
         disabled={loading}
         sx={{
-          color: reposted ? 'rgb(0, 255, 81)' : '#757575',
+          color: reposted ? '#307cbe' : '#757575',
           transition: 'all 0.2s ease-in-out',
         }}
       >

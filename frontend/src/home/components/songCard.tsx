@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useRef, forwardRef, useState, useContext } from 'react';
 import { Card, IconButton, Box, Typography, Avatar, Chip, Badge, Tooltip, Stack } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -143,7 +144,7 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
           position: 'relative',
           overflow: 'hidden',
           cursor: 'pointer',
-          margin: { xs: 0, md: '0 auto' },
+          margin: { xs: 0, md: '16px' },
         }}
       >
         {/* Si es repost, mostrar el repostUser encima del user */}

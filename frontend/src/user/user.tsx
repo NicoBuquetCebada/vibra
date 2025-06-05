@@ -583,6 +583,7 @@ const UserPage: React.FC = () => {
             />
           </Box>
           <List>
+            <Divider />
             <ListItem
               sx={{
                 backgroundColor: '#f7fafd',

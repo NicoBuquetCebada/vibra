@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import { Container, Box, Typography, CircularProgress, Avatar, Snackbar } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -240,11 +241,13 @@ function MusicHome() {
     return () => observer.disconnect();
   }, [observerRef, loading, hasMore, lastLoadedPage, fetchPosts]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleNavigation = (path: string) => {
     navigate(path);
   };

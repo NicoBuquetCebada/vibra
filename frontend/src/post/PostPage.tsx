@@ -35,6 +35,7 @@ const PostPage: React.FC = () => {
         } else {
           setPost(null); // Si no se encuentra el post, lo dejamos como null
         }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
         setPost(null);
       } finally {

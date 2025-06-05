@@ -39,14 +39,14 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       alphaParticles={false}
       disableRotation={true}
     />
+    <PlayerProvider>
     <AuthProvider>
-      <PlayerProvider>
         <ThemeProvider theme={theme}>
           <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh' }}>
             <AppRouter />
           </div>
         </ThemeProvider>
+        </AuthProvider>
       </PlayerProvider>
-    </AuthProvider>
   </React.StrictMode>
 );
