@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { IconButton } from '@mui/material';
+import { IconButton, Tooltip, CircularProgress } from '@mui/material';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import { getPostMetrics, repostPost, deleteRepost } from '../../api';
 
@@ -11,6 +11,7 @@ interface RepostButtonProps {
 
 const RepostButton: React.FC<RepostButtonProps> = ({ postId, isReposted, onRepost }) => {
   const [reposted, setReposted] = useState(isReposted || false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -25,6 +26,7 @@ const RepostButton: React.FC<RepostButtonProps> = ({ postId, isReposted, onRepos
   }, [postId]);
 
   const handleRepost = async () => {
+    setLoading(true);
     try {
       if (reposted) {
         console.log(`Llamando a deleteRepost para el postId: ${postId}`);
@@ -43,19 +45,28 @@ const RepostButton: React.FC<RepostButtonProps> = ({ postId, isReposted, onRepos
       // Revertir el estado local si falla la llamada API
       const metrics = await getPostMetrics(postId);
       setReposted(metrics.reposted);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <IconButton
-      onClick={handleRepost}
-      sx={{
-        color: reposted ? '#00bcd4' : 'rgba(61, 61, 61, 0.3)',
-        transition: 'color 0.2s ease',
-      }}
-    >
-      <RepeatIcon />
-    </IconButton>
+    <Tooltip title={reposted ? "Quitar repost" : "Hacer repost"} arrow placement="top">
+      <IconButton
+        onClick={handleRepost}
+        disabled={loading}
+        sx={{
+          color: reposted ? 'rgb(0, 255, 81)' : '#757575',
+          transition: 'all 0.2s ease-in-out',
+        }}
+      >
+        {loading ? (
+          <CircularProgress size={24} />
+        ) : (
+          <RepeatIcon />
+        )}
+      </IconButton>
+    </Tooltip>
   );
 };
 

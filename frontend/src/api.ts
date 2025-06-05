@@ -312,3 +312,13 @@ export const getPostById = async (postId: number) => {
   if (!res.ok) throw new Error('Error al obtener el post');
   return res.json();
 };
+
+export const deletePost = async (postId: number): Promise<void> => {
+  const response = await fetchWithAuth(`/api/posts/${postId}`, {
+    method: 'DELETE',
+  });
+  
+  if (!response.ok) {
+    throw new Error('Error al eliminar el post');
+  }
+};

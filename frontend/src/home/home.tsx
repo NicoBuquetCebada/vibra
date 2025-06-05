@@ -639,13 +639,13 @@ function MusicHome() {
             position: 'fixed',
             top: 0,
             right: 0,
-            height: 'calc(100vh - 12px)',
+            height: 'calc(100vh - 24px)',
             backgroundColor: '#f5f5f5',
-            margin: '0 0 12px 12px',
+            margin: '12px 18px 0 12px',
             padding: 0,
             boxShadow: '-8px 8px 12px rgba(0, 0, 0, 0.15)',
             overflow: 'hidden',
-            borderRadius: '0 0 0 12px',
+            borderRadius: '12px 0 0 12px',
           }}
         >
           <MusicPlayer 

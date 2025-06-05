@@ -96,7 +96,6 @@ const NotificationList: React.FC = () => {
               mb: 3,
               p: 2,
               backgroundColor: 'white',
-              borderRadius: 2,
               boxShadow: 2,
               textAlign: 'center',
               maxWidth: { xs: '100%', sm: '1000px' }, // Igual que las notificaciones
@@ -125,7 +124,6 @@ const NotificationList: React.FC = () => {
                     sx={{
                       mb: 1.2,
                       backgroundColor: 'white',
-                      borderRadius: 2,
                       boxShadow: 1,
                       p: 1.2,
                       transition: 'box-shadow 0.2s, background-color 0.2s',
@@ -168,9 +166,9 @@ const NotificationList: React.FC = () => {
             position: 'fixed',
             top: 0,
             right: 0,
-            height: 'calc(100vh - 12px)',
+            height: 'calc(100vh - 24px)',
             backgroundColor: '#f5f5f5',
-            margin: '0 0 12px 12px',
+            margin: '12px 18px 0px 12px',
             padding: 0,
             boxShadow: '-8px 8px 12px rgba(0, 0, 0, 0.15)',
             overflow: 'hidden',

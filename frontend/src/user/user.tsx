@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Container, Box, Avatar, Typography, Paper, Tabs, Tab, CircularProgress, Button, List, ListItem, ListItemAvatar, ListItemText, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Fab, Tooltip, IconButton, Drawer, ListItemIcon, Divider, useMediaQuery } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MusicPlayer from '../home/components/musicPlayer';
-import { fetchWithAuth, getFollowers, getFollowed, getUserSaves, getUserReposts, getUserRates, getSong, getSongsByAlbum } from '../api';
+import { fetchWithAuth, getFollowers, getFollowed, getUserSaves, getUserReposts, getUserRates, getSong, getSongsByAlbum, deletePost } from '../api';
 import SongCard from '../home/components/songCard';
 import TuneIcon from '@mui/icons-material/Tune';
 import PersonIcon from '@mui/icons-material/Person';
@@ -117,6 +117,13 @@ const UserPage: React.FC = () => {
   const [loadingList, setLoadingList] = useState(false);
   const { playlist, setPlaylist, playlistIndex, setPlaylistIndex } = usePlayer();
   const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
+
+  // Estado para el diálogo de confirmación
+  const [deleteDialog, setDeleteDialog] = useState({
+    open: false,
+    postId: null as number | null,
+    postTitle: '',
+  });
 
   // Mueve estas funciones AQUÍ, fuera del useEffect:
   const fetchReposts = async () => {
@@ -283,6 +290,42 @@ const UserPage: React.FC = () => {
     fetchUserPostsWithAudio();
   }, []);
 
+  // Función para manejar el borrado de posts
+  const handleDeletePost = async (postId: number, postTitle: string) => {
+    setDeleteDialog({
+      open: true,
+      postId,
+      postTitle,
+    });
+  };
+
+  // Función para confirmar el borrado
+  const confirmDeletePost = async () => {
+    if (!deleteDialog.postId) return;
+    
+    try {
+      await deletePost(deleteDialog.postId);
+      
+      // Actualizar la lista de posts
+      setPosts(prevPosts => prevPosts.filter(post => post.id !== deleteDialog.postId));
+      
+      // Cerrar el diálogo
+      setDeleteDialog({ open: false, postId: null, postTitle: '' });
+      
+      // Opcional: Mostrar mensaje de éxito
+      console.log('Post eliminado correctamente');
+      
+    } catch (error) {
+      console.error('Error al eliminar el post:', error);
+      // Aquí podrías mostrar un mensaje de error
+    }
+  };
+
+  // Función para cancelar el borrado
+  const cancelDeletePost = () => {
+    setDeleteDialog({ open: false, postId: null, postTitle: '' });
+  };
+
   // Renderizado de pestañas
   const renderTabContent = () => {
     if (!userData) {
@@ -307,7 +350,9 @@ const UserPage: React.FC = () => {
                 onPlay={() => playPublication(idx)} // ✅ Conectado
                 onUserClick={() => navigate('/profile')} 
                 onSaveChange={fetchSaves} 
-                onRateChange={fetchRates}
+                onRateChange={fetchRates} 
+                canDelete={true} // ✅ Habilitar borrar solo en posts propios
+                onDelete={() => handleDeletePost(post.id, post.name)} // ✅ Función de borrado
               />
             </Box>
           );
@@ -330,6 +375,7 @@ const UserPage: React.FC = () => {
                 onUserClick={() => navigate('/profile')} 
                 onSaveChange={fetchSaves} 
                 onRateChange={fetchRates}
+                // ❌ NO incluir canDelete para reposts
               />
             </Box>
           );
@@ -525,8 +571,7 @@ const UserPage: React.FC = () => {
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              py: 3,
-              borderBottom: '1px solid #e3e6ea',
+              mt: 1,
               mb: 1,
             }}
           >
@@ -534,7 +579,7 @@ const UserPage: React.FC = () => {
               component="img"
               src={Logo}
               alt="Logo Vibra"
-              sx={{ width: 80, height: 80, objectFit: 'contain' }}
+              sx={{ width: 40, height: 40, objectFit: 'cover' }}
             />
           </Box>
           <List>
@@ -600,7 +645,7 @@ const UserPage: React.FC = () => {
             <Divider />
           </List>
           <Box sx={{ flexGrow: 1 }} />
-          <List>
+          <List sx={{paddingBottom: '0px'}}>
             <ListItem
               sx={{
                 border: 'none',
@@ -611,7 +656,7 @@ const UserPage: React.FC = () => {
               component="button"
               onClick={handleLogout}
             >
-              <ListItemIcon><LogoutIcon sx={{ color: '#e53935' }} /></ListItemIcon>
+              <ListItemIcon><LogoutIcon sx={{ color: '#e53935'}} /></ListItemIcon>
               <ListItemText primary="Cerrar sesión" />
             </ListItem>
           </List>
@@ -632,7 +677,6 @@ const UserPage: React.FC = () => {
           elevation={3}
           sx={{
             padding: '12px 16px',
-            borderRadius: '10px',
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
             display: 'flex',
             alignItems: 'center',
@@ -783,13 +827,13 @@ const UserPage: React.FC = () => {
           position: 'fixed',
           top: 0,
           right: 0,
-          height: 'calc(100vh - 12px)',
+          height: 'calc(100vh - 24px)',
           backgroundColor: '#f5f5f5',
-          margin: '0 0 12px 12px',
+          margin: '12px 18px 0 12px',
           padding: 0,
           boxShadow: '-8px 8px 12px rgba(0,0,0,0.15)',
           overflow: 'hidden',
-          borderRadius: '0 0 0 12px',
+          borderRadius: '12px 0 0 12px',
         }}
       >
         <MusicPlayer 
@@ -848,6 +892,37 @@ const UserPage: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Diálogo de confirmación para borrar posts */}
+      <Dialog
+        open={deleteDialog.open}
+        onClose={cancelDeletePost}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ color: '#e53935', fontWeight: 600 }}>
+          ¿Eliminar publicación?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            ¿Estás seguro de que quieres eliminar "{deleteDialog.postTitle}"? 
+            Esta acción no se puede deshacer.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelDeletePost} color="primary">
+            Cancelar
+          </Button>
+          <Button 
+            onClick={confirmDeletePost} 
+            color="error" 
+            variant="contained"
+            sx={{ ml: 1 }}
+          >
+            Eliminar
+          </Button>
         </DialogActions>
       </Dialog>
     </Container>

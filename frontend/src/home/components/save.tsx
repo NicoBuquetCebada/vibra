@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { IconButton } from '@mui/material';
+import { IconButton, Tooltip, CircularProgress } from '@mui/material';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import { getPostMetrics, savePost, deleteSave } from '../../api';
@@ -12,6 +12,7 @@ interface SaveButtonProps {
 
 const SaveButton: React.FC<SaveButtonProps> = ({ postId, isSaved, onSave }) => {
   const [saved, setSaved] = useState(isSaved || false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -26,6 +27,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({ postId, isSaved, onSave }) => {
   }, [postId]);
 
   const handleSave = async () => {
+    setLoading(true);
     try {
       if (saved) {
         // Si ya está guardado, eliminarlo
@@ -44,19 +46,30 @@ const SaveButton: React.FC<SaveButtonProps> = ({ postId, isSaved, onSave }) => {
       // Revertir el estado local si falla la llamada API
       const metrics = await getPostMetrics(postId);
       setSaved(metrics.saved);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <IconButton
-      onClick={handleSave}
-      sx={{
-        color: saved ? '#307cbe' : 'rgba(61, 61, 61, 0.3)',
-        transition: 'color 0.2s ease',
-      }}
-    >
-      {saved ? <BookmarkIcon /> : <BookmarkBorderIcon />}
-    </IconButton>
+    <Tooltip title={saved ? "Quitar de guardados" : "Guardar post"} arrow placement="top">
+      <IconButton
+        onClick={handleSave}
+        disabled={loading}
+        sx={{
+          color: saved ? 'rgb(255, 230, 2)' : '#757575',
+          transition: 'all 0.2s ease-in-out',
+        }}
+      >
+        {loading ? (
+          <CircularProgress size={24} />
+        ) : saved ? (
+          <BookmarkIcon />
+        ) : (
+          <BookmarkBorderIcon />
+        )}
+      </IconButton>
+    </Tooltip>
   );
 };
 
