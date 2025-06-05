@@ -11,6 +11,7 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import LogoutIcon from '@mui/icons-material/Logout';
 import Logo from '../assets/basic_logo.png';
+import { usePlayer } from '../context/player-context';
 
 interface UserData {
   name: string;
@@ -70,7 +71,16 @@ export function userPagePostToSongCard(
       username: post.userName,
       coverImg: post.coverImg,
       postId: post.id,
-      albumSongs: post.album.songs, // <-- Añade las canciones del álbum
+      albumSongs: post.album.songs.map((song, idx) => ({
+        id: idx,
+        title: song.name,
+        audioSrc: song.audio,
+        profilePic: userData.profile_img,
+        username: post.userName,
+        coverImg: post.coverImg,
+        postId: post.id,
+        type: 'album',
+      })), // <-- Aquí está el cambio
       type: post.type, // Añade el tipo de post
     };
   }
@@ -105,8 +115,7 @@ const UserPage: React.FC = () => {
   const [dialogTitle, setDialogTitle] = useState('');
   const [userList, setUserList] = useState<{ name: string; profile_img?: string }[]>([]);
   const [loadingList, setLoadingList] = useState(false);
-  const [playlist, setPlaylist] = useState<any[]>([]);
-  const [playlistIndex, setPlaylistIndex] = useState(0);
+  const { playlist, setPlaylist, playlistIndex, setPlaylistIndex } = usePlayer();
   const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
 
   // Mueve estas funciones AQUÍ, fuera del useEffect:
@@ -293,12 +302,19 @@ const UserPage: React.FC = () => {
           const songCardData = userPagePostToSongCard(post, userData, idx);
           return (
             <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
-              <SongCard song={songCardData} onUserClick={() => navigate('/profile')} onSaveChange={fetchSaves} onRateChange={fetchRates}/>
+              <SongCard 
+                song={songCardData} 
+                onPlay={() => playPublication(idx)} // ✅ Conectado
+                onUserClick={() => navigate('/profile')} 
+                onSaveChange={fetchSaves} 
+                onRateChange={fetchRates}
+              />
             </Box>
           );
         })
       );
     }
+    
     if (tab === 1) {
       if (loadingReposts) return <Box sx={{ textAlign: 'center', mt: 4 }}><CircularProgress /></Box>;
       return reposts.length === 0 ? (
@@ -308,12 +324,19 @@ const UserPage: React.FC = () => {
           const songCardData = userPagePostToSongCard(post, userData, idx);
           return (
             <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
-              <SongCard song={songCardData} onUserClick={() => navigate('/profile')} onSaveChange={fetchSaves} onRateChange={fetchRates}/>
+              <SongCard 
+                song={songCardData} 
+                onPlay={() => playPublication(idx)} // ✅ Agregado
+                onUserClick={() => navigate('/profile')} 
+                onSaveChange={fetchSaves} 
+                onRateChange={fetchRates}
+              />
             </Box>
           );
         })
       );
     }
+    
     if (tab === 2) {
       if (loadingRates) return <Box sx={{ textAlign: 'center', mt: 4 }}><CircularProgress /></Box>;
       return rates.length === 0 ? (
@@ -323,12 +346,19 @@ const UserPage: React.FC = () => {
           const songCardData = userPagePostToSongCard(post, userData, idx);
           return (
             <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
-              <SongCard song={songCardData} onUserClick={() => navigate('/profile')} onSaveChange={fetchSaves} onRateChange={fetchRates}/>
+              <SongCard 
+                song={songCardData} 
+                onPlay={() => playPublication(idx)} // ✅ Agregado
+                onUserClick={() => navigate('/profile')} 
+                onSaveChange={fetchSaves} 
+                onRateChange={fetchRates}
+              />
             </Box>
           );
         })
       );
     }
+    
     if (tab === 3) {
       if (loadingSaves) return <Box sx={{ textAlign: 'center', mt: 4 }}><CircularProgress /></Box>;
       return saves.length === 0 ? (
@@ -338,12 +368,19 @@ const UserPage: React.FC = () => {
           const songCardData = userPagePostToSongCard(post, userData, idx);
           return (
             <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
-              <SongCard song={songCardData} onUserClick={() => navigate('/profile')} onSaveChange={fetchSaves} onRateChange={fetchRates}/>
+              <SongCard 
+                song={songCardData} 
+                onPlay={() => playPublication(idx)} // ✅ Agregado
+                onUserClick={() => navigate('/profile')} 
+                onSaveChange={fetchSaves} 
+                onRateChange={fetchRates}
+              />
             </Box>
           );
         })
       );
     }
+    
     return null;
   };
 
@@ -358,31 +395,45 @@ const UserPage: React.FC = () => {
   };
 
   const playPublication = (postIdx: number) => {
-    const post = posts[postIdx];
+    // Obtener el array correcto según la pestaña activa
+    let currentPosts: UserPagePost[];
+    switch (tab) {
+      case 0:
+        currentPosts = posts;
+        break;
+      case 1:
+        currentPosts = reposts;
+        break;
+      case 2:
+        currentPosts = rates;
+        break;
+      case 3:
+        currentPosts = saves;
+        break;
+      default:
+        currentPosts = posts;
+    }
+
+    const post = currentPosts[postIdx];
     if (!post) return;
 
     const songCardData = userPagePostToSongCard(post, userData!, postIdx);
 
     if (songCardData.type === 'album' && Array.isArray(songCardData.albumSongs)) {
-      // Si es un álbum, configura el playlist con todas las canciones del álbum
       setPlaylist(songCardData.albumSongs);
     } else {
-      // Si es una canción, configura el playlist con una sola canción
       setPlaylist([songCardData]);
     }
 
     setPlaylistIndex(0);
-    setActivePostIndex(postIdx); // Actualiza el índice de la publicación activa
+    setActivePostIndex(postIdx);
 
-    // Log para verificar qué se carga en el reproductor
     console.log('Cargando en el reproductor:', songCardData.type === 'album' ? songCardData.albumSongs : songCardData);
   };
 
   const handlePrevPublication = () => {
     if (playlistIndex > 0) {
       setPlaylistIndex(playlistIndex - 1);
-
-      // Log para verificar el botón "Anterior"
       console.log('Anterior canción/publicación:', playlist[playlistIndex - 1]);
     } else if (activePostIndex !== null && activePostIndex > 0) {
       playPublication(activePostIndex - 1);
@@ -392,11 +443,21 @@ const UserPage: React.FC = () => {
   const handleNextPublication = () => {
     if (playlistIndex < playlist.length - 1) {
       setPlaylistIndex(playlistIndex + 1);
-
-      // Log para verificar el botón "Siguiente"
       console.log('Siguiente canción/publicación:', playlist[playlistIndex + 1]);
-    } else if (activePostIndex !== null && activePostIndex < posts.length - 1) {
-      playPublication(activePostIndex + 1);
+    } else if (activePostIndex !== null) {
+      // Obtener el array correcto según la pestaña
+      let currentPosts: UserPagePost[];
+      switch (tab) {
+        case 0: currentPosts = posts; break;
+        case 1: currentPosts = reposts; break;
+        case 2: currentPosts = rates; break;
+        case 3: currentPosts = saves; break;
+        default: currentPosts = posts;
+      }
+      
+      if (activePostIndex < currentPosts.length - 1) {
+        playPublication(activePostIndex + 1);
+      }
     }
   };
 

@@ -11,7 +11,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import LogoutIcon from '@mui/icons-material/Logout';
 import Logo from '../assets/basic_logo.png';
 import { AuthContext } from '../context/auth-context';
-import { userPagePostToSongCard } from './user';
+import { usePlayer } from '../context/player-context';
 
 interface UserData {
   name: string;
@@ -62,8 +62,7 @@ const OtherUserPage: React.FC = () => {
 
   const isMobile = useMediaQuery('(max-width:900px)');
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [playlist, setPlaylist] = useState<Song[]>([]);
-  const [playlistIndex, setPlaylistIndex] = useState(0);
+  const { playlist, setPlaylist, playlistIndex, setPlaylistIndex } = usePlayer();
   const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -213,24 +212,15 @@ const OtherUserPage: React.FC = () => {
           No hay publicaciones.
         </Typography>
       ) : (
-        posts.map((post) => {
-          let audioSrc = '';
-          if (post.song && post.song.audio) {
-            audioSrc = post.song.audio;
-          } else if (post.album && post.album.songs && post.album.songs.length > 0) {
-            audioSrc = post.album.songs[0].audio;
-          }
+        posts.map((post, idx) => {
+          // Usar la función de transformación correcta
+          const songCardData = otherUserPagePostToSongCard(post, userData!, idx);
           return (
             <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
-              <SongCard song={{
-                id: post.id,
-                title: post.song?.name || post.album?.name || post.name,
-                audioSrc,
-                profilePic: userData?.profile_img || '',
-                username: post.userName,
-                coverImg: post.coverImg,
-                postId: post.id
-              }} />
+              <SongCard 
+                song={songCardData} 
+                onPlay={() => playPublication(idx)} 
+              />
             </Box>
           );
         })
@@ -243,24 +233,15 @@ const OtherUserPage: React.FC = () => {
           No hay reposts.
         </Typography>
       ) : (
-        reposts.map((post) => {
-          let audioSrc = '';
-          if (post.song && post.song.audio) {
-            audioSrc = post.song.audio;
-          } else if (post.album && post.album.songs && post.album.songs.length > 0) {
-            audioSrc = post.album.songs[0].audio;
-          }
+        reposts.map((post, idx) => {
+          // Usar la función de transformación correcta
+          const songCardData = otherUserPagePostToSongCard(post, userData!, idx);
           return (
             <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
-              <SongCard song={{
-                id: post.id,
-                title: post.song?.name || post.album?.name || post.name,
-                audioSrc,
-                profilePic: userData?.profile_img || '',
-                username: post.userName,
-                coverImg: post.coverImg,
-                postId: post.id
-              }} />
+              <SongCard 
+                song={songCardData} 
+                onPlay={() => playPublication(idx)} 
+              />
             </Box>
           );
         })
@@ -273,6 +254,7 @@ const OtherUserPage: React.FC = () => {
     const post = posts[postIdx];
     if (!post) return;
 
+    // Usar la función correcta que definiste al final del archivo
     const songCardData = otherUserPagePostToSongCard(post, userData!, postIdx);
 
     if (songCardData.type === 'album' && Array.isArray(songCardData.albumSongs)) {
