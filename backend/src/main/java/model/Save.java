@@ -18,17 +18,17 @@ public class Save extends PanacheEntity {
 
     @ManyToOne
 	@JoinColumn(name = "user_name", nullable = false)
-    public User userName;
+    public User user;
 
     @ManyToOne
 	@JoinColumn(name = "post_id", nullable = false)
-    public Post postId;
+    public Post post;
 
     public Save() {}
 
-    public Save(LocalDateTime createdAt, User userName, Post postId) {
+    public Save(LocalDateTime createdAt, User user, Post post) {
         this.createdAt = createdAt;
-        this.userName = userName;
-        this.postId = postId;
+        this.user = user;
+        this.post = post;
     }
 }

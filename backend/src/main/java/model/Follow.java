@@ -17,18 +17,19 @@ public class Follow extends PanacheEntity {
     public LocalDateTime createdAt;
 
     @ManyToOne
-	@JoinColumn(name = "user1", nullable = false)
-    public User user1;
+	@JoinColumn(name = "follower", nullable = false)
+    public User follower;
 
     @ManyToOne
-	@JoinColumn(name = "user2", nullable = false)
-    public User user2;
+	@JoinColumn(name = "followed", nullable = false)
+    public User followed;
 
     public Follow() {}
 
-    public Follow(LocalDateTime createdAt, User user1, User user2) {
+    public Follow(LocalDateTime createdAt, User follower, User followed) {
         this.createdAt = createdAt;
-        this.user1 = user1;
-        this.user2 = user2;
+        this.follower = follower;
+        this.followed = followed;
     }
+
 }
