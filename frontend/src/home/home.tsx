@@ -149,7 +149,7 @@ function MusicHome() {
 
   // Cargar posts de la API
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const fetchPosts = useCallback(async (pageNum: number) => {
+  /* const fetchPosts = useCallback(async (pageNum: number) => {
     setLoading(true);
     try {
       const res = await fetchWithAuth(`/api/home?page=${pageNum}`);
@@ -175,7 +175,7 @@ function MusicHome() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, []); */
 
   // ✅ MODIFICAR: Función para refrescar completamente el home
   const refreshHome = useCallback(async () => {
@@ -315,10 +315,10 @@ function MusicHome() {
   }, [observerRef, loading, hasMore, lastLoadedPage]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleLogout = () => {
+  /* const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
-  };
+  }; */
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleNavigation = (path: string) => {

@@ -26,10 +26,10 @@ const MusicMobilePlayer: React.FC<MusicMobilePlayerProps> = ({
     globalAudioRef,
     currentTime,
     duration,
-    progress,
+    //progress,
     // Añade volume y setVolume para igualar la API del otro componente
-    volume,
-    setVolume,
+    //volume,
+    //setVolume,
   } = usePlayer();
 
   const currentSong = playlist[playlistIndex];
@@ -62,9 +62,9 @@ const MusicMobilePlayer: React.FC<MusicMobilePlayerProps> = ({
   };
 
   // Añade el control de volumen para igualar la API
-  const handleVolumeChange = (_: Event, newValue: number | number[]) => {
+  /* const handleVolumeChange = (_: Event, newValue: number | number[]) => {
     setVolume(newValue as number);
-  };
+  }; */
 
   const formatTime = (secs: number) => {
     const minutes = Math.floor(secs / 60);
