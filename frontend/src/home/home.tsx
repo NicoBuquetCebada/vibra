@@ -1,7 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-/* eslint-disable react-refresh/only-export-components */
 import { useState, useEffect, useRef, useCallback, useContext } from 'react';
-import { Container, Box, Typography, CircularProgress, Avatar, Snackbar } from '@mui/material';
 import { Container, Box, Typography, CircularProgress, Avatar, Snackbar } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SearchIcon from '@mui/icons-material/Search';
@@ -11,22 +9,26 @@ import MusicPlayer from './components/musicPlayer';
 import { fetchWithAuth } from '../api';
 import { AuthContext } from '../context/auth-context';
 import { usePlayer } from '../context/player-context';
+import { useHome } from '../context/home-context'; // ✅ AGREGAR
 import NavigationWrapper from '../components/NavigationWrapper';
-import NavigationWrapper from '../components/NavigationWrapper';
+import BottomNav from '../components/bottom-navigation';
 
 // Tipos para los objetos de la API
 interface User {
   name: string;
   profileImg: string;
 }
+
 interface SongObj {
   name: string;
   audio: string;
 }
+
 interface AlbumObj {
   name: string;
   songs: SongObj[];
 }
+
 export interface PostApi {
   type: 'post' | 'repost';
   createdAt: string;
@@ -38,42 +40,17 @@ export interface PostApi {
   coverImg: string;
   postId: number;
   id: number;
-  id: number;
 }
 
 // Adaptador para transformar PostApi a Song (para SongCard)
 export function postToSongCard(post: PostApi, index: number, profileImgOverride?: string) {
-  const profilePic =
-    profileImgOverride ||
-    post.user?.profileImg ||
-    '';
-
-  let title = 'Publicación';
-  let audioSrc = '';
-  let albumSongs = undefined;
-
-export function postToSongCard(post: PostApi, index: number, profileImgOverride?: string) {
-  const profilePic =
-    profileImgOverride ||
-    post.user?.profileImg ||
-    '';
+  const profilePic = profileImgOverride || post.user?.profileImg || '';
 
   let title = 'Publicación';
   let audioSrc = '';
   let albumSongs = undefined;
 
   if (post.content === 'song' && post.song) {
-    title = post.song.name;
-    audioSrc = post.song.audio;
-  } else if (post.content === 'album' && post.album) {
-    title = post.album.name;
-    audioSrc = post.album.songs[0]?.audio || '';
-    albumSongs = post.album.songs.map((track, idx) => ({
-      id: idx,
-      title: track.name,
-      audioSrc: track.audio,
-      profilePic,
-      username: post.user?.name || '',
     title = post.song.name;
     audioSrc = post.song.audio;
   } else if (post.content === 'album' && post.album) {
@@ -92,13 +69,7 @@ export function postToSongCard(post: PostApi, index: number, profileImgOverride?
   } else if (post.type === 'repost' && post.song) {
     title = post.song.name;
     audioSrc = post.song.audio;
-      type: 'album',
-    }));
-  } else if (post.type === 'repost' && post.song) {
-    title = post.song.name;
-    audioSrc = post.song.audio;
   }
-
 
   return {
     id: index,
@@ -106,14 +77,8 @@ export function postToSongCard(post: PostApi, index: number, profileImgOverride?
     audioSrc,
     profilePic,
     username: post.user?.name || '',
-    title,
-    audioSrc,
-    profilePic,
-    username: post.user?.name || '',
     coverImg: post.coverImg,
     postId: post.postId,
-    type: post.content,
-    albumSongs, // Incluye las canciones del álbum
     type: post.content,
     albumSongs, // Incluye las canciones del álbum
   };
@@ -123,7 +88,7 @@ interface SearchResult {
   name: string;
   id: number | null;
   type: 'user' | 'song' | 'album';
-  img?: string;  // Campo opcional para la imagen del resultado
+  img?: string;
 }
 
 function MusicHome() {
@@ -145,6 +110,7 @@ function MusicHome() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
   const { setPlaylist, setPlaylistIndex } = usePlayer();
+  const { shouldRefresh, resetRefresh } = useHome(); // ✅ AGREGAR
 
   // Función para manejar clics fuera del buscador
   useEffect(() => {
@@ -172,7 +138,6 @@ function MusicHome() {
       if (currentScrollTop > lastScrollTop.current) {
         setIsSearchBarVisible(false);
         setShowResults(false);
-        setShowResults(false);
       } else {
         setIsSearchBarVisible(true);
       }
@@ -183,16 +148,18 @@ function MusicHome() {
   }, []);
 
   // Cargar posts de la API
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const fetchPosts = useCallback(async (pageNum: number) => {
     setLoading(true);
     try {
       const res = await fetchWithAuth(`/api/home?page=${pageNum}`);
       if (!res.ok) throw new Error('Error al obtener publicaciones');
       const data: PostApi[] = await res.json();
-      if (data.length < 2) setHasMore(false);
+      
+      // ✅ CAMBIAR: Solo parar si NO hay posts (array vacío)
+      if (data.length === 0) setHasMore(false);
+      
       setPosts(prev => {
-        if (pageNum === 0) return data;
-        const newPosts = data.filter(newPost =>
         if (pageNum === 0) return data;
         const newPosts = data.filter(newPost =>
           !prev.some(existingPost => existingPost.createdAt === newPost.createdAt)
@@ -208,16 +175,48 @@ function MusicHome() {
     } finally {
       setLoading(false);
     }
-      setLastLoadedPage(pageNum);
-    } catch (e) {
-      setHasMore(false);
-      if (e instanceof Error) {
-        console.error('Error al obtener publicaciones:', e.message);
+  }, []);
+
+  // ✅ MODIFICAR: Función para refrescar completamente el home
+  const refreshHome = useCallback(async () => {
+    console.log('🔄 Refrescando home...');
+    setPosts([]); // Limpiar posts actuales
+    setLastLoadedPage(-1);
+    setHasMore(true);
+    
+    try {
+      const [page0Res, page1Res] = await Promise.all([
+        fetchWithAuth('/api/home?page=0'),
+        fetchWithAuth('/api/home?page=1')
+      ]);
+      
+      if (!page0Res.ok || !page1Res.ok) throw new Error('Error en la carga inicial');
+      
+      const page0Data: PostApi[] = await page0Res.json();
+      const page1Data: PostApi[] = await page1Res.json();
+      const allPosts = [...page0Data, ...page1Data];
+      
+      console.log('✅ Home refrescado, nuevas publicaciones:', allPosts.length);
+      setPosts(allPosts);
+      setLastLoadedPage(1);
+      
+      // ✅ CAMBIAR: Solo parar si AMBAS páginas están vacías
+      if (page0Data.length === 0 && page1Data.length === 0) {
+        setHasMore(false);
       }
-    } finally {
-      setLoading(false);
+    } catch (e) {
+      console.error('Error al refrescar home:', e);
+      setHasMore(false);
     }
   }, []);
+
+  // ✅ AGREGAR: Escuchar cambios para refrescar
+  useEffect(() => {
+    if (shouldRefresh) {
+      refreshHome();
+      resetRefresh();
+    }
+  }, [shouldRefresh, refreshHome, resetRefresh]);
 
   // Inicialización: carga solo la primera página
   useEffect(() => {
@@ -232,10 +231,18 @@ function MusicHome() {
         const page0Data: PostApi[] = await page0Res.json();
         const page1Data: PostApi[] = await page1Res.json();
         const allPosts = [...page0Data, ...page1Data];
-        console.log('Publicaciones cargadas:', allPosts); // 👀
+        
+        console.log('Publicaciones cargadas:', allPosts);
+        console.log('Página 0:', page0Data.length, 'posts');
+        console.log('Página 1:', page1Data.length, 'posts');
+        
         setPosts(allPosts);
         setLastLoadedPage(1);
-        if (page0Data.length < 2 || page1Data.length < 2) setHasMore(false);
+        
+        // ✅ CAMBIAR: Solo parar si AMBAS páginas están vacías
+        if (page0Data.length === 0 && page1Data.length === 0) {
+          setHasMore(false);
+        }
       } catch (e) {
         console.error('Error en la carga inicial:', e);
         setHasMore(false);
@@ -243,36 +250,51 @@ function MusicHome() {
         setLoading(false);
       }
     };
-    if (authContext?.token) {
+    
+    // ✅ Solo cargar si no hay posts y hay token
+    if (authContext?.token && posts.length === 0) {
       initialLoad();
     }
-  }, [authContext?.token]);
+  }, [authContext?.token, posts.length]); // ✅ Cambiar dependencias
 
   // Scroll infinito con IntersectionObserver
   useEffect(() => {
     if (!observerRef.current || !hasMore || loading) return;
+    
     const handleObserver = async (entries: IntersectionObserverEntry[]) => {
       const target = entries[0];
       if (target.isIntersecting && !loading && hasMore) {
         const nextPage = lastLoadedPage + 1;
         const nextNextPage = lastLoadedPage + 2;
         setLoading(true);
+        
         try {
           const [page1Res, page2Res] = await Promise.all([
             fetchWithAuth(`/api/home?page=${nextPage}`),
             fetchWithAuth(`/api/home?page=${nextNextPage}`)
           ]);
+          
           if (!page1Res.ok || !page2Res.ok) throw new Error('Error cargando más posts');
+          
           const page1Data: PostApi[] = await page1Res.json();
           const page2Data: PostApi[] = await page2Res.json();
+          
+          console.log(`Página ${nextPage}:`, page1Data.length, 'posts');
+          console.log(`Página ${nextNextPage}:`, page2Data.length, 'posts');
+          
           setPosts(prev => {
             const newPosts = [...page1Data, ...page2Data].filter(newPost =>
               !prev.some(existingPost => existingPost.createdAt === newPost.createdAt)
             );
             return [...prev, ...newPosts];
           });
+          
           setLastLoadedPage(nextNextPage);
-          if (page1Data.length < 2 || page2Data.length < 2) setHasMore(false);
+          
+          // ✅ CAMBIAR: Solo parar si AMBAS páginas están vacías
+          if (page1Data.length === 0 && page2Data.length === 0) {
+            setHasMore(false);
+          }
         } catch (e) {
           console.error('Error cargando más posts:', e);
           setHasMore(false);
@@ -281,25 +303,21 @@ function MusicHome() {
         }
       }
     };
+    
     const observer = new IntersectionObserver(handleObserver, {
       root: null,
       rootMargin: '20px',
       threshold: 1.0
     });
+    
     observer.observe(observerRef.current);
     return () => observer.disconnect();
-  }, [observerRef, loading, hasMore, lastLoadedPage, fetchPosts]);
+  }, [observerRef, loading, hasMore, lastLoadedPage]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleNavigation = (path: string) => {
-    navigate(path);
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -319,17 +337,19 @@ function MusicHome() {
     }
     searchTimeoutRef.current = setTimeout(async () => {
       try {
+        console.log('🔍 Buscando:', query);
+        console.log('👤 Usuario autenticado:', authContext?.user?.name);
         const response = await fetchWithAuth(`/api/home/search/${encodeURIComponent(query)}`);
         if (!response.ok) throw new Error('Error en la búsqueda');
         const results: SearchResult[] = await response.json();
-        setSearchResults(results.slice(0, 5));
+        console.log('📊 Resultados encontrados:', results.length);
+        console.log('📋 Resultados completos:', results);
         setSearchResults(results.slice(0, 5));
         setShowResults(true);
       } catch (error) {
         console.error('Error al buscar:', error);
         setSearchResults([]);
       }
-    }, 300);
     }, 300);
   };
 
@@ -353,17 +373,7 @@ function MusicHome() {
     if (!post) return;
     setActivePostIndex(postIdx);
 
-
     const songCardData = postToSongCard(post, postIdx);
-
-    if (songCardData.type === 'album' && Array.isArray(songCardData.albumSongs)) {
-      // Si es un álbum, configura el playlist con todas las canciones del álbum
-      setPlaylist(songCardData.albumSongs);
-    } else {
-      // Si es una canción, configura el playlist con una sola canción
-      setPlaylist([songCardData]);
-    }
-
 
     if (songCardData.type === 'album' && Array.isArray(songCardData.albumSongs)) {
       // Si es un álbum, configura el playlist con todas las canciones del álbum
@@ -377,9 +387,6 @@ function MusicHome() {
 
     // Log para verificar qué se carga en el reproductor
     console.log('Cargando en el reproductor:', songCardData.type === 'album' ? songCardData.albumSongs : songCardData);
-
-    // Log para verificar qué se carga en el reproductor
-    console.log('Cargando en el reproductor:', songCardData.type === 'album' ? songCardData.albumSongs : songCardData);
   };
 
   const handlePrevPublication = () => {
@@ -387,14 +394,17 @@ function MusicHome() {
       playPublication(activePostIndex - 1);
     }
   };
+
   const handleNextPublication = () => {
     if (activePostIndex !== null && activePostIndex < posts.length - 1) {
       playPublication(activePostIndex + 1);
     }
   };
 
+  // Detectar si es móvil (puedes ajustar el breakpoint si lo deseas)
+  const isMobile = window.innerWidth < 900;
+
   return (
-    <NavigationWrapper>
     <NavigationWrapper>
       <Container
         className="scrollable-container"
@@ -404,21 +414,45 @@ function MusicHome() {
           minWidth: '100vw',
           height: '100vh',
           overflowY: 'auto',
-          paddingTop: { xs: '100px', md: '100px' },
-          paddingBottom: '70px',
-          backgroundColor: 'transparent',
+          paddingTop: isMobile ? '70px' : '100px', // Menor padding top en móvil para la barra del reproductor
+          paddingBottom: isMobile ? '90px' : '70px',
           backgroundColor: 'transparent',
           position: 'relative',
         }}
       >
+        {/* Reproductor barra superior en móvil */}
+        {isMobile && (
+          <Box
+            sx={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '70px',
+              backgroundColor: '#f5f5f5',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.10)',
+              zIndex: 2100,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              px: 2,
+            }}
+          >
+            <MusicPlayer
+              onPrevPublication={handlePrevPublication}
+              onNextPublication={handleNextPublication}
+            />
+          </Box>
+        )}
+
         {/* Barra de búsqueda */}
         <Box
           ref={searchContainerRef}
           sx={{
             position: 'fixed',
-            top: isSearchBarVisible ? 16 : -80,
-            width: '60%',
-            transform: 'translateX(7%)',
+            top: isSearchBarVisible ? (isMobile ? 80 : 16) : -80,
+            width: isMobile ? '94%' : '60%',
+            left: isMobile ? '3%' : '7%',
             zIndex: 1999,
             transition: 'top 0.3s ease',
           }}
@@ -504,7 +538,6 @@ function MusicHome() {
                       <Avatar 
                         src={result.img}
                         sx={{ width: 40, height: 40, mr: 2 }}
-                        sx={{ width: 40, height: 40, mr: 2 }}
                       />
                     ) : (
                       <Box
@@ -522,7 +555,6 @@ function MusicHome() {
                   ) : (
                     result.type === 'user' ? (
                       <Avatar 
-                        sx={{ width: 40, height: 40, mr: 2, backgroundColor: '#307cbe' }}
                         sx={{ width: 40, height: 40, mr: 2, backgroundColor: '#307cbe' }}
                       />
                     ) : (
@@ -550,13 +582,11 @@ function MusicHome() {
                     <Typography 
                       variant="body1" 
                       sx={{ fontWeight: 500, color: '#424242' }}
-                      sx={{ fontWeight: 500, color: '#424242' }}
                     >
                       {result.name}
                     </Typography>
                     <Typography 
                       variant="caption" 
-                      sx={{ color: 'text.secondary', textTransform: 'capitalize' }}
                       sx={{ color: 'text.secondary', textTransform: 'capitalize' }}
                     >
                       {result.type === 'user' ? 'Usuario' : result.type === 'song' ? 'Canción' : 'Álbum'}
@@ -584,6 +614,8 @@ function MusicHome() {
             </Box>
           )}
         </Box>
+
+        {/* Contenido principal */}
         <Box
           sx={{
             flex: 1,
@@ -648,8 +680,6 @@ function MusicHome() {
                 py: 4,
                 pb: { xs: 16, md: 12 },
                 visibility: 'hidden',
-                pb: { xs: 16, md: 12 },
-                visibility: 'hidden',
                 animation: 'showEndMessage 0.5s ease-in-out forwards',
                 '@keyframes showEndMessage': {
                   '0%': {
@@ -711,26 +741,24 @@ function MusicHome() {
             </Box>
           )}
         </Box>
+
+        {/* Reproductor de música */}
         <Box
           sx={{
-            display: 'flex',
+            display: { xs: 'none', md: 'flex' }, // Oculto en móvil, visible en desktop
             alignItems: 'flex-start',
             justifyContent: 'center',
-            width: '30%',
+            width: { md: '30%', lg: '30%' },
             position: 'fixed',
             top: 0,
             right: 0,
             height: 'calc(100vh - 24px)',
-            height: 'calc(100vh - 24px)',
             backgroundColor: '#f5f5f5',
-            margin: '12px 18px 0 12px',
-            margin: '12px 18px 0 12px',
+            margin: { md: '12px 18px 24px 12px', lg: '12px 18px 24px 12px' }, // ⬅️ Mantén margen inferior
             padding: 0,
             boxShadow: '-8px 8px 12px rgba(0, 0, 0, 0.15)',
-            boxShadow: '-8px 8px 12px rgba(0, 0, 0, 0.15)',
             overflow: 'hidden',
-            
-            
+            zIndex: 1200,
           }}
         >
           <MusicPlayer 
@@ -738,6 +766,26 @@ function MusicHome() {
             onNextPublication={handleNextPublication}
           />
         </Box>
+        {/* Reproductor flotante en móvil */}
+        <Box
+          sx={{
+            display: { xs: 'flex', md: 'none' },
+            position: 'fixed',
+            left: 0,
+            bottom: 0,
+            width: '100vw',
+            backgroundColor: '#f5f5f5',
+            boxShadow: '0 -4px 12px rgba(0,0,0,0.12)',
+            zIndex: 2000,
+            pb: 2,
+          }}
+        >
+          <MusicPlayer 
+            onPrevPublication={handlePrevPublication}
+            onNextPublication={handleNextPublication}
+          />
+        </Box>
+
         <Snackbar
           open={!!successMessage}
           autoHideDuration={3000}
@@ -745,7 +793,10 @@ function MusicHome() {
           message={successMessage}
         />
       </Container>
-    </NavigationWrapper>
+      {/* Barra de navegación inferior solo en móvil */}
+      {isMobile && (
+        <BottomNav handleNavigation={handleNavigation} />
+      )}
     </NavigationWrapper>
   );
 }

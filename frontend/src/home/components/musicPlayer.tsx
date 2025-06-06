@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { } from 'react';
 import { Box, Typography, IconButton, Slider, useMediaQuery } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -11,9 +12,14 @@ import Logo from '../../assets/logo.png';
 interface MusicPlayerProps {
   onPrevPublication?: () => void;
   onNextPublication?: () => void;
+  mobileBar?: boolean; // Añadido para permitir el diseño móvil desde fuera
 }
 
-const MusicPlayer: React.FC<MusicPlayerProps> = ({ onPrevPublication, onNextPublication }) => {
+const MusicPlayer: React.FC<MusicPlayerProps> = ({
+  onPrevPublication,
+  onNextPublication,
+  mobileBar, // Añadido aquí
+}) => {
   const {
     playlist,
     playlistIndex,
