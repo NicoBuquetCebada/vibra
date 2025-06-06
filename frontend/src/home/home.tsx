@@ -1,5 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
+/* eslint-disable react-refresh/only-export-components */
 import { useState, useEffect, useRef, useCallback, useContext } from 'react';
+import { Container, Box, Typography, CircularProgress, Avatar, Snackbar } from '@mui/material';
 import { Container, Box, Typography, CircularProgress, Avatar, Snackbar } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SearchIcon from '@mui/icons-material/Search';
@@ -9,6 +11,7 @@ import MusicPlayer from './components/musicPlayer';
 import { fetchWithAuth } from '../api';
 import { AuthContext } from '../context/auth-context';
 import { usePlayer } from '../context/player-context';
+import NavigationWrapper from '../components/NavigationWrapper';
 import NavigationWrapper from '../components/NavigationWrapper';
 
 // Tipos para los objetos de la API
@@ -35,9 +38,20 @@ export interface PostApi {
   coverImg: string;
   postId: number;
   id: number;
+  id: number;
 }
 
 // Adaptador para transformar PostApi a Song (para SongCard)
+export function postToSongCard(post: PostApi, index: number, profileImgOverride?: string) {
+  const profilePic =
+    profileImgOverride ||
+    post.user?.profileImg ||
+    '';
+
+  let title = 'Publicación';
+  let audioSrc = '';
+  let albumSongs = undefined;
+
 export function postToSongCard(post: PostApi, index: number, profileImgOverride?: string) {
   const profilePic =
     profileImgOverride ||
@@ -60,6 +74,17 @@ export function postToSongCard(post: PostApi, index: number, profileImgOverride?
       audioSrc: track.audio,
       profilePic,
       username: post.user?.name || '',
+    title = post.song.name;
+    audioSrc = post.song.audio;
+  } else if (post.content === 'album' && post.album) {
+    title = post.album.name;
+    audioSrc = post.album.songs[0]?.audio || '';
+    albumSongs = post.album.songs.map((track, idx) => ({
+      id: idx,
+      title: track.name,
+      audioSrc: track.audio,
+      profilePic,
+      username: post.user?.name || '',
       coverImg: post.coverImg,
       postId: post.postId,
       type: 'album',
@@ -67,7 +92,13 @@ export function postToSongCard(post: PostApi, index: number, profileImgOverride?
   } else if (post.type === 'repost' && post.song) {
     title = post.song.name;
     audioSrc = post.song.audio;
+      type: 'album',
+    }));
+  } else if (post.type === 'repost' && post.song) {
+    title = post.song.name;
+    audioSrc = post.song.audio;
   }
+
 
   return {
     id: index,
@@ -75,8 +106,14 @@ export function postToSongCard(post: PostApi, index: number, profileImgOverride?
     audioSrc,
     profilePic,
     username: post.user?.name || '',
+    title,
+    audioSrc,
+    profilePic,
+    username: post.user?.name || '',
     coverImg: post.coverImg,
     postId: post.postId,
+    type: post.content,
+    albumSongs, // Incluye las canciones del álbum
     type: post.content,
     albumSongs, // Incluye las canciones del álbum
   };
@@ -135,6 +172,7 @@ function MusicHome() {
       if (currentScrollTop > lastScrollTop.current) {
         setIsSearchBarVisible(false);
         setShowResults(false);
+        setShowResults(false);
       } else {
         setIsSearchBarVisible(true);
       }
@@ -155,6 +193,8 @@ function MusicHome() {
       setPosts(prev => {
         if (pageNum === 0) return data;
         const newPosts = data.filter(newPost =>
+        if (pageNum === 0) return data;
+        const newPosts = data.filter(newPost =>
           !prev.some(existingPost => existingPost.createdAt === newPost.createdAt)
         );
         return [...prev, ...newPosts];
@@ -168,9 +208,18 @@ function MusicHome() {
     } finally {
       setLoading(false);
     }
+      setLastLoadedPage(pageNum);
+    } catch (e) {
+      setHasMore(false);
+      if (e instanceof Error) {
+        console.error('Error al obtener publicaciones:', e.message);
+      }
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // Inicialización: carga de las dos primeras páginas
+  // Inicialización: carga solo la primera página
   useEffect(() => {
     const initialLoad = async () => {
       setLoading(true);
@@ -242,9 +291,15 @@ function MusicHome() {
   }, [observerRef, loading, hasMore, lastLoadedPage, fetchPosts]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleNavigation = (path: string) => {
+    navigate(path);
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -268,11 +323,13 @@ function MusicHome() {
         if (!response.ok) throw new Error('Error en la búsqueda');
         const results: SearchResult[] = await response.json();
         setSearchResults(results.slice(0, 5));
+        setSearchResults(results.slice(0, 5));
         setShowResults(true);
       } catch (error) {
         console.error('Error al buscar:', error);
         setSearchResults([]);
       }
+    }, 300);
     }, 300);
   };
 
@@ -296,6 +353,7 @@ function MusicHome() {
     if (!post) return;
     setActivePostIndex(postIdx);
 
+
     const songCardData = postToSongCard(post, postIdx);
 
     if (songCardData.type === 'album' && Array.isArray(songCardData.albumSongs)) {
@@ -306,7 +364,19 @@ function MusicHome() {
       setPlaylist([songCardData]);
     }
 
+
+    if (songCardData.type === 'album' && Array.isArray(songCardData.albumSongs)) {
+      // Si es un álbum, configura el playlist con todas las canciones del álbum
+      setPlaylist(songCardData.albumSongs);
+    } else {
+      // Si es una canción, configura el playlist con una sola canción
+      setPlaylist([songCardData]);
+    }
+
     setPlaylistIndex(0);
+
+    // Log para verificar qué se carga en el reproductor
+    console.log('Cargando en el reproductor:', songCardData.type === 'album' ? songCardData.albumSongs : songCardData);
 
     // Log para verificar qué se carga en el reproductor
     console.log('Cargando en el reproductor:', songCardData.type === 'album' ? songCardData.albumSongs : songCardData);
@@ -325,6 +395,7 @@ function MusicHome() {
 
   return (
     <NavigationWrapper>
+    <NavigationWrapper>
       <Container
         className="scrollable-container"
         sx={{
@@ -335,6 +406,7 @@ function MusicHome() {
           overflowY: 'auto',
           paddingTop: { xs: '100px', md: '100px' },
           paddingBottom: '70px',
+          backgroundColor: 'transparent',
           backgroundColor: 'transparent',
           position: 'relative',
         }}
@@ -432,6 +504,7 @@ function MusicHome() {
                       <Avatar 
                         src={result.img}
                         sx={{ width: 40, height: 40, mr: 2 }}
+                        sx={{ width: 40, height: 40, mr: 2 }}
                       />
                     ) : (
                       <Box
@@ -449,6 +522,7 @@ function MusicHome() {
                   ) : (
                     result.type === 'user' ? (
                       <Avatar 
+                        sx={{ width: 40, height: 40, mr: 2, backgroundColor: '#307cbe' }}
                         sx={{ width: 40, height: 40, mr: 2, backgroundColor: '#307cbe' }}
                       />
                     ) : (
@@ -476,11 +550,13 @@ function MusicHome() {
                     <Typography 
                       variant="body1" 
                       sx={{ fontWeight: 500, color: '#424242' }}
+                      sx={{ fontWeight: 500, color: '#424242' }}
                     >
                       {result.name}
                     </Typography>
                     <Typography 
                       variant="caption" 
+                      sx={{ color: 'text.secondary', textTransform: 'capitalize' }}
                       sx={{ color: 'text.secondary', textTransform: 'capitalize' }}
                     >
                       {result.type === 'user' ? 'Usuario' : result.type === 'song' ? 'Canción' : 'Álbum'}
@@ -572,6 +648,8 @@ function MusicHome() {
                 py: 4,
                 pb: { xs: 16, md: 12 },
                 visibility: 'hidden',
+                pb: { xs: 16, md: 12 },
+                visibility: 'hidden',
                 animation: 'showEndMessage 0.5s ease-in-out forwards',
                 '@keyframes showEndMessage': {
                   '0%': {
@@ -643,11 +721,15 @@ function MusicHome() {
             top: 0,
             right: 0,
             height: 'calc(100vh - 24px)',
+            height: 'calc(100vh - 24px)',
             backgroundColor: '#f5f5f5',
+            margin: '12px 18px 0 12px',
             margin: '12px 18px 0 12px',
             padding: 0,
             boxShadow: '-8px 8px 12px rgba(0, 0, 0, 0.15)',
+            boxShadow: '-8px 8px 12px rgba(0, 0, 0, 0.15)',
             overflow: 'hidden',
+            
             
           }}
         >
@@ -663,6 +745,7 @@ function MusicHome() {
           message={successMessage}
         />
       </Container>
+    </NavigationWrapper>
     </NavigationWrapper>
   );
 }
