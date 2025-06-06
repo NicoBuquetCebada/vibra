@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Box, IconButton } from '@mui/material';
+import { Box, IconButton, Tooltip } from '@mui/material';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import { getPostMetrics, ratePost, updateRate } from '../../api';
 
 interface RateProps {
   postId: number;
+  value?: number;
+  onRate?: (rate: number) => void;
 }
 
-const Rate: React.FC<RateProps> = ({ postId }) => {
+const Rate: React.FC<RateProps> = ({ postId, onRate }) => {
   const [rating, setRating] = useState(0);
   const [hasRating, setHasRating] = useState(false);
 
@@ -32,14 +34,17 @@ const Rate: React.FC<RateProps> = ({ postId }) => {
 
     try {
       if (hasRating) {
-        // Actualizar rating existente
+        // Solo actualiza el rate, no refresques la lista
         await updateRate(postId, value);
+        setRating(value);
+        // NO llames a onRateChange aquí
       } else {
-        // Crear nuevo rating
+        // Es un nuevo rate, refresca la lista
         await ratePost(postId, value);
         setHasRating(true);
+        setRating(value);
+        if (onRate) onRate(value);
       }
-      setRating(value);
     } catch (error) {
       if (error instanceof Error) {
         console.error('Error al calificar post:', error.message);
@@ -51,24 +56,26 @@ const Rate: React.FC<RateProps> = ({ postId }) => {
   };
 
   return (
-    <Box sx={{ display: 'flex', gap: 0 }}>
-      {[...Array(5)].map((_, i) => (
-        <IconButton
-          key={i}
-          onClick={() => handleRating(i + 1)}
-          sx={{
-            padding: 0,
-          }}
-        >
-          <MusicNoteIcon
+    <Tooltip title="Calificar post" arrow placement="top">
+      <Box sx={{ display: 'flex', gap: 0 }}>
+        {[...Array(5)].map((_, i) => (
+          <IconButton
+            key={i}
+            onClick={() => handleRating(i + 1)}
             sx={{
-              color: rating > i ? '#307cbe' : 'rgba(61, 61, 61, 0.3)',
-              transition: 'color 0.2s ease',
+              padding: 0,
             }}
-          />
-        </IconButton>
-      ))}
-    </Box>
+          >
+            <MusicNoteIcon
+              sx={{
+                color: rating > i ? '#307cbe' : 'rgba(61, 61, 61, 0.3)',
+                transition: 'color 0.2s ease',
+              }}
+            />
+          </IconButton>
+        ))}
+      </Box>
+    </Tooltip>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { } from 'react';
 import { Box, Typography, IconButton, Slider, useMediaQuery } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -8,153 +8,65 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { usePlayer } from '../../context/player-context';
 import Logo from '../../assets/logo.png';
 
-interface Song {
-  id: number;
-  title: string;
-  audioSrc: string;
-  profilePic: string;
-  username: string;
-  coverImg?: string;
-  description: string;
-  likes: number;
-  comments: number;
-  shares: number;
-}
-
 interface MusicPlayerProps {
-  song?: Song;
   onPrevPublication?: () => void;
   onNextPublication?: () => void;
 }
 
 const MusicPlayer: React.FC<MusicPlayerProps> = ({ onPrevPublication, onNextPublication }) => {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const { playlist, playlistIndex, setPlaylistIndex, isPlaying, setIsPlaying } = usePlayer();
-  const [progress, setProgress] = useState(0);
-  const [volume, setVolume] = useState(50);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const {
+    playlist,
+    playlistIndex,
+    setPlaylistIndex,
+    isPlaying,
+    setIsPlaying,
+    globalAudioRef,
+    currentTime,
+    duration,
+    progress,
+    volume,
+    setVolume,
+  } = usePlayer();
 
   const currentSong = playlist[playlistIndex];
   const isSmallScreen = useMediaQuery('(max-width: 600px)');
 
   const handlePlayPause = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
+    setIsPlaying(!isPlaying);
   };
 
   const handleSeek = (event: Event, newValue: number | number[]) => {
-    if (audioRef.current && duration && !isNaN(duration)) {
-      const seekTime = Math.min((newValue as number / 100) * duration, duration - 0.1); // Evita saltar al final exacto
-      audioRef.current.currentTime = seekTime;
-      setProgress(newValue as number);
-      // Si estaba reproduciendo, sigue reproduciendo
-      if (isPlaying) {
-        audioRef.current.play();
-      }
+    if (globalAudioRef.current && duration && !isNaN(duration)) {
+      const seekTime = Math.min((newValue as number / 100) * duration, duration - 0.1);
+      globalAudioRef.current.currentTime = seekTime;
     }
   };
 
   const handleVolumeChange = (event: Event, newValue: number | number[]) => {
-    if (audioRef.current) {
-      const volumeValue = (newValue as number) / 100;
-      audioRef.current.volume = volumeValue;
-      setVolume(newValue as number);
-    }
+    setVolume(newValue as number);
   };
 
-  // Cambia de publicación (no solo de canción en la playlist)
   const handlePrev = () => {
-    if (audioRef.current && audioRef.current.currentTime > 2) {
-      audioRef.current.currentTime = 0;
-      if (!isPlaying) {
-        setIsPlaying(true);
-        audioRef.current.play();
-      }
+    if (playlistIndex > 0) {
+      setPlaylistIndex(playlistIndex - 1);
     } else if (onPrevPublication) {
       onPrevPublication();
     }
   };
 
   const handleNext = () => {
-    if (onNextPublication) {
+    if (playlistIndex < playlist.length - 1) {
+      setPlaylistIndex(playlistIndex + 1);
+    } else if (onNextPublication) {
       onNextPublication();
     }
   };
-
-  useEffect(() => {
-    if (audioRef.current && currentSong) {
-      audioRef.current.src = currentSong.audioSrc;
-      audioRef.current.currentTime = 0;
-      setIsPlaying(true); // Siempre reproducir automáticamente al cambiar de canción
-      setProgress(0);
-      setCurrentTime(0);
-      // Forzar play inmediato
-      setTimeout(() => {
-        audioRef.current && audioRef.current.play();
-      }, 0);
-    }
-    // eslint-disable-next-line
-  }, [currentSong]);
-
-  useEffect(() => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.play();
-      } else {
-        audioRef.current.pause();
-      }
-    }
-  }, [isPlaying]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
-    };
-
-    const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-      setProgress((audio.currentTime / (audio.duration || 1)) * 100);
-    };
-
-    const handleEnded = () => {
-      if (onNextPublication) {
-        onNextPublication();
-      } else {
-        setIsPlaying(false);
-      }
-    };
-
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('ended', handleEnded);
-
-    return () => {
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('ended', handleEnded);
-    };
-  }, [audioRef, currentSong, onNextPublication]);
 
   const formatTime = (secs: number) => {
     const minutes = Math.floor(secs / 60);
     const seconds = Math.floor(secs % 60);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
-
-  useEffect(() => {
-    setProgress(0);
-    setCurrentTime(0);
-  }, [currentSong]);
 
   if (!currentSong) {
     return (
@@ -224,11 +136,12 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ onPrevPublication, onNextPubl
         zIndex: 1000,
       }}
     >
-      <Typography variant="subtitle1" fontWeight="bold">{currentSong ? currentSong.title : 'Ninguna canción cargada'}</Typography>
+      <Typography variant="subtitle1" fontWeight="bold">
+        {currentSong.title}
+      </Typography>
       <IconButton onClick={handlePlayPause} sx={{ color: 'white' }}>
         {isPlaying ? <PauseIcon fontSize="large" /> : <PlayArrowIcon fontSize="large" />}
       </IconButton>
-      <audio ref={audioRef} preload="metadata" />
     </Box>
   ) : (
     <Box
@@ -264,10 +177,10 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ onPrevPublication, onNextPubl
       }}
     >
       <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#307cbe' }}>
-        {currentSong ? currentSong.title : 'Ninguna canción cargada'}
+        {currentSong.title}
       </Typography>
       <Typography variant="subtitle1" sx={{ color: '#307cbe' }}>
-        {currentSong ? currentSong.username : ''}
+        {currentSong.username}
       </Typography>
       <Box 
         component="img" 
@@ -280,7 +193,8 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ onPrevPublication, onNextPubl
           marginTop: '10px',
           marginX: '-20px',
           maxWidth: 'calc(100% + 40px)',
-        }} />
+        }} 
+      />
       <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '80%' }}>
         <Typography variant="caption">{formatTime(currentTime)}</Typography>
         <Typography variant="caption">{formatTime(duration)}</Typography>
@@ -307,7 +221,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ onPrevPublication, onNextPubl
         <VolumeUpIcon />
         <Slider value={volume} onChange={handleVolumeChange} aria-label="Volumen" sx={{ color: 'white' }} />
       </Box>
-      <audio ref={audioRef} preload="metadata" />
     </Box>
   );
 };

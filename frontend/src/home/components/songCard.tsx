@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useRef, forwardRef, useState, useContext } from 'react';
-import { Card, IconButton, Box, Typography, Avatar } from '@mui/material';
+import { Card, IconButton, Box, Typography, Avatar, Chip, Badge, Tooltip, Stack } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import Rate from './rate';
 import RepostButton from './repost';
@@ -7,7 +8,10 @@ import SaveButton from './save';
 import Logo from '../../assets/logo.png';
 import { usePlayer } from '../../context/player-context';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../../context/auth-context'; // Importa el contexto
+import { AuthContext } from '../../context/auth-context';
+import AlbumIcon from '@mui/icons-material/Album';
+import MusicNoteIcon from '@mui/icons-material/MusicNote';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 interface Song {
   id: number;
@@ -17,31 +21,68 @@ interface Song {
   username: string;
   coverImg?: string;
   postId: number;
-  type?: string; // 'song' o 'album'
-  albumSongs?: { name: string; audio: string }[]; // <-- Añade esto
+  type?: string;
+  // ✅ CORREGIR: Usar la estructura real de los datos
+  albumSongs?: {
+    id: number;
+    title: string; // Era 'name' pero en realidad es 'title'
+    audioSrc: string; // Era 'audio' pero en realidad es 'audioSrc'
+    profilePic: string;
+    username: string;
+    coverImg?: string;
+    postId: number;
+    type: string;
+  }[];
 }
 
 export interface SongCardProps {
-  song: Song; // o el tipo que uses
+  song: Song;
   onUserClick?: () => void;
   isRepost?: boolean;
   repostUser?: { name: string; profileImg: string };
   onRepostUserClick?: () => void;
-  onPlay?: () => void; // NUEVO: callback para play externo
+  onPlay?: () => void;
+  onSaveChange?: () => void;
+  onRateChange?: () => void;
+  userRate?: number | null;
+  isSaved?: boolean;
+  isReposted?: boolean;
+  onRate?: (rate: number) => void;
+  onSave?: () => void;
+  onRepost?: () => void;
+  // ✅ Agregar props para borrar
+  canDelete?: boolean;
+  onDelete?: () => void;
 }
 
 const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
-  ({ song, repostUser, isRepost, onPlay }, ref) => {
-    const {setPlaylist, setPlaylistIndex } = usePlayer();
+  (
+    {
+      song,
+      repostUser,
+      isRepost,
+      onPlay,
+      onSaveChange,
+      onRateChange,
+      userRate,
+      isSaved,
+      isReposted,
+      onRate,
+      onSave,
+      onRepost,
+      canDelete, // ✅ Nueva prop
+      onDelete,  // ✅ Nueva prop
+    },
+    ref
+  ) => {
+    const { setPlaylist, setPlaylistIndex } = usePlayer();
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [hover, setHover] = useState(false);
     const navigate = useNavigate();
     const authContext = useContext(AuthContext);
 
-    // Usuario autenticado
     const authenticatedUser = authContext?.user?.name;
 
-    // Handler para el usuario del post
     const handleUserClick = () => {
       if (authenticatedUser && song.username === authenticatedUser) {
         navigate('/profile');
@@ -50,7 +91,6 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
       }
     };
 
-    // Handler para el usuario del repost
     const handleRepostUserClick = () => {
       if (authenticatedUser && repostUser && repostUser.name === authenticatedUser) {
         navigate('/profile');
@@ -61,28 +101,29 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
 
     const handlePlay = () => {
       if (onPlay) {
-        onPlay(); // Si viene de Home, controla el flujo global
+        onPlay();
         return;
       }
       if (song.type === 'album' && Array.isArray(song.albumSongs) && song.albumSongs.length > 0) {
-        // Mapea las canciones del álbum al formato Song
-          console.log('[SongCard AlbumSongs]', song.albumSongs);
-
         const playlist = song.albumSongs.map((track, idx) => ({
           id: idx,
-          title: track.name,
-          audioSrc: track.audio,
+          title: track.title,
+          audioSrc: track.audioSrc,
           profilePic: song.profilePic,
           username: song.username,
           coverImg: song.coverImg,
           postId: song.postId,
           type: 'album'
         }));
-        setPlaylist(playlist);      // <-- solo el array
-        setPlaylistIndex(0);        // <-- selecciona la primera canción
-      } else {
-        setPlaylist([song]);        // <-- playlist de una sola canción
+        setPlaylist(playlist);
         setPlaylistIndex(0);
+        console.log('Cargando álbum en el reproductor:', playlist);
+
+      } else {
+        setPlaylist([song]);
+        setPlaylistIndex(0);
+        console.log('Cargando canción en el reproductor:', song);
+
       }
     };
 
@@ -103,7 +144,7 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
           position: 'relative',
           overflow: 'hidden',
           cursor: 'pointer',
-          margin: { xs: 0, md: '0 auto' },
+          margin: { xs: 0, md: '16px' },
         }}
       >
         {/* Si es repost, mostrar el repostUser encima del user */}
@@ -112,7 +153,6 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
             <Avatar
               src={repostUser.profileImg}
               sx={{ width: 28, height: 28, mr: 1, cursor: 'pointer' }}
-              // onClick={handleRepostUserClick}
             />
             <Typography
               variant="caption"
@@ -126,30 +166,61 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
 
         {/* Parte superior izquierda (Artista y título) */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 0, mb: 0, position: 'relative' }}>
-          {/* Tipo de publicación en la esquina superior derecha */}
+          {/* Tipo de publicación con botón de borrar */}
           <Box
             sx={{
               position: 'absolute',
               top: 0,
               right: 0,
-              background: song.audioSrc && song.audioSrc !== '' && song.title ? '#307cbe' : '#aaa',
-              color: 'white',
-              px: 1.5,
-              py: 0.5,
-              borderRadius: '0 0 0 8px',
-              fontSize: 12,
-              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
               zIndex: 20,
             }}
           >
-            {song.audioSrc && song.audioSrc !== '' && song.title?.toLowerCase().includes('album')
-              ? 'Álbum'
-              : 'Canción'}
+            {/* Chip del tipo de contenido */}
+            <Chip
+              icon={song.type === 'album' ? <AlbumIcon /> : <MusicNoteIcon />}
+              label={song.type === 'album' ? 'Álbum' : 'Canción'}
+              color={song.type === 'album' ? 'primary' : 'secondary'}
+              size="small"
+              sx={{
+                fontWeight: 600,
+                borderRadius: '0 0 0 -12px',
+              }}
+            />
+            
+            {/* Botón de borrar (solo si canDelete es true) */}
+            {canDelete && (
+              <Tooltip title="Eliminar post" arrow placement="top">
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation(); // Evitar que se active el play
+                    if (onDelete) onDelete();
+                  }}
+                  sx={{
+                    backgroundColor: 'rgba(229, 57, 53, 0.9)',
+                    color: 'white',
+                    width: 32,
+                    height: 32,
+                    // borderRadius: '0 0 0 0',
+                    '&:hover': {
+                      backgroundColor: 'rgba(229, 57, 53, 1)',
+                      transform: 'scale(1.05)',
+                    },
+                    transition: 'all 0.2s ease-in-out',
+                    ml: 0.5, // Pequeño margen a la izquierda
+                  }}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
           </Box>
+
           <Avatar
             src={song.profilePic}
             sx={{ cursor: 'pointer' }}
-            // onClick={handleUserClick}
+            onClick={handleUserClick}
           />
           <Typography
             variant="subtitle2"
@@ -173,21 +244,299 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
             justifyContent: 'center',
             alignItems: 'center',
             my: 1,
+            position: 'relative',
           }}
         >
-          <Box
-            component="img"
-            src={song.coverImg || Logo}
-            alt="Portada de la canción"
-            sx={{
-              width: '100%',
-              maxWidth: '350px',
-              aspectRatio: '1/1',
-              objectFit: 'cover',
-              borderRadius: { xs: 0, md: 2 },
-              boxShadow: 2,
-            }}
-          />
+          <Tooltip title={song.type === 'album' ? `${song.albumSongs?.length} canciones` : 'Canción individual'}>
+            <Badge
+              badgeContent={song.type === 'album' && song.albumSongs ? song.albumSongs.length : 0}
+              color="primary"
+              invisible={true}
+              sx={{
+                '& .MuiBadge-badge': {
+                  zIndex: 15,
+                }
+              }}
+            >
+              {song.type === 'album' ? (
+                // Efecto abanico para álbumes
+                <Stack
+                  direction="row"
+                  sx={{
+                    position: 'relative',
+                    width: '350px',
+                    height: '350px',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  {/* Imagen de fondo (más alejada) */}
+                  <Box
+                    component="img"
+                    src={song.coverImg || Logo}
+                    alt="Portada del álbum"
+                    sx={{
+                      position: 'absolute',
+                      width: '320px',
+                      height: '320px',
+                      objectFit: 'cover',
+                      borderRadius: 2,
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                      transform: 'rotate(-8deg) translateX(-15px) translateY(5px)',
+                      zIndex: 1,
+                      opacity: hover ? 0.3 : 0.7,
+                      transition: 'opacity 0.3s ease-in-out',
+                    }}
+                  />
+                  
+                  {/* Imagen del medio */}
+                  <Box
+                    component="img"
+                    src={song.coverImg || Logo}
+                    alt="Portada del álbum"
+                    sx={{
+                      position: 'absolute',
+                      width: '330px',
+                      height: '330px',
+                      objectFit: 'cover',
+                      borderRadius: 2,
+                      boxShadow: '0 12px 28px rgba(0,0,0,0.2)',
+                      transform: 'rotate(4deg) translateX(8px) translateY(-3px)',
+                      zIndex: 2,
+                      opacity: hover ? 0.4 : 0.85,
+                      transition: 'opacity 0.3s ease-in-out',
+                    }}
+                  />
+                  
+                  {/* Imagen principal (al frente) */}
+                  <Box
+                    component="img"
+                    src={song.coverImg || Logo}
+                    alt="Portada del álbum"
+                    sx={{
+                      position: 'absolute',
+                      width: '340px',
+                      height: '340px',
+                      objectFit: 'cover',
+                      borderRadius: 2,
+                      boxShadow: '0 16px 32px rgba(0,0,0,0.25)',
+                      transform: 'rotate(-2deg)',
+                      zIndex: 3,
+                      opacity: hover ? 0.2 : 1,
+                      transition: 'all 0.3s ease-in-out',
+                      '&:hover': {
+                        transform: 'rotate(0deg) scale(1.02)',
+                      },
+                    }}
+                  />
+                  
+                  {/* Overlay oscuro para hover */}
+                  {hover && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        width: '340px',
+                        height: '340px',
+                        borderRadius: 2,
+                        background: 'rgba(0, 0, 0, 0.8)',
+                        zIndex: 5,
+                        transition: 'all 0.3s ease-in-out',
+                      }}
+                    />
+                  )}
+                  
+                  {/* Lista de canciones que aparece en hover */}
+                  {hover && song.albumSongs && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        zIndex: 6,
+                        width: '300px',
+                        height: '300px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        color: 'white',
+                        padding: 2,
+                        borderRadius: 2,
+                        transition: 'all 0.3s ease-in-out',
+                      }}
+                    >
+                      {/* Título del álbum */}
+                      <Typography 
+                        variant="h6" 
+                        sx={{ 
+                          mb: 2, 
+                          textAlign: 'center', 
+                          fontWeight: 600,
+                          color: '#fff',
+                          textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                        }}
+                      >
+                        {song.title}
+                      </Typography>
+                      
+                      {/* Lista de canciones */}
+                      <Box
+                        sx={{
+                          maxHeight: '200px',
+                          overflowY: 'auto',
+                          width: '100%',
+                          '&::-webkit-scrollbar': {
+                            width: '4px',
+                          },
+                          '&::-webkit-scrollbar-track': {
+                            background: 'rgba(255,255,255,0.1)',
+                            borderRadius: '2px',
+                          },
+                          '&::-webkit-scrollbar-thumb': {
+                            background: 'rgba(255,255,255,0.3)',
+                            borderRadius: '2px',
+                          },
+                        }}
+                      >
+                        {song.albumSongs.map((track, idx) => (
+                          <Box
+                            key={idx} 
+                            sx={{ 
+                              display: 'flex',
+                              alignItems: 'center',
+                              mb: 1,
+                              px: 1,
+                              py: 0.5,
+                              borderRadius: 1,
+                              background: 'rgba(255,255,255,0.1)',
+                              backdropFilter: 'blur(4px)',
+                              fontSize: '13px',
+                              fontWeight: 400,
+                              color: '#fff',
+                              textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                              '&:hover': {
+                                background: 'rgba(255,255,255,0.2)',
+                              },
+                              transition: 'all 0.2s ease-in-out',
+                            }}
+                          >
+                            {/* Número de track */}
+                            <Box
+                              sx={{
+                                width: '20px',
+                                height: '20px',
+                                borderRadius: '50%',
+                                background: 'linear-gradient(135deg, #307cbe, #145a96)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                mr: 1,
+                                fontSize: '10px',
+                                fontWeight: 600,
+                                flexShrink: 0,
+                              }}
+                            >
+                              {idx + 1}
+                            </Box>
+                            
+                            {/* Nombre de la canción */}
+                            <Box sx={{ 
+                              overflow: 'hidden', 
+                              textOverflow: 'ellipsis', 
+                              whiteSpace: 'nowrap',
+                              flex: 1,
+                              mr: 1
+                            }}>
+                              {track.title || `Track ${idx + 1}`}
+                            </Box>
+                            
+                            {/* Botón de play individual */}
+                            <Tooltip title={`Vibra con ${track.title || `Track ${idx + 1}`}`} arrow placement="left">
+                              <IconButton
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Evitar que se active el play del álbum completo
+                                  
+                                  // Crear playlist del álbum y empezar desde la canción seleccionada
+                                  const playlist = song.albumSongs!.map((albumTrack, albumIdx) => ({
+                                    id: albumIdx,
+                                    title: albumTrack.title,
+                                    audioSrc: albumTrack.audioSrc,
+                                    profilePic: song.profilePic,
+                                    username: song.username,
+                                    coverImg: song.coverImg,
+                                    postId: song.postId,
+                                    type: 'album'
+                                  }));
+                                  
+                                  setPlaylist(playlist);
+                                  setPlaylistIndex(idx); // Empezar desde la canción clickeada
+                                  console.log(`Reproduciendo canción ${idx + 1} del álbum:`, track.title);
+                                }}
+                                sx={{
+                                  width: '24px',
+                                  height: '24px',
+                                  backgroundColor: 'rgba(48, 124, 190, 0.8)',
+                                  color: 'white',
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(48, 124, 190, 1)',
+                                    transform: 'scale(1.1)',
+                                  },
+                                  transition: 'all 0.2s ease-in-out',
+                                }}
+                              >
+                                <PlayArrowIcon sx={{ fontSize: '14px' }} />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        ))}
+                      </Box>
+                      
+                      {/* Contador de canciones */}
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          mt: 2,
+                          color: 'rgba(255,255,255,0.8)',
+                          textAlign: 'center',
+                          fontStyle: 'italic'
+                        }}
+                      >
+                        {song.albumSongs.length} canción{song.albumSongs.length !== 1 ? 'es' : ''} en total
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {/* Overlay con efecto brillante para álbumes (solo cuando no hay hover) */}
+                  {!hover && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        width: '340px',
+                        height: '340px',
+                        borderRadius: 2,
+                        background: 'linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
+                        zIndex: 4,
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  )}
+                </Stack>
+              ) : (
+                // Imagen normal para canciones individuales
+                <Box
+                  component="img"
+                  src={song.coverImg || Logo}
+                  alt="Portada de la canción"
+                  sx={{
+                    width: '100%',
+                    maxWidth: '350px',
+                    aspectRatio: '1/1',
+                    objectFit: 'cover',
+                    borderRadius: { xs: 0, md: 2 },
+                    boxShadow: 2,
+                  }}
+                />
+              )}
+            </Badge>
+          </Tooltip>
         </Box>
 
         {/* Parte inferior derecha (Botón de play e impresiones) */}
@@ -201,21 +550,23 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
             marginBottom: hover ? '60px' : '0px',
           }}
         >
+          <Tooltip title="Vibra" arrow placement="top">
           <IconButton
             onClick={handlePlay}
             sx={{
               padding: 0,
               width: '45px',
               height: '45px',
-              "&:hover": { 
-                background: "#145a96", 
-                color: "white" 
+              "&:hover": {
+                background: "#145a96",
+                color: "white"
               },
-              zIndex: 10, // Siempre visible en móviles
+              zIndex: 10,
             }}
           >
             <PlayArrowIcon fontSize="large" />
           </IconButton>
+          </Tooltip>
           <Typography variant="caption" color="white">
             Impresiones: 1234
           </Typography>
@@ -224,8 +575,8 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
         {/* Caja interactiva que aparece desde abajo en hover */}
         <Box
           sx={{
-            position: { xs: 'relative', md: 'absolute' }, // En móviles, posición relativa para que siempre sea visible
-            bottom: { xs: '0px', md: hover ? '10px' : '-70px' }, // En móviles, siempre visible en la parte inferior
+            position: { xs: 'relative', md: 'absolute' },
+            bottom: { xs: '0px', md: hover ? '10px' : '-70px' },
             left: '10px',
             right: '10px',
             borderRadius: 2,
@@ -233,12 +584,16 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
             justifyContent: 'space-between',
             alignItems: 'center',
             padding: '8px',
-            transition: { xs: 'none', md: 'bottom 0.4s ease-in-out, opacity 0.4s ease-in-out' }, // Sin transición en móviles
+            transition: { xs: 'none', md: 'bottom 0.4s ease-in-out, opacity 0.4s ease-in-out' },
             opacity: { xs: 1, md: hover ? 1 : 0 },
-            zIndex: 10 // Siempre visible en móviles
+            zIndex: 10
           }}
         >
-          <Rate postId={song.postId} />
+          <Rate
+            postId={song.postId}
+            value={typeof userRate === 'number' ? userRate : undefined}
+            onRate={onRate}
+          />
           <Box
             sx={{
               display: 'flex',
@@ -248,8 +603,16 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
               gap: 0,
             }}
           >
-            <RepostButton postId={song.postId} />
-            <SaveButton postId={song.postId} />
+            <RepostButton
+              postId={song.postId}
+              isReposted={!!isReposted}
+              onRepost={onRepost}
+            />
+            <SaveButton
+              postId={song.postId}
+              isSaved={!!isSaved}
+              onSave={onSave}
+            />
           </Box>
         </Box>
 
@@ -261,5 +624,3 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
 );
 
 export default SongCard;
-
-// En tu función de mapeo para SongCard:

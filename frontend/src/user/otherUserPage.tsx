@@ -1,12 +1,17 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Container, Box, Avatar, Typography, Paper, Alert, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, List, ListItem, ListItemAvatar, ListItemText, CircularProgress, Tabs, Tab } from '@mui/material';
+import { Container, Box, Avatar, Typography, Paper, Alert, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, List, ListItem, ListItemAvatar, ListItemText, CircularProgress, Tabs, Tab, Tooltip, IconButton, Drawer, ListItemIcon, Divider, useMediaQuery } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import MusicPlayer from '../home/components/musicPlayer';
-import BottomNav from '../components/bottom-navigation';
-import { getOtherUserPage, getOtherUserPosts, getOtherUserFollowers, getOtherUserFollowed, getUserReposts, fetchWithAuth } from '../api';
+import { getOtherUserPage, getOtherUserPosts, getOtherUserFollowers, getOtherUserFollowed, followUser, unfollowUser, fetchWithAuth, getFollowed, getOtherUserReposts } from '../api';
 import SongCard from '../home/components/songCard';
 import PersonIcon from '@mui/icons-material/Person';
+import HomeIcon from '@mui/icons-material/Home';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import LogoutIcon from '@mui/icons-material/Logout';
+import Logo from '../assets/basic_logo.png';
 import { AuthContext } from '../context/auth-context';
+import { usePlayer } from '../context/player-context';
 
 interface UserData {
   name: string;
@@ -34,8 +39,8 @@ export interface UserPagePost {
   contentId: number;
   name: string;
   coverImg?: string;
-  song?: SongObj;   // <-- Añade esto
-  album?: AlbumObj; // <-- Y esto
+  song?: SongObj;
+  album?: AlbumObj;
 }
 
 const OtherUserPage: React.FC = () => {
@@ -54,6 +59,11 @@ const OtherUserPage: React.FC = () => {
   const [loadingReposts, setLoadingReposts] = useState(true);
   const auth  = useContext(AuthContext);
   const user = auth?.user;
+
+  const isMobile = useMediaQuery('(max-width:900px)');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const { playlist, setPlaylist, playlistIndex, setPlaylistIndex } = usePlayer();
+  const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -80,7 +90,6 @@ const OtherUserPage: React.FC = () => {
       }
       try {
         const data = await getOtherUserPosts(username);
-        // Para cada post, pide el audio si es song o las canciones si es album
         const postsWithAudio = await Promise.all(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           data.map(async (post: any) => {
@@ -102,16 +111,11 @@ const OtherUserPage: React.FC = () => {
       }
     };
 
-    fetchUserData();
-    fetchUserPosts();
-  }, [username]);
-
-  useEffect(() => {
     const fetchReposts = async () => {
       setLoadingReposts(true);
       try {
-        if (userData?.name) {
-          const data = await getUserReposts(userData.name);
+        if (username) {
+          const data = await getOtherUserReposts(username);
           const repostsWithAudio = await Promise.all(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             data.map(async (post: any) => {
@@ -136,8 +140,10 @@ const OtherUserPage: React.FC = () => {
       }
       setLoadingReposts(false);
     };
-    if (userData) fetchReposts();
-  }, [userData]);
+    fetchUserData();
+    fetchUserPosts();
+    fetchReposts();
+  }, [username]);
 
   const handleOpenList = async (type: 'followers' | 'followed') => {
     setDialogTitle(type === 'followers' ? 'Seguidores' : 'Seguidos');
@@ -159,12 +165,46 @@ const OtherUserPage: React.FC = () => {
     setUserList([]);
   };
 
-  // Simulación de follow/unfollow (ajusta con tu API real)
-  const handleFollowToggle = () => {
-    setIsFollowing((prev) => !prev);
+  useEffect(() => {
+    const checkFollowing = async () => {
+      if (!username || !user) return;
+      try {
+        const followed = await getFollowed();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const isUserFollowed = followed.some((u: any) => u.name === username);
+        setIsFollowing(isUserFollowed);
+      } catch {
+        setIsFollowing(false);
+      }
+    };
+    checkFollowing();
+  }, [username, user]);
+
+  const handleFollowToggle = async () => {
+    if (!username) return;
+    try {
+      if (isFollowing) {
+        await unfollowUser(username);
+        setIsFollowing(false);
+      } else {
+        await followUser(username);
+        setIsFollowing(true);
+      }
+    } catch (error) {
+      console.error('Error en follow/unfollow:', error);
+    }
   };
 
-  // Renderizado de pestañas
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setDrawerOpen(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+  };
+
   const renderTabContent = () => {
     if (tab === 0) {
       return posts.length === 0 && !error ? (
@@ -172,26 +212,15 @@ const OtherUserPage: React.FC = () => {
           No hay publicaciones.
         </Typography>
       ) : (
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         posts.map((post, idx) => {
-          // Mapeo igual que en userPagePostToSongCard
-          let audioSrc = '';
-          if (post.song && post.song.audio) {
-            audioSrc = post.song.audio;
-          } else if (post.album && post.album.songs && post.album.songs.length > 0) {
-            audioSrc = post.album.songs[0].audio;
-          }
+          // Usar la función de transformación correcta
+          const songCardData = otherUserPagePostToSongCard(post, userData!, idx);
           return (
             <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
-              <SongCard song={{
-                id: post.id,
-                title: post.song?.name || post.album?.name || post.name,
-                audioSrc,
-                profilePic: userData?.profile_img || '',
-                username: post.userName,
-                coverImg: post.coverImg,
-                postId: post.id
-              }} />
+              <SongCard 
+                song={songCardData} 
+                onPlay={() => playPublication(idx)} 
+              />
             </Box>
           );
         })
@@ -204,31 +233,61 @@ const OtherUserPage: React.FC = () => {
           No hay reposts.
         </Typography>
       ) : (
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         reposts.map((post, idx) => {
-          let audioSrc = '';
-          if (post.song && post.song.audio) {
-            audioSrc = post.song.audio;
-          } else if (post.album && post.album.songs && post.album.songs.length > 0) {
-            audioSrc = post.album.songs[0].audio;
-          }
+          // Usar la función de transformación correcta
+          const songCardData = otherUserPagePostToSongCard(post, userData!, idx);
           return (
             <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
-              <SongCard song={{
-                id: post.id,
-                title: post.song?.name || post.album?.name || post.name,
-                audioSrc,
-                profilePic: userData?.profile_img || '',
-                username: post.userName,
-                coverImg: post.coverImg,
-                postId: post.id
-              }} />
+              <SongCard 
+                song={songCardData} 
+                onPlay={() => playPublication(idx)} 
+              />
             </Box>
           );
         })
       );
     }
     return null;
+  };
+
+  const playPublication = (postIdx: number) => {
+    const post = posts[postIdx];
+    if (!post) return;
+
+    // Usar la función correcta que definiste al final del archivo
+    const songCardData = otherUserPagePostToSongCard(post, userData!, postIdx);
+
+    if (songCardData.type === 'album' && Array.isArray(songCardData.albumSongs)) {
+      // Si es un álbum, configura el playlist con todas las canciones del álbum
+      setPlaylist(songCardData.albumSongs);
+      console.log('Cargando álbum en el reproductor:', songCardData.albumSongs);
+    } else {
+      // Si es una canción, configura el playlist con una sola canción
+      setPlaylist([songCardData]);
+      console.log('Cargando canción en el reproductor:', songCardData);
+    }
+
+    setPlaylistIndex(0);
+    setActivePostIndex(postIdx);
+  };
+
+  const handleNextPublication = () => {
+    if (playlistIndex < playlist.length - 1) {
+      setPlaylistIndex(playlistIndex + 1);
+    } else if (activePostIndex !== null) {
+      playPublication(activePostIndex + 1);
+    }
+  };
+
+  const handlePrevPublication = () => {
+    if (playlistIndex > 0) {
+      setPlaylistIndex(playlistIndex - 1);
+
+      // Log para verificar el botón "Anterior"
+      console.log('Anterior canción/publicación:', playlist[playlistIndex - 1]);
+    } else if (activePostIndex !== null && activePostIndex > 0) {
+      playPublication(activePostIndex - 1);
+    }
   };
 
   return (
@@ -241,10 +300,153 @@ const OtherUserPage: React.FC = () => {
         overflowY: 'auto',
         paddingTop: { xs: '32px', md: '32px' },
         paddingBottom: '70px',
-        backgroundColor: 'transparent', // Fondo transparente para ver partículas
+        backgroundColor: 'transparent',
         position: 'relative',
       }}
     >
+      {/* Botón menú solo en desktop */}
+      {!isMobile && (
+        <Tooltip title="Menú" arrow placement="bottom">
+          <IconButton
+            onClick={() => setDrawerOpen(true)}
+            sx={{
+              position: 'fixed',
+              top: 19,
+              left: 16,
+              zIndex: 2000,
+              boxShadow: '0 2px 8px rgba(48,124,190,0.18)',
+              background: 'rgba(255,255,255,0.8)',
+              padding: '6px',
+              marginTop: '18px',
+              '&:hover': { background: 'rgba(255,255,255,0.9)' },
+            }}
+          >
+            <Box
+              component="img"
+              src={Logo}
+              alt="Logo"
+              sx={{ width: '40px', height: '40px', objectFit: 'contain' }}
+            />
+          </IconButton>
+        </Tooltip>
+      )}
+
+      {/* Drawer lateral solo en desktop */}
+      {!isMobile && (
+        <Drawer
+          anchor="left"
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          PaperProps={{
+            sx: {
+              width: '340px',
+              background: '#f7fafd',
+              boxShadow: '8px 0 24px rgba(48,124,190,0.10)',
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+            }
+          }}
+        >
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              mt: 1,
+              mb: 1,
+            }}
+          >
+            <Box
+              component="img"
+              src={Logo}
+              alt="Logo Vibra"
+              sx={{ width: 40, height: 40, objectFit: 'cover' }}
+            />
+          </Box>
+          <List>
+            <Divider />
+            <ListItem
+              sx={{
+                backgroundColor: '#f7fafd',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#e3e6ea' },
+              }}
+              component="button"
+              onClick={() => handleNavigation('/home')}
+            >
+              <ListItemIcon><HomeIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+              <ListItemText primary="Inicio" />
+            </ListItem>
+            <Divider />
+            <ListItem
+              sx={{
+                backgroundColor: '#f7fafd',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#e3e6ea' },
+              }}
+              component="button"
+              onClick={() => handleNavigation('/upload')}
+            >
+              <ListItemIcon><AddCircleIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+              <ListItemText primary="Subir" />
+            </ListItem>
+            <Divider />
+            <ListItem
+              sx={{
+                backgroundColor: '#f7fafd',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#e3e6ea' },
+              }}
+              component="button"
+              onClick={() => handleNavigation('/notifications')}
+            >
+              <ListItemIcon><NotificationsIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+              <ListItemText primary="Notificaciones" />
+            </ListItem>
+            <Divider />
+            <ListItem
+              sx={{
+                backgroundColor: '#f7fafd',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#e3e6ea' },
+              }}
+              component="button"
+              onClick={() => handleNavigation('/profile')}
+            >
+              <ListItemIcon><PersonIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+              <ListItemText primary="Perfil" />
+            </ListItem>
+            <Divider />
+          </List>
+          <Box sx={{ flexGrow: 1 }} />
+          <List sx={{paddingBottom: '0px'}}>
+            <ListItem
+              sx={{
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                '&:hover': { backgroundColor: '#ffeaea' },
+              }}
+              component="button"
+              onClick={handleLogout}
+            >
+              <ListItemIcon><LogoutIcon sx={{ color: '#e53935' }} /></ListItemIcon>
+              <ListItemText primary="Cerrar sesión" />
+            </ListItem>
+          </List>
+        </Drawer>
+      )}
+
       {/* Contenido principal */}
       <Box
         sx={{
@@ -259,12 +461,14 @@ const OtherUserPage: React.FC = () => {
           elevation={3}
           sx={{
             padding: '12px 16px',
-            borderRadius: '10px',
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
             display: 'flex',
             alignItems: 'center',
             gap: '16px',
             position: 'relative',
+            maxWidth: { xs: '100%', sm: '1000px' }, // Limita el ancho en desktop
+            ml: { xs: 0, sm: 8 },                  // Añade margen izquierdo en desktop
+            mt: { xs: 2, sm: 0 },                  // Un poco de margen arriba en móvil
           }}
         >
           {/* Avatar del usuario */}
@@ -389,19 +593,19 @@ const OtherUserPage: React.FC = () => {
           position: 'fixed',
           top: 0,
           right: 0,
-          height: 'calc(100vh - 12px)',
+          height: 'calc(100vh - 24px)',
           backgroundColor: '#f5f5f5',
-          margin: '0 0 12px 12px',
+          margin: '12px 18px 0 12px',
           padding: 0,
           boxShadow: '-8px 8px 12px rgba(0,0,0,0.15)',
           overflow: 'hidden',
-          borderRadius: '0 0 0 12px',
         }}
       >
-        <MusicPlayer />
+        <MusicPlayer 
+          onPrevPublication={handlePrevPublication}
+          onNextPublication={handleNextPublication}
+        />
       </Box>
-
-      <BottomNav handleNavigation={navigate} />
 
       {/* Diálogo de Seguidores y Seguidos */}
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="xs">
@@ -459,3 +663,59 @@ const OtherUserPage: React.FC = () => {
 };
 
 export default OtherUserPage;
+
+export function otherUserPagePostToSongCard(
+  post: UserPagePost,
+  userData: UserData,
+  index: number
+) {
+  // Si es post de canción
+  if (post.type === 'song' && post.song) {
+    return {
+      id: index,
+      title: post.song.name,
+      audioSrc: post.song.audio,
+      profilePic: userData.profile_img,
+      username: post.userName,
+      coverImg: post.coverImg,
+      postId: post.id,
+      type: post.type,
+    };
+  }
+
+  // Si es post de álbum
+  if (post.type === 'album' && post.album && post.album.songs.length > 0) {
+    return {
+      id: index,
+      title: post.album.name,
+      audioSrc: post.album.songs[0].audio, // Primera canción del álbum
+      profilePic: userData.profile_img,
+      username: post.userName,
+      coverImg: post.coverImg,
+      postId: post.id,
+      type: post.type,
+      albumSongs: post.album.songs.map((song, idx) => ({
+        id: idx,
+        title: song.name,
+        audioSrc: song.audio,
+        profilePic: userData.profile_img,
+        username: post.userName,
+        coverImg: post.coverImg,
+        postId: post.id,
+        type: 'album',
+      })),
+    };
+  }
+
+  // Fallback para otros tipos
+  return {
+    id: index,
+    title: post.name,
+    audioSrc: '',
+    profilePic: userData.profile_img,
+    username: post.userName,
+    coverImg: post.coverImg,
+    postId: post.id,
+    type: post.type,
+  };
+}

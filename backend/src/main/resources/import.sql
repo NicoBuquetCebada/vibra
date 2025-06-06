@@ -10,13 +10,75 @@ ALTER TABLE posts DROP CONSTRAINT fk89ik4e9tqc05yvnct49n1fhto;
 INSERT INTO users (name, mail, first_name, surname, pass, profile_img, role) VALUES
 ('nico', 'nico@gmail.com', 'Nicolas', 'Buquet', '$2a$10$EfZNeGwyxw4xegJYnvamE.kHlUmVeE/32iEgtTUhjqFSRncRuK64y', 'http://localhost:8080/api/media/defaultu.png', 'user'),
 ('jorge', 'jorge@gmail.com', 'Jorge', 'Lopez', '$2a$10$EfZNeGwyxw4xegJYnvamE.kHlUmVeE/32iEgtTUhjqFSRncRuK64y', 'http://localhost:8080/api/media/defaultu.png', 'user'),
-('johndoe', 'john@example.com', 'john', 'doe', 'pass1', 'http://localhost:8080/api/media/defaultu.png', 'user'),
-('janedoe', 'jane@example.com', 'jane', 'doe',  'pass2', 'http://localhost:8080/api/media/defaultu.png', 'user'),
-('bobsmith', 'bob@example.com', 'bob', 'smith',  'pass3', 'http://localhost:8080/api/media/defaultu.png', 'admin');
+('ardo440', 'ardo@gmail.com', 'Eduardo', 'Valero', '$2a$10$EfZNeGwyxw4xegJYnvamE.kHlUmVeE/32iEgtTUhjqFSRncRuK64y', 'http://localhost:8080/api/media/ab67616d0000e1a367db700bc522216086b368cc.webp', 'user'),
+('midasalonso', 'midas@gmail.com', 'Midas', 'Alonso', '$2a$10$EfZNeGwyxw4xegJYnvamE.kHlUmVeE/32iEgtTUhjqFSRncRuK64y', 'http://localhost:8080/api/media/ab6761610000939bf746f1198d4c61a08a8d6ea7.webp', 'user'),
+('elcantante', 'hector@gmail.com', 'Hector', 'Lavoe', '$2a$10$EfZNeGwyxw4xegJYnvamE.kHlUmVeE/32iEgtTUhjqFSRncRuK64y', 'http://localhost:8080/api/media/ab6761610000939b19eb17f74f8216e408511ea3.webp', 'user'),
+('ergopro', 'ergo@gmail.com', 'Ergo', 'Pro', '$2a$10$EfZNeGwyxw4xegJYnvamE.kHlUmVeE/32iEgtTUhjqFSRncRuK64y', 'http://localhost:8080/api/media/ab6761610000e5eb1d167c8f83c22994e901dfba-2894045711.jpg', 'user'),
+('illpeke', 'peke@gmail.com', 'Ill', 'Pekenio', '$2a$10$EfZNeGwyxw4xegJYnvamE.kHlUmVeE/32iEgtTUhjqFSRncRuK64y', 'http://localhost:8080/api/media/ab67706c0000d72c1f44c8d876a8d82309842074.webp', 'user'),
+('eliotoffana', 'elio@gmail.com', 'Elio', 'Toffana', '$2a$10$EfZNeGwyxw4xegJYnvamE.kHlUmVeE/32iEgtTUhjqFSRncRuK64y', 'http://localhost:8080/api/media/cfbdc8545a1149c8b174c494007f3a187ed298ed66e8a31992c4bfe191d2e946.jpg', 'user'),
+('elcuarteto', 'roberto@gmail.com', 'Roberto', 'Musso', '$2a$10$EfZNeGwyxw4xegJYnvamE.kHlUmVeE/32iEgtTUhjqFSRncRuK64y', 'http://localhost:8080/api/media/ab67616d00001e022c68bbac0ee69a6095202ba7.webp', 'user');
+--('', '', '', '', '$2a$10$EfZNeGwyxw4xegJYnvamE.kHlUmVeE/32iEgtTUhjqFSRncRuK64y', 'http://localhost:8080/api/media/defaultu.png', 'user'),
+
+
+-- Follows
+INSERT INTO follows (id, created_at, follower, followed) VALUES
+(1, '2023-01-01 10:00:00', 'jorge', 'midasalonso'),
+(2, '2023-01-02 11:00:00', 'jorge', 'ergopro'),
+(3, '2023-01-03 12:00:00', 'jorge', 'illpeke'),
+(4, '2023-01-03 12:00:00', 'jorge', 'nico'),
+(5, '2023-01-01 10:00:00', 'nico', 'elcantante'),
+(6, '2023-01-02 11:00:00', 'nico', 'ardo440'),
+(7, '2023-01-03 12:00:00', 'nico', 'eliotoffana'),
+(8, '2023-01-03 12:00:00', 'nico', 'elcuarteto'),
+(9, '2023-01-03 12:00:00', 'nico', 'ergopro'),
+(10, '2023-01-03 12:00:00', 'nico', 'illpeke'),
+(11, '2023-01-03 12:00:00', 'nico', 'jorge'),
+(12, '2023-01-03 12:00:00', 'nico', 'midasalonso');
+ALTER SEQUENCE follows_seq RESTART WITH 13;
+
+
+-- Posts
+INSERT INTO posts (id, created_at, user_name, album_id, song_id) VALUES
+(1, '2025-06-01 11:17:43', 'ardo440', null, 1),
+(2, '2025-06-01 11:17:44', 'ardo440', 1, null),
+(3, '2025-06-01 11:17:45', 'midasalonso', null, 5),
+(4, '2025-06-01 11:17:46', 'midasalonso', null, 6),
+(5, '2025-06-01 11:17:47', 'midasalonso', null, 7);
+/* (1, '2025-06-01 11:17:43', '', null, ),
+(1, '2025-06-01 11:17:43', '', null, ),
+(1, '2025-06-01 11:17:43', '', null, ),
+(1, '2025-06-01 11:17:43', '', null, ),
+(1, '2025-06-01 11:17:43', '', null, ),
+(1, '2025-06-01 11:17:43', '', null, ),
+(1, '2025-06-01 11:17:43', '', null, ),
+(1, '2025-06-01 11:17:43', '', null, ),
+(1, '2025-06-01 11:17:43', '', null, ),
+(1, '2025-06-01 11:17:43', '', null, ), */
+ALTER SEQUENCE posts_seq RESTART WITH 6;
+
+
+-- Reposts
+/* INSERT INTO reposts (id, created_at, user_name, post_id) VALUES
+(1, '2023-06-17 12:00:00', 'janedoe', 1),
+ALTER SEQUENCE reposts_seq RESTART WITH 5;
+ */
+
+-- Songs
+INSERT INTO songs (id, name, cover_img, date, audio, user_name, album_id) VALUES
+(1, 'Depelicula', 'http://localhost:8080/api/media/ab67616d00001e02864d1711060de17fabb8b7da.jpg', '2025-06-01', 'http://localhost:8080/api/media/ab67616d00001e02864d1711060de17fabb8b7da.mp3', 'ardo440', null),
+(2, '1. Halal', 'http://localhost:8080/api/media/ab67616d00001e02c66af18adb9c5d348b7d0e0e.jpg', '2025-06-01', 'http://localhost:8080/api/media/ab67616d00001e02c66af18adb9c5d348b7d0e0e1.mp3', 'ardo440', 1),
+(3, '2. Hatar', 'http://localhost:8080/api/media/ab67616d00001e02c66af18adb9c5d348b7d0e0e.jpg', '2025-06-01', 'http://localhost:8080/api/media/ab67616d00001e02c66af18adb9c5d348b7d0e0e2.mp3', 'ardo440', 1),
+(4, '3. Haram', 'http://localhost:8080/api/media/ab67616d00001e02c66af18adb9c5d348b7d0e0e.jpg', '2025-06-01', 'http://localhost:8080/api/media/ab67616d00001e02c66af18adb9c5d348b7d0e0e3.mp3', 'ardo440', 1),
+(5, 'Brixton', 'http://localhost:8080/api/media/ab67616d00001e02568a0f127f27451325ab0007.jpg', '2025-06-01', 'http://localhost:8080/api/media/ab67616d00001e02568a0f127f27451325ab0007.mp3', 'midasalonso', null),
+(6, 'Tyrion', 'http://localhost:8080/api/media/ab67616d00001e02e46dc1f235384df97578e609.jpg', '2025-06-01', 'http://localhost:8080/api/media/ab67616d00001e02e46dc1f235384df97578e609.mp3', 'midasalonso', null),
+(7, 'Bankinter', 'http://localhost:8080/api/media/ab67616d00001e02b96ead5c1f22561d9c190315.jpg', '2025-06-01', 'http://localhost:8080/api/media/ab67616d00001e02b96ead5c1f22561d9c190315.mp3', 'midasalonso', null);
+ALTER SEQUENCE songs_seq RESTART WITH 8;
+
 
 -- Albums
 INSERT INTO albums (id, name, cover_img, date, user_name) VALUES
-(1, 'Summer Vibes', 'http://localhost:8080/api/media/defaultc.png', '2023-06-01', 'johndoe');
+(1, 'Hahaha', 'http://localhost:8080/api/media/ab67616d00001e02c66af18adb9c5d348b7d0e0e.jpg', '2025-06-01', 'ardo440');
+--(2, '', 'http://localhost:8080/api/media/', '2025-06-01', ''),
 ALTER SEQUENCE albums_seq RESTART WITH 2;
 
 -- Elimina la constraint existente
@@ -27,58 +89,13 @@ ALTER TABLE albums
 ADD CONSTRAINT fk_albums_user 
 FOREIGN KEY (user_name) REFERENCES users(name) ON DELETE CASCADE;
 
--- Follows
-INSERT INTO follows (id, created_at, follower, followed) VALUES
-(1, '2023-01-01 10:00:00', 'jorge', 'janedoe'),
-(2, '2023-01-02 11:00:00', 'jorge', 'bobsmith'),
-(3, '2023-01-03 12:00:00', 'jorge', 'johndoe'),
-(4, '2023-01-03 12:00:00', 'jorge', 'nico'),
-(5, '2023-01-01 10:00:00', 'nico', 'janedoe'),
-(6, '2023-01-02 11:00:00', 'nico', 'bobsmith'),
-(7, '2023-01-03 12:00:00', 'nico', 'johndoe'),
-(8, '2023-01-03 12:00:00', 'nico', 'jorge');
-ALTER SEQUENCE follows_seq RESTART WITH 9;
 
-
--- Posts
-INSERT INTO posts (id, created_at, user_name, album_id, song_id) VALUES
-(1, '2024-03-17 09:00:00', 'nico', null, 4),
-(2, '2023-12-16 10:00:00', 'janedoe', null, 3),
-(3, '2024-03-16 11:00:00', 'bobsmith', 1, null);
-ALTER SEQUENCE posts_seq RESTART WITH 4;
-
-
-/* ALTER TABLE posts 
-ADD CONSTRAINT fk_posts_user 
-FOREIGN KEY (user_name) REFERENCES users(name) ON DELETE CASCADE;
-
-ALTER TABLE posts 
-ADD CONSTRAINT fk_posts_song
-FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE; */
-
--- Reposts
-INSERT INTO reposts (id, created_at, user_name, post_id) VALUES
-(1, '2023-06-17 12:00:00', 'janedoe', 1),
-(2, '2023-12-17 13:00:00', 'bobsmith', 2),
-(3, '2023-03-17 14:00:00', 'johndoe', 3),
-(4, '2023-03-17 14:00:00', 'nico', 2);
-ALTER SEQUENCE reposts_seq RESTART WITH 5;
-
--- Songs
-INSERT INTO songs (id, name, cover_img, date, audio, user_name, album_id) VALUES
-(1, 'Sunshine', 'http://localhost:8080/api/media/defaultc.png', '2023-06-15', 'http://localhost:8080/api/media/default.mp3', 'bobsmith', 1),
-(2, 'Snowfall', 'http://localhost:8080/api/media/defaultc.png', '2023-12-15', 'http://localhost:8080/api/media/default.mp3', 'bobsmith', 1),
-(3, 'Bloom', 'http://localhost:8080/api/media/defaultc.png', '2023-03-15', 'http://localhost:8080/api/media/default.mp3', 'janedoe', null),
-(4, 'Reputation', 'http://localhost:8080/api/media/gif-test.gif', '2023-03-15', 'http://localhost:8080/api/media/default.mp3', 'nico', null);
-ALTER SEQUENCE songs_seq RESTART WITH 5;
+-- VIEWS
 
 DROP TABLE IF EXISTS search_view CASCADE;
 DROP TABLE IF EXISTS notifications_view CASCADE;
 DROP TABLE IF EXISTS user_page_view CASCADE;
 DROP TABLE IF EXISTS user_page_posts_view CASCADE;
-
-
--- VIEWS
 
 -- SEARCH BAR VIEW
 CREATE OR REPLACE VIEW search_view (name, id, type) AS
