@@ -20,8 +20,8 @@ const PostPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null); // ✅ AGREGAR estado de error
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [loadingStage/* , setLoadingStage */] = useState<'initial' | 'searching' | 'loading-all' | 'complete'>('initial');
-  const [currentPage/* , setCurrentPage */] = useState(0);
+  //const [loadingStage/* , setLoadingStage */] = useState<'initial' | 'searching' | 'loading-all' | 'complete'>('initial');
+  //const [currentPage/* , setCurrentPage */] = useState(0);
   const [totalPagesLoaded/* , setTotalPagesLoaded */] = useState(0);
   const isMobile = useMediaQuery('(max-width:900px)');
   const navigate = useNavigate();
