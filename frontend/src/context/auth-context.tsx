@@ -28,7 +28,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const fetchUser = async () => {
       if (token) {
         try {
-          const response = await fetch('http://localhost:8080/api/users/page', {
+          const response = await fetch('http://vibra/api/users/page', {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -52,7 +52,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Nueva función de login que llama a la API real
   const login = async (emailOrUsername: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch('http://localhost:8080/api/users/login', {
+      const response = await fetch('http://vibra/api/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.setItem('token', data.token);
         // Obtener usuario tras login
         try {
-          const userRes = await fetch('http://localhost:8080/api/users/page', {
+          const userRes = await fetch('http://vibra/api/users/page', {
             headers: {
               Authorization: `Bearer ${data.token}`,
             },

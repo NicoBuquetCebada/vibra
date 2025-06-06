@@ -212,7 +212,7 @@ function MusicHome() {
     return () => observer.disconnect();
   }, [observerRef, loading, hasMore, lastLoadedPage, fetchPosts]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+/*   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
@@ -221,7 +221,7 @@ function MusicHome() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleNavigation = (path: string) => {
     navigate(path);
-  };
+  }; */
 
   const handleSearch = async (query: string) => {
     setSearchTerm(query);

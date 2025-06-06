@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useRef, forwardRef, useState, useContext } from 'react';
+import { useRef, forwardRef, useState, useContext } from 'react';
 import { Card, IconButton, Box, Typography, Avatar, Chip, Badge, Tooltip, Stack } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import Rate from './rate';
@@ -62,8 +62,6 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
       repostUser,
       isRepost,
       onPlay,
-      onSaveChange,
-      onRateChange,
       userRate,
       isSaved,
       isReposted,
