@@ -1,7 +1,7 @@
 // api.ts
 // Utilidades para peticiones autenticadas a la API
 
-const API_URL = 'http://vibra';
+const API_URL = 'http://localhost:8080';
 
 export const fetchWithAuth = async (endpoint: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('token');

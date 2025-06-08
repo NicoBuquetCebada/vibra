@@ -7,6 +7,7 @@ import {AuthProvider}  from './context/auth-context';
 import { PlayerProvider } from './context/player-context';
 import Particles from './components/Particles';
 import './components/Particles.css';
+import { HomeProvider } from './context/home-context';
 
 // Definimos el tema de MUI
 const theme = createTheme({
@@ -40,6 +41,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       disableRotation={true}
     />
     <PlayerProvider>
+      <HomeProvider>
     <AuthProvider>
         <ThemeProvider theme={theme}>
           <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh' }}>
@@ -47,6 +49,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
           </div>
         </ThemeProvider>
         </AuthProvider>
+      </HomeProvider>
       </PlayerProvider>
   </React.StrictMode>
 );

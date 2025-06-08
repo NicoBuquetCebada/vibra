@@ -1,6 +1,6 @@
 # Mapa de endpoints de la API
 
-ROOT PATH: http://backend-service:8080
+ROOT PATH: http://localhost:8080
 
 ## HOME
 
@@ -438,7 +438,7 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 			"type": "song",
 			"contentId": 4,
 			"name": "mastercaster",
-			"coverImg": "http://backend-service:8080/api/media/defaultc.png"
+			"coverImg": "http://localhost:8080/api/media/defaultc.png"
 		}
 
 # MEDIA

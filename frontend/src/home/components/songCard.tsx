@@ -62,6 +62,8 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
       repostUser,
       isRepost,
       onPlay,
+      //onSaveChange,
+      //onRateChange,
       userRate,
       isSaved,
       isReposted,

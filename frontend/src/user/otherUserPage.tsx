@@ -12,6 +12,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import Logo from '../assets/basic_logo.png';
 import { AuthContext } from '../context/auth-context';
 import { usePlayer } from '../context/player-context';
+import { useHome } from '../context/home-context'; // ✅ AGREGAR
 
 interface UserData {
   name: string;
@@ -57,8 +58,9 @@ const OtherUserPage: React.FC = () => {
   const [tab, setTab] = useState(0);
   const [reposts, setReposts] = useState<UserPagePost[]>([]);
   const [loadingReposts, setLoadingReposts] = useState(true);
-  const auth  = useContext(AuthContext);
+  const auth = useContext(AuthContext);
   const user = auth?.user;
+  const { triggerRefresh } = useHome(); // ✅ AGREGAR
 
   const isMobile = useMediaQuery('(max-width:900px)');
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -180,18 +182,33 @@ const OtherUserPage: React.FC = () => {
     checkFollowing();
   }, [username, user]);
 
+  // ✅ MODIFICAR: La función handleFollowToggle
   const handleFollowToggle = async () => {
     if (!username) return;
     try {
       if (isFollowing) {
         await unfollowUser(username);
         setIsFollowing(false);
+        console.log('✅ Usuario dejado de seguir:', username);
       } else {
         await followUser(username);
         setIsFollowing(true);
+        console.log('✅ Usuario seguido:', username);
+        
+        // ✅ AGREGAR: Refrescar el home después de seguir
+        triggerRefresh();
+        console.log('✅ Refresh del home programado después de seguir');
+      }
+      
+      // ✅ OPCIONAL: También actualizar los contadores localmente
+      if (userData) {
+        setUserData({
+          ...userData,
+          followers: isFollowing ? userData.followers - 1 : userData.followers + 1
+        });
       }
     } catch (error) {
-      console.error('Error en follow/unfollow:', error);
+      console.error('Error al seguir/dejar de seguir:', error);
     }
   };
 
@@ -500,8 +517,15 @@ const OtherUserPage: React.FC = () => {
                   variant={isFollowing ? 'outlined' : 'contained'}
                   color="primary"
                   size="small"
-                  onClick={handleFollowToggle}
-                  sx={{ ml: 1 }}
+                  onClick={handleFollowToggle} // ✅ Esta función ya está modificada
+                  sx={{ 
+                    ml: 1,
+                    // ✅ OPCIONAL: Agregar feedback visual
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                    }
+                  }}
                 >
                   {isFollowing ? 'Dejar de seguir' : 'Seguir'}
                 </Button>
