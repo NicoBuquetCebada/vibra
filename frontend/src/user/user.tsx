@@ -113,7 +113,7 @@ const UserPage: React.FC = () => {
   const [loadingRates, setLoadingRates] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTitle, setDialogTitle] = useState('');
-  const [userList, setUserList] = useState<{ name: string; profile_img?: string }[]>([]);
+  const [userList, setUserList] = useState<{ name: string; profile_img?: string; profileImg?: string }[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const { playlist, setPlaylist, playlistIndex, setPlaylistIndex } = usePlayer();
   const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
@@ -738,7 +738,7 @@ const UserPage: React.FC = () => {
                   variant="body2"
                   sx={{ color: 'text.secondary' }}
                 >
-                  Posts
+                  Publicaciones
                 </Typography>
               </Box>
 
@@ -805,9 +805,9 @@ const UserPage: React.FC = () => {
         {/* Pestañas de Posts, Reposts y Guardados */}
         <Box sx={{ mt: 4 }}>
           <Tabs value={tab} onChange={(_, v) => setTab(v)} centered>
-            <Tab label="Posts" />
-            <Tab label="Reposts" />
-            <Tab label="Rates" />
+            <Tab label="Publicaciones" />
+            <Tab label="Reposteados" />
+            <Tab label="Calificados" />
             {userData && /* lógica para saber si es tu perfil */ true && (
               <Tab label="Guardados" />
             )}
@@ -858,7 +858,7 @@ const UserPage: React.FC = () => {
               {userList.map((item) => (
                 <ListItem key={item.name}>
                   <ListItemAvatar>
-                    <Avatar src={item.profile_img || undefined} />
+                    <Avatar src={item.profile_img || item.profileImg || undefined} />
                   </ListItemAvatar>
                   <ListItemText
                     primary={

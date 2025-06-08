@@ -4,6 +4,7 @@ import { Container, Box, Typography, CircularProgress, useMediaQuery, IconButton
 import { useParams, useNavigate } from 'react-router-dom';
 import SongCard from '../home/components/songCard';
 import MusicPlayer from '../home/components/musicPlayer';
+import SearchBar from '../components/SearchBar';
 import HomeIcon from '@mui/icons-material/Home';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -22,7 +23,7 @@ const PostPage: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   //const [loadingStage/* , setLoadingStage */] = useState<'initial' | 'searching' | 'loading-all' | 'complete'>('initial');
   //const [currentPage/* , setCurrentPage */] = useState(0);
-  const [totalPagesLoaded/* , setTotalPagesLoaded */] = useState(0);
+  //const [totalPagesLoaded/* , setTotalPagesLoaded */] = useState(0);
   const isMobile = useMediaQuery('(max-width:900px)');
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
@@ -133,173 +134,6 @@ const PostPage: React.FC = () => {
     window.location.href = '/login';
   };
 
-  // ✅ COMPONENTE: Animación de carga mejorada
-  const LoadingAnimation = () => {
-    const getLoadingMessage = () => {
-      switch (loadingStage) {
-        case 'initial':
-          return 'Iniciando búsqueda...';
-        case 'searching':
-          return 'Buscando en publicaciones recientes...';
-        case 'loading-all':
-          return `Buscando en todas las publicaciones... (Página ${currentPage + 1})`;
-        case 'complete':
-          return 'Carga completada';
-        default:
-          return 'Cargando publicación...';
-      }
-    };
-
-    const getProgressColor = () => {
-      switch (loadingStage) {
-        case 'searching':
-          return '#4caf50';
-        case 'loading-all':
-          return '#ff9800';
-        default:
-          return '#307cbe';
-      }
-    };
-
-    return (
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          py: 4,
-          gap: 2,
-          animation: 'fadeIn 0.3s ease-in-out',
-          '@keyframes fadeIn': {
-            from: { opacity: 0, transform: 'translateY(20px)' },
-            to: { opacity: 1, transform: 'translateY(0)' }
-          }
-        }}
-      >
-        {/* Spinner principal */}
-        <Box sx={{ position: 'relative' }}>
-          <CircularProgress 
-            size={60}
-            thickness={4}
-            sx={{ 
-              color: getProgressColor(),
-              animation: 'pulse 2s ease-in-out infinite',
-              '@keyframes pulse': {
-                '0%': { transform: 'scale(1)', opacity: 1 },
-                '50%': { transform: 'scale(1.05)', opacity: 0.8 },
-                '100%': { transform: 'scale(1)', opacity: 1 }
-              }
-            }} 
-          />
-          
-          {/* Icono central */}
-          <Box
-            sx={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              fontSize: '24px',
-              animation: 'rotate 3s linear infinite',
-              '@keyframes rotate': {
-                from: { transform: 'translate(-50%, -50%) rotate(0deg)' },
-                to: { transform: 'translate(-50%, -50%) rotate(360deg)' }
-              }
-            }}
-          >
-            {loadingStage === 'searching' ? '🔍' : loadingStage === 'loading-all' ? '📚' : '🎵'}
-          </Box>
-        </Box>
-        
-        {/* Mensaje principal */}
-        <Typography 
-          variant="h6" 
-          sx={{ 
-            color: '#307cbe',
-            fontWeight: 500,
-            textAlign: 'center',
-            animation: 'textFade 0.5s ease-in-out',
-            '@keyframes textFade': {
-              from: { opacity: 0 },
-              to: { opacity: 1 }
-            }
-          }}
-        >
-          {getLoadingMessage()}
-        </Typography>
-        
-        {/* Barra de progreso para carga completa */}
-        {loadingStage === 'loading-all' && (
-          <Box sx={{ width: '100%', maxWidth: 300 }}>
-            <Box 
-              sx={{ 
-                width: '100%', 
-                height: 8, 
-                backgroundColor: '#e0e0e0', 
-                borderRadius: 4,
-                overflow: 'hidden',
-                position: 'relative'
-              }}
-            >
-              <Box
-                sx={{
-                  width: `${Math.min((totalPagesLoaded / 10) * 100, 100)}%`,
-                  height: '100%',
-                  backgroundColor: '#ff9800',
-                  borderRadius: 4,
-                  transition: 'width 0.3s ease',
-                  animation: 'shimmer 2s infinite',
-                  '@keyframes shimmer': {
-                    '0%': { backgroundPosition: '-200px 0' },
-                    '100%': { backgroundPosition: 'calc(200px + 100%) 0' }
-                  },
-                  background: 'linear-gradient(90deg, #ff9800 0%, #ffb74d 50%, #ff9800 100%)',
-                  backgroundSize: '200px 100%'
-                }}
-              />
-            </Box>
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                mt: 1, 
-                color: '#666',
-                textAlign: 'center',
-                display: 'block'
-              }}
-            >
-              {totalPagesLoaded} páginas cargadas
-            </Typography>
-          </Box>
-        )}
-        
-        {/* Puntos de carga animados */}
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          {[0, 1, 2].map((dot) => (
-            <Box
-              key={dot}
-              sx={{
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                backgroundColor: getProgressColor(),
-                animation: `bounce 1.4s ease-in-out ${dot * 0.16}s infinite both`,
-                '@keyframes bounce': {
-                  '0%, 80%, 100%': {
-                    transform: 'scale(0)',
-                  },
-                  '40%': {
-                    transform: 'scale(1)',
-                  }
-                }
-              }}
-            />
-          ))}
-        </Box>
-      </Box>
-    );
-  };
-
   return (
     <Container
       sx={{
@@ -307,7 +141,7 @@ const PostPage: React.FC = () => {
         flexDirection: 'row',
         minWidth: '100vw',
         height: '100vh',
-        overflowY: 'auto',
+        overflow: 'hidden', // ✅ Deshabilitar scroll
         paddingTop: { xs: '32px', md: '32px' },
         paddingBottom: '70px',
         backgroundColor: 'transparent',
@@ -455,16 +289,26 @@ const PostPage: React.FC = () => {
         </Drawer>
       )}
 
-      {/* Publicación */}
+      {/* Barra de búsqueda fija */}
+      <SearchBar 
+        isFixed={true}
+        top={16}
+        width={isMobile ? '94%' : '60%'}
+        left={isMobile ? '3%' : '7%'}
+        zIndex={1999}
+      />
+
+      {/* Publicación centrada */}
       <Box
         sx={{
           flex: 1,
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gap: { xs: 4, md: 6 },
-          maxWidth: '65%',
-          paddingTop: { xs: '20px', md: '20px' },
-          justifyItems: 'center',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          paddingTop: { xs: '80px', md: '60px' }, // ✅ Reducido: era 100px/80px, ahora 80px/60px
+          paddingLeft: { xs: '0', md: '0' },
+          paddingRight: { xs: '0', md: '30%' }, // Espacio para el reproductor (vuelve al 30%)
           position: 'relative',
           zIndex: 1,
         }}
@@ -527,6 +371,7 @@ const PostPage: React.FC = () => {
               username: post.user.name || 'Sistema',
             }}
             isRepost={false}
+            mediumSize={true} // ✅ Usar tamaño medio (menos grande)
           />
         ) : (
           <Typography variant="body1" color="error" sx={{ mt: 4 }}>
@@ -535,7 +380,7 @@ const PostPage: React.FC = () => {
         )}
       </Box>
 
-      {/* Reproductor fijo a la derecha */}
+      {/* Reproductor fijo a la derecha (tamaño original) */}
       <Box
         sx={{
           display: 'flex',
@@ -551,6 +396,7 @@ const PostPage: React.FC = () => {
           padding: 0,
           boxShadow: '-8px 8px 12px rgba(0, 0, 0, 0.15)',
           overflow: 'hidden',
+          zIndex: 1000, // ✅ Z-index menor que la barra de búsqueda
         }}
       >
         <MusicPlayer />

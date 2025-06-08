@@ -52,7 +52,7 @@ const OtherUserPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTitle, setDialogTitle] = useState('');
-  const [userList, setUserList] = useState<{ name: string; profile_img?: string }[]>([]);
+  const [userList, setUserList] = useState<{ name: string; profile_img?: string; profileImg?: string }[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [tab, setTab] = useState(0);
@@ -557,7 +557,7 @@ const OtherUserPage: React.FC = () => {
                   variant="body2"
                   sx={{ color: 'text.secondary' }}
                 >
-                  Posts
+                  Publicaciones
                 </Typography>
               </Box>
 
@@ -593,8 +593,8 @@ const OtherUserPage: React.FC = () => {
         {/* Publicaciones */}
         <Box sx={{ mt: 4 }}>
           <Tabs value={tab} onChange={(_, v) => setTab(v)} centered>
-            <Tab label="Posts" />
-            <Tab label="Reposts" />
+            <Tab label="Publicaciones" />
+            <Tab label="Reposteados" />
           </Tabs>
           <Box sx={{ mt: 2 }}>
             {error && (
@@ -646,7 +646,7 @@ const OtherUserPage: React.FC = () => {
               {userList.map((item) => (
                 <ListItem key={item.name}>
                   <ListItemAvatar>
-                    <Avatar src={item.profile_img || undefined} />
+                    <Avatar src={item.profile_img || item.profileImg || undefined} />
                   </ListItemAvatar>
                   <ListItemText
                     primary={

@@ -51,12 +51,15 @@ const RepostButton: React.FC<RepostButtonProps> = ({ postId, isReposted, onRepos
   };
 
   return (
-    <Tooltip title={reposted ? "Quitar repost" : "Hacer repost"} arrow placement="top">
+    <Tooltip title={reposted ? "Eliminar repost" : "Repostear"} arrow placement="top">
       <IconButton
-        onClick={handleRepost}
+        onClick={(e) => {
+          e.stopPropagation(); // ✅ Evitar que se active el play
+          handleRepost();
+        }}
         disabled={loading}
         sx={{
-          color: reposted ? '#307cbe' : '#757575',
+          color: reposted ? '#3ecaff' : '#757575',
           transition: 'all 0.2s ease-in-out',
         }}
       >
