@@ -1,21 +1,48 @@
 // api.ts
 // Utilidades para peticiones autenticadas a la API
 
-const API_URL = 'http://vibra';
+// Obtener la URL de la API desde variables de entorno con fallback
+const API_URL = import.meta.env.VITE_API_URL || 'http://vibra';
+
+// Log para debugging en desarrollo
+if (import.meta.env.DEV) {
+  console.log('🌐 API_URL configurada:', API_URL);
+}
 
 export const fetchWithAuth = async (endpoint: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('token');
+  
+  // Log para debugging
+  if (import.meta.env.DEV) {
+    console.log('🔒 Token encontrado:', !!token);
+    console.log('📡 Endpoint:', `${API_URL}${endpoint}`);
+  }
+  
   const headers = {
     ...(options.headers || {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
-  const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
-  if (response.status === 401) {
-    localStorage.removeItem('token');
-    window.location.href = '/login';
-    return Promise.reject(new Error('Unauthorized'));
+  
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+    
+    // Log de respuesta para debugging
+    if (import.meta.env.DEV) {
+      console.log(`📊 Respuesta ${response.status} para ${endpoint}`);
+    }
+    
+    if (response.status === 401) {
+      console.error('🚫 Token inválido o expirado');
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+      return Promise.reject(new Error('Unauthorized'));
+    }
+    
+    return response;
+  } catch (error) {
+    console.error('🔥 Error en fetch:', error);
+    throw error;
   }
-  return response;
 };
 
 // -------- HOME --------
@@ -115,6 +142,13 @@ export const getOtherUserReposts = async (userName: string) => {
 };
 
 // -------- USERS --------
+// Obtener información del usuario (nombre, imagen de perfil y correo)
+export const getUserInfo = async () => {
+  const res = await fetchWithAuth('/api/users/info');
+  if (!res.ok) throw new Error('Error al obtener información del usuario');
+  return res.json();
+};
+
 export const login = async (identifier: string, pass: string) => {
   const res = await fetchWithAuth('/api/users/login', {
     method: 'POST',
@@ -264,14 +298,12 @@ export const addAlbumPost = async (albumName: string, coverImg: string, songs: {
 };
 
 // -------- MEDIA --------
-export const uploadFile = async (file: File) => {
-  const formData = new FormData();
-  formData.append('file', file);
+export const uploadFile = async (formData: FormData) => {
   const res = await fetchWithAuth('/api/media/upload', {
     method: 'POST',
     body: formData,
   });
-  if (!res.ok) throw new Error('Error al subir archivo');
+  if (!res.ok) throw new Error('Error al subir el archivo');
   return res.json();
 };
 
@@ -321,4 +353,41 @@ export const deletePost = async (postId: number): Promise<void> => {
   if (!response.ok) {
     throw new Error('Error al eliminar el post');
   }
+};
+
+// -------- DEBUGGING UTILS --------
+export const checkApiConnection = async () => {
+  try {
+    console.log('🔍 Verificando conexión con API...');
+    console.log('🌐 URL configurada:', API_URL);
+    console.log('🔒 Token almacenado:', !!localStorage.getItem('token'));
+    
+    // Intenta una petición simple al backend
+    const response = await fetch(`${API_URL}/api/users`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    console.log('📡 Estado de respuesta:', response.status);
+    console.log('✅ Conexión con API establecida');
+    return true;
+  } catch (error) {
+    console.error('❌ Error de conexión con API:', error);
+    console.error('🔍 Posibles causas:');
+    console.error('  - Backend no está corriendo');
+    console.error('  - URL incorrecta:', API_URL);
+    console.error('  - Problemas de CORS');
+    console.error('  - Problemas de red/DNS');
+    return false;
+  }
+};
+
+// Función para debugging localStorage
+export const debugLocalStorage = () => {
+  console.log('🗃️ Estado de localStorage:');
+  console.log('  - Token existe:', !!localStorage.getItem('token'));
+  console.log('  - Token length:', localStorage.getItem('token')?.length || 0);
+  console.log('  - Token preview:', localStorage.getItem('token')?.substring(0, 20) + '...');
 };

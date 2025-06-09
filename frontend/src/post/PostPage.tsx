@@ -4,6 +4,7 @@ import { Container, Box, Typography, CircularProgress, useMediaQuery, IconButton
 import { useParams, useNavigate } from 'react-router-dom';
 import SongCard from '../home/components/songCard';
 import MusicPlayer from '../home/components/musicPlayer';
+import SearchBar from '../components/SearchBar';
 import HomeIcon from '@mui/icons-material/Home';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -140,7 +141,7 @@ const PostPage: React.FC = () => {
         flexDirection: 'row',
         minWidth: '100vw',
         height: '100vh',
-        overflowY: 'auto',
+        overflow: 'hidden', // ✅ Deshabilitar scroll
         paddingTop: { xs: '32px', md: '32px' },
         paddingBottom: '70px',
         backgroundColor: 'transparent',
@@ -288,16 +289,26 @@ const PostPage: React.FC = () => {
         </Drawer>
       )}
 
-      {/* Publicación */}
+      {/* Barra de búsqueda fija */}
+      <SearchBar 
+        isFixed={true}
+        top={16}
+        width={isMobile ? '94%' : '60%'}
+        left={isMobile ? '3%' : '7%'}
+        zIndex={1999}
+      />
+
+      {/* Publicación centrada */}
       <Box
         sx={{
           flex: 1,
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gap: { xs: 4, md: 6 },
-          maxWidth: '65%',
-          paddingTop: { xs: '20px', md: '20px' },
-          justifyItems: 'center',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          paddingTop: { xs: '80px', md: '60px' }, // ✅ Reducido: era 100px/80px, ahora 80px/60px
+          paddingLeft: { xs: '0', md: '0' },
+          paddingRight: { xs: '0', md: '30%' }, // Espacio para el reproductor (vuelve al 30%)
           position: 'relative',
           zIndex: 1,
         }}
@@ -360,6 +371,7 @@ const PostPage: React.FC = () => {
               username: post.user.name || 'Sistema',
             }}
             isRepost={false}
+            mediumSize={true} // ✅ Usar tamaño medio (menos grande)
           />
         ) : (
           <Typography variant="body1" color="error" sx={{ mt: 4 }}>
@@ -368,7 +380,7 @@ const PostPage: React.FC = () => {
         )}
       </Box>
 
-      {/* Reproductor fijo a la derecha */}
+      {/* Reproductor fijo a la derecha (tamaño original) */}
       <Box
         sx={{
           display: 'flex',
@@ -384,6 +396,7 @@ const PostPage: React.FC = () => {
           padding: 0,
           boxShadow: '-8px 8px 12px rgba(0, 0, 0, 0.15)',
           overflow: 'hidden',
+          zIndex: 1000, // ✅ Z-index menor que la barra de búsqueda
         }}
       >
         <MusicPlayer />

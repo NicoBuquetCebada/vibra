@@ -55,10 +55,18 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
   };
 
   const handlePrev = () => {
-    if (playlistIndex > 0) {
-      setPlaylistIndex(playlistIndex - 1);
-    } else if (onPrevPublication) {
-      onPrevPublication();
+    // ✅ Si la canción lleva más de 2 segundos, reiniciar desde el principio
+    if (currentTime > 2) {
+      if (globalAudioRef.current) {
+        globalAudioRef.current.currentTime = 0;
+      }
+    } else {
+      // ✅ Si lleva menos de 2 segundos, ir a la canción anterior
+      if (playlistIndex > 0) {
+        setPlaylistIndex(playlistIndex - 1);
+      } else if (onPrevPublication) {
+        onPrevPublication();
+      }
     }
   };
 
@@ -121,7 +129,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
             lineHeight: 1.6
           }}
         >
-          Pulse el botón de play en una publicación para reproducir música!
+          ¡Pulse cualquier publicación para reproducir su música!
         </Typography>
       </Box>
     );
