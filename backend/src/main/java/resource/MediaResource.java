@@ -11,6 +11,7 @@ import jakarta.ws.rs.core.Response;
 import model.dto.FileUploadFormDTO;
 import model.dto.MultiFileUploadFormDTO;
 import org.apache.tika.Tika;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import java.io.File;
@@ -23,8 +24,11 @@ import java.util.*;
 @Consumes(MediaType.MULTIPART_FORM_DATA)
 public class MediaResource {
 
-    private static final String UPLOAD_DIR = "media";
-    private static final String URL = "http://localhost:8080/api/media/";
+	private static final String UPLOAD_DIR = "media";
+
+	@ConfigProperty(name = "media.path")
+    private static String URL;
+
     private static final Tika tika = new Tika();
 
     private static final Set<String> ALLOWED_TYPES = Set.of(
