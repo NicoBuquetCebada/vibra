@@ -24,6 +24,7 @@ import model.UserPagePost;
 import model.dto.LoginDTO;
 import model.dto.PassChangeDTO;
 import model.dto.RegisterDTO;
+import model.dto.UserDTO;
 import service.RateService;
 import service.RepostService;
 import service.SaveService;
@@ -52,6 +53,13 @@ public class UserResource {
 	@GET // Only for dev tests
 	public Uni<List<User>> getAllUsers() {
 		return us.getAllUsers();
+	}
+
+	@GET
+	@Path("/info")
+	public Uni<UserDTO> getUser() {
+		return us.getUserByToken(securityIdentity)
+			.flatMap(user -> Uni.createFrom().item(new UserDTO(user)));
 	}
 
 	@POST

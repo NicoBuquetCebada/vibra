@@ -6,6 +6,7 @@ import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -52,5 +53,11 @@ public class PostResource {
 	@Path("/{post_id}")
 	public Uni<UserPagePost> getPostById(@PathParam("post_id") Long postId) {
 		return ups.getPostById(postId);
+	}
+
+	@DELETE
+	@Path("/{post_id}")
+	public Uni<Response> deletePostById(@PathParam("post_id") Long postId) {
+		return ps.deletePostById(postId);
 	}
 }
