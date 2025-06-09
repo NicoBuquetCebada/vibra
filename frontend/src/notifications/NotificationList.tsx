@@ -86,9 +86,15 @@ const NotificationList: React.FC = () => {
         <Box
           sx={{
             flex: 1,
-            maxWidth: '65%',
-            paddingX: { xs: '16px', md: '32px' },
+            maxWidth: { xs: '100vw', md: 'calc(70vw - 48px)' }, // Ocupa hasta el reproductor lateral
+            paddingX: { xs: 0.5, md: 0 },
             minHeight: 'max-content',
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            paddingBottom: { xs: '110px', md: 0 },
+            ml: { xs: 0, md: 0 }, // Deja espacio para el botón menú lateral
           }}
         >
           <Box
@@ -98,8 +104,10 @@ const NotificationList: React.FC = () => {
               backgroundColor: 'white',
               boxShadow: 2,
               textAlign: 'center',
-              maxWidth: { xs: '100%', sm: '1000px' }, // Igual que las notificaciones
-              ml: { xs: 0, sm: 4 },                  // Igual que las notificaciones
+              width: '85%',
+              maxWidth: '1000px',
+              ml: 0,
+              
             }}
           >
             <Typography variant="h5">
@@ -115,7 +123,7 @@ const NotificationList: React.FC = () => {
               No hay notificaciones nuevas.
             </Typography>
           ) : (
-            <List>
+            <List sx={{ width: '85%', display: 'flex', flexDirection: 'column', alignItems: 'center', p: 0, marginLeft:0 }}>
               {notifications
                 .filter((notif) => notif.actionUserName)
                 .map((notif) => (
@@ -128,11 +136,22 @@ const NotificationList: React.FC = () => {
                       p: 1.2,
                       transition: 'box-shadow 0.2s, background-color 0.2s',
                       '&:hover': { boxShadow: 4, backgroundColor: '#f4f6fa' },
-                      maxWidth: { xs: '100%', sm: '1000px' }, // Más estrecho en desktop
-                      ml: { xs: 0, sm: 4 }, // Separación a la izquierda en desktop
+                      width: '100%',
+                      maxWidth: '1000px',
+                      ml: 0,
+                      display: 'flex',
+                      justifyContent: 'center',
                     }}
                   >
-                    <ListItem alignItems="flex-start" sx={{ cursor: 'pointer', p: 0.5 }}
+                    <ListItem
+                      alignItems="flex-start"
+                      sx={{
+                        cursor: 'pointer',
+                        p: 0.5,
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
                       onClick={() => navigate(`/profile/${notif.actionUserName}`)}
                       disableGutters
                     >
@@ -156,22 +175,40 @@ const NotificationList: React.FC = () => {
           )}
         </Box>
 
-        {/* Reproductor lateral */}
+        {/* Reproductor lateral solo escritorio */}
         <Box
           sx={{
-            display: 'flex',
+            display: { xs: 'none', md: 'flex' },
             alignItems: 'flex-start',
             justifyContent: 'center',
-            width: '30%',
+            width: { md: '30%' },
             position: 'fixed',
             top: 0,
             right: 0,
             height: 'calc(100vh - 24px)',
             backgroundColor: '#f5f5f5',
-            margin: '12px 18px 0px 12px',
+            margin: { md: '12px 18px 0px 12px' },
             padding: 0,
             boxShadow: '-8px 8px 12px rgba(0, 0, 0, 0.15)',
             overflow: 'hidden',
+            zIndex: 1200,
+          }}
+        >
+          <MusicPlayer />
+        </Box>
+
+        {/* Reproductor flotante solo en móvil */}
+        <Box
+          sx={{
+            display: { xs: 'flex', md: 'none' },
+            position: 'fixed',
+            left: 0,
+            bottom: 0,
+            width: '100vw',
+            backgroundColor: '#f5f5f5',
+            boxShadow: '0 -4px 12px rgba(0,0,0,0.12)',
+            zIndex: 2000,
+            pb: 1,
           }}
         >
           <MusicPlayer />

@@ -55,13 +55,13 @@ const Login: React.FC = () => {
           setShowWelcomeScreen(false);
           setFadeOutWelcome(false);
         }, 600); // 600ms = duración del fade out
-      }, 6400); // 5400ms + 600ms = 6000ms total como antes
+      }, 2500); // 2 segundos total
     } else {
       setError(true);
     }
   };
 
-  // Pantalla de bienvenida con fade out
+  // Pantalla de bienvenida con efecto de expansión circular
   const WelcomeScreen = () => (
     <Box
       sx={{
@@ -70,7 +70,6 @@ const Login: React.FC = () => {
         left: 0,
         width: '100vw',
         height: '100vh',
-        backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         background: 'linear-gradient(135deg, #307cbe 0%, #1e5a96 100%)',
         display: 'flex',
         flexDirection: 'column',
@@ -79,7 +78,7 @@ const Login: React.FC = () => {
         zIndex: 9999,
         animation: fadeOutWelcome
           ? 'fadeOut 0.6s ease-in forwards'
-          : 'fadeIn 0.5s ease-in-out',
+          : 'fadeIn 0.3s ease-out',
         '@keyframes fadeIn': {
           from: { opacity: 0 },
           to: { opacity: 1 }
@@ -97,13 +96,13 @@ const Login: React.FC = () => {
           color: 'white',
           fontWeight: 'bold',
           textAlign: 'center',
-          mb: 8, // ⬅️ Más espacio debajo (antes era 4)
+          mb: 6,
           opacity: 0,
-          animation: 'textSlideUp 0.8s ease-out 0.5s forwards',
+          animation: 'textSlideUp 0.6s ease-out 0.3s forwards',
           '@keyframes textSlideUp': {
             from: {
               opacity: 0,
-              transform: 'translateY(30px)'
+              transform: 'translateY(20px)'
             },
             to: {
               opacity: 1,
@@ -115,152 +114,84 @@ const Login: React.FC = () => {
         ¡Bienvenido a Vibra!
       </Typography>
 
-      {/* Eliminado el texto "Preparando tu experiencia musical..." */}
-
-      {/* ✅ SOLO: Círculos de pulso concéntricos - EFECTO ONDAS PROGRESIVAS */}
+      {/* Contenedor del efecto de expansión */}
       <Box
         sx={{
           position: 'relative',
-          opacity: 1, // ✅ CAMBIO: Visible inmediatamente
-          // ✅ ELIMINAR: animation: 'pulseCircles 0.5s ease-out 1.2s forwards',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
-        {/* Círculos de ondas de agua - Aparecen uno por uno */}
-        {[1, 2, 3, 4, 5, 6].map((circle) => (
-          <Box
-            key={circle}
-            sx={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              width: 300 + (circle * 150),
-              height: 300 + (circle * 150),
-              border: `${5 - circle * 0.6}px solid rgba(255, 255, 255, ${0.7 - circle * 0.1})`,
-              borderRadius: '50%',
-              transform: 'translate(-50%, -50%) scale(0)',
-              opacity: 0,
-              // ⏩ HAZ QUE LAS ONDAS SALGAN MÁS RÁPIDO: duración 3s, delay menor
-              animation: `waterRipple 3s ease-out ${0.5 + circle * 0.3}s infinite forwards`,
-              '@keyframes waterRipple': {
-                '0%': {
-                  transform: 'translate(-50%, -50%) scale(0)',
-                  opacity: 0,
-                  borderWidth: '0px'
-                },
-                '10%': {
-                  opacity: 0.9,
-                  transform: 'translate(-50%, -50%) scale(0.1)',
-                  borderWidth: '6px'
-                },
-                '15%': {
-                  opacity: 0.8,
-                  transform: 'translate(-50%, -50%) scale(0.3)',
-                  borderWidth: '5px'
-                },
-                '25%': {
-                  opacity: 0.7,
-                  transform: 'translate(-50%, -50%) scale(0.5)',
-                  borderWidth: '4px'
-                },
-                '40%': {
-                  opacity: 0.5,
-                  transform: 'translate(-50%, -50%) scale(0.8)',
-                  borderWidth: '3px'
-                },
-                '60%': {
-                  opacity: 0.3,
-                  transform: 'translate(-50%, -50%) scale(1.2)',
-                  borderWidth: '2px'
-                },
-                '80%': {
-                  opacity: 0.1,
-                  transform: 'translate(-50%, -50%) scale(1.8)',
-                  borderWidth: '1px'
-                },
-                '100%': {
-                  opacity: 0,
-                  transform: 'translate(-50%, -50%) scale(2.2)',
-                  borderWidth: '0.5px'
-                }
-              }
-            }}
-          />
-        ))}
-
-        {/* Ondas secundarias más rápidas */}
-        {[1, 2, 3, 4].map((wave) => (
-          <Box
-            key={`wave-${wave}`}
-            sx={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              width: 200 + (wave * 100),
-              height: 200 + (wave * 100),
-              border: '2px solid rgba(255, 255, 255, 0.25)',
-              borderRadius: '50%',
-              transform: 'translate(-50%, -50%) scale(0)',
-              opacity: 0,
-              // ⏩ Más rápidas: duración 2s, delay menor
-              animation: `subtleWave 2s ease-out ${0.7 + wave * 0.2}s infinite forwards`,
-              '@keyframes subtleWave': {
-                '0%': {
-                  transform: 'translate(-50%, -50%) scale(0)',
-                  opacity: 0
-                },
-                '10%': {
-                  transform: 'translate(-50%, -50%) scale(0.2)',
-                  opacity: 0.6
-                },
-                '30%': {
-                  transform: 'translate(-50%, -50%) scale(0.6)',
-                  opacity: 0.4
-                },
-                '60%': {
-                  transform: 'translate(-50%, -50%) scale(1.2)',
-                  opacity: 0.2
-                },
-                '100%': {
-                  transform: 'translate(-50%, -50%) scale(1.8)',
-                  opacity: 0
-                }
-              }
-            }}
-          />
-        ))}
-
-        {/* ✅ MODIFICAR: Punto central aparece primero y late */}
+        {/* Círculo que se expande para cubrir la pantalla */}
         <Box
           sx={{
             position: 'absolute',
             top: '50%',
             left: '50%',
-            width: 80, // Más grande
-            height: 80,
+            width: 100,
+            height: 100,
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
             borderRadius: '50%',
             transform: 'translate(-50%, -50%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 0 32px 0 rgba(0,0,0,0.10)',
-            animation: 'centerPulse 1.5s ease-in-out 1.2s infinite',
-            '@keyframes centerPulse': {
+            opacity: 0,
+            animation: fadeOutWelcome 
+              ? 'expandToFullScreen 0.6s ease-in-out forwards'
+              : 'logoAppear 0.8s ease-out 0.8s forwards',
+            '@keyframes logoAppear': {
               '0%': {
                 transform: 'translate(-50%, -50%) scale(0)',
                 opacity: 0
               },
-              '10%': {
-                transform: 'translate(-50%, -50%) scale(1)',
-                opacity: 0.95
-              },
-              '50%': {
-                transform: 'translate(-50%, -50%) scale(1.15)',
-                opacity: 0.8
+              '30%': {
+                transform: 'translate(-50%, -50%) scale(1.1)',
+                opacity: 0.9
               },
               '100%': {
                 transform: 'translate(-50%, -50%) scale(1)',
                 opacity: 0.95
+              }
+            },
+            '@keyframes expandToFullScreen': {
+              '0%': {
+                transform: 'translate(-50%, -50%) scale(1)',
+                opacity: 0.95
+              },
+              '100%': {
+                transform: 'translate(-50%, -50%) scale(30)',
+                opacity: 1
+              }
+            }
+          }}
+        />
+
+        {/* Logo central */}
+        <Box
+          sx={{
+            position: 'relative',
+            zIndex: 2,
+            opacity: 0,
+            animation: fadeOutWelcome 
+              ? 'logoFadeOut 0.3s ease-out forwards'
+              : 'logoFadeIn 0.5s ease-out 1.2s forwards',
+            '@keyframes logoFadeIn': {
+              from: { 
+                opacity: 0,
+                transform: 'scale(0.8)'
+              },
+              to: { 
+                opacity: 1,
+                transform: 'scale(1)'
+              }
+            },
+            '@keyframes logoFadeOut': {
+              from: { 
+                opacity: 1,
+                transform: 'scale(1)'
+              },
+              to: { 
+                opacity: 0,
+                transform: 'scale(1.1)'
               }
             }
           }}
@@ -269,8 +200,8 @@ const Login: React.FC = () => {
             src={Logo}
             alt="Logo Vibra"
             style={{
-              width: 48,
-              height: 48,
+              width: 60,
+              height: 60,
               objectFit: 'contain',
               borderRadius: '50%',
             }}
@@ -278,22 +209,28 @@ const Login: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Mensaje adicional */}
+      {/* Mensaje de carga */}
       <Typography
         variant="body2"
         sx={{
-          color: 'rgba(255, 255, 255, 0.7)',
+          color: 'rgba(255, 255, 255, 0.8)',
           textAlign: 'center',
-          mt: 8, // ⬅️ Más espacio arriba (antes era 4)
+          mt: 6,
           opacity: 0,
-          animation: 'textFadeIn 0.5s ease-out 1.8s forwards',
+          animation: fadeOutWelcome 
+            ? 'textFadeOut 0.2s ease-out forwards'
+            : 'textFadeIn 0.4s ease-out 1.5s forwards',
           '@keyframes textFadeIn': {
             from: { opacity: 0 },
             to: { opacity: 1 }
+          },
+          '@keyframes textFadeOut': {
+            from: { opacity: 1 },
+            to: { opacity: 0 }
           }
         }}
       >
-        Cargando tu feed personalizado...
+        Preparando tu feed personalizado...
       </Typography>
     </Box>
   );
@@ -305,7 +242,12 @@ const Login: React.FC = () => {
       {showWelcomeScreen && <WelcomeScreen />}
       
       {/* ✅ Login form original (se oculta cuando showWelcomeScreen es true) */}
-      <div className="container" style={{ display: showWelcomeScreen ? 'none' : 'block' }}>
+      <div className="container" style={{ 
+        display: showWelcomeScreen ? 'none' : 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh'
+      }}>
         <div className="login-card">
           <img src={Logo} alt="Logo Vibra" className="logo-img" />
           <h1>Inicia Sesión</h1>

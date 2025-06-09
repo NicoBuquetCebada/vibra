@@ -95,4 +95,17 @@ public class PostService {
 			.onItem().transform(ignore -> Response.status(201).build());
 	}
 
+	@WithTransaction
+	public Uni<Response> deletePostById(Long id) {
+		return Post.delete("id", id)
+				.onItem()
+				.transformToUni(deleted -> {
+					if(deleted > 0) {
+						return Uni.createFrom().item(Response.status(204).build());
+					} else {
+						return Uni.createFrom().failure(new CustomNotFoundException("Post not found: " + id));
+					}
+				});
+	}
+
 }

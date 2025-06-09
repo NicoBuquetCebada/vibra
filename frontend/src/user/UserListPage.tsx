@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Container, Typography, List, ListItem, ListItemAvatar, Avatar, ListItemText, CircularProgress, Box } from '@mui/material';
 import ListItemButton from '@mui/material/ListItemButton';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import BottomNav from '../components/bottom-navigation';
+// import BottomNav from '../components/bottom-navigation';
 import { fetchWithAuth } from '../api';
 
 interface SimpleUser {
@@ -65,7 +65,7 @@ const UserListPage: React.FC = () => {
           ))}
         </List>
       )}
-      <BottomNav handleNavigation={navigate} />
+      {/* <BottomNav handleNavigation={navigate} /> */}
     </Container>
   );
 };

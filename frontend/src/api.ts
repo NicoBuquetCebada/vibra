@@ -115,6 +115,13 @@ export const getOtherUserReposts = async (userName: string) => {
 };
 
 // -------- USERS --------
+// Obtener información del usuario (nombre, imagen de perfil y correo)
+export const getUserInfo = async () => {
+  const res = await fetchWithAuth('/api/users/info');
+  if (!res.ok) throw new Error('Error al obtener información del usuario');
+  return res.json();
+};
+
 export const login = async (identifier: string, pass: string) => {
   const res = await fetchWithAuth('/api/users/login', {
     method: 'POST',
@@ -264,14 +271,12 @@ export const addAlbumPost = async (albumName: string, coverImg: string, songs: {
 };
 
 // -------- MEDIA --------
-export const uploadFile = async (file: File) => {
-  const formData = new FormData();
-  formData.append('file', file);
+export const uploadFile = async (formData: FormData) => {
   const res = await fetchWithAuth('/api/media/upload', {
     method: 'POST',
     body: formData,
   });
-  if (!res.ok) throw new Error('Error al subir archivo');
+  if (!res.ok) throw new Error('Error al subir el archivo');
   return res.json();
 };
 

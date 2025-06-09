@@ -196,8 +196,8 @@ const CreatePost: React.FC = () => {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          pt: 4,
-          pb: 10,
+          pt: {md:4, xs:0},
+          pb: {md:10, xs:0},
         }}
       >
         <Container
@@ -677,11 +677,11 @@ const CreatePost: React.FC = () => {
                         backgroundColor: '#fff',
                         color: '#307cbe',
                         border: '1px solid #307cbe',
-                        boxShadow: 1,
+                        boxShadow: 'none',
                         '&:hover': {
                           backgroundColor: '#f5f5f5',
                           borderColor: '#307cbe',
-                          boxShadow: 2,
+                          boxShadow: 'none',
                         },
                         width: { xs: '100%', sm: '420px' },
                         alignSelf: 'center',
@@ -720,7 +720,7 @@ const CreatePost: React.FC = () => {
               sx={{
                 position: 'fixed',
                 top: 0, left: 0, width: '100vw', height: '100vh',
-                bgcolor: 'rgba(255,255,255,0.8)',
+                bgcolor: 'transparent',
                 backdropFilter: 'blur(4px)',
                 zIndex: 2000,
                 display: 'flex',

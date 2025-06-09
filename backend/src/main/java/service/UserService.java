@@ -6,6 +6,7 @@ import java.util.List;
 import exception.CustomAlreadyExistsException;
 import exception.CustomNotFoundException;
 import io.quarkus.cache.CacheInvalidate;
+import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.elytron.security.common.BcryptUtil;
 import io.quarkus.hibernate.reactive.panache.Panache;
@@ -35,7 +36,6 @@ public class UserService {
 		return User.findAll().list();
 	}
 	
-	@CacheResult(cacheName = "user-by-name")
 	public Uni<User> getUserByName(String name) {
 		return User.<User>find("name", name).firstResult()
 			.onItem().ifNull()
@@ -120,9 +120,9 @@ public class UserService {
 	}
 
 	//Update
-	@CacheInvalidate(cacheName = "user-by-name")
-	@CacheInvalidate(cacheName = "user-by-mail")
-	@CacheInvalidate(cacheName = "user-by-name-or-mail")
+	@CacheInvalidateAll(cacheName = "user-by-name")
+	@CacheInvalidateAll(cacheName = "user-by-mail")
+	@CacheInvalidateAll(cacheName = "user-by-name-or-mail")
 	public Uni<Response> updateUser(RegisterDTO updated) {
 		return Panache.withTransaction(() -> {
 			return getUserByName(updated.name)
@@ -141,6 +141,9 @@ public class UserService {
 	}
 
 	@WithTransaction
+	@CacheInvalidateAll(cacheName = "user-by-name")
+	@CacheInvalidateAll(cacheName = "user-by-mail")
+	@CacheInvalidateAll(cacheName = "user-by-name-or-mail")
     public Uni<Response> updateField(SecurityIdentity si, String field, String value) {
         return getUserByToken(si)
             .flatMap(user -> {
@@ -167,6 +170,9 @@ public class UserService {
     }
 
 	@WithTransaction
+	@CacheInvalidateAll(cacheName = "user-by-name")
+	@CacheInvalidateAll(cacheName = "user-by-mail")
+	@CacheInvalidateAll(cacheName = "user-by-name-or-mail")
 	public Uni<Response> updatePass(SecurityIdentity si, PassChangeDTO dto) {
 		return getUserByToken(si)
 			.flatMap(user -> {

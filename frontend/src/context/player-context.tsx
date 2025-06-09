@@ -119,40 +119,43 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return undefined;
   }, []); // ✅ Array vacío para que solo se ejecute UNA vez
 
-  // ✅ Cambiar canción cuando cambia el índice
+  // ✅ Cambiar canción cuando cambia el índice o la playlist
   useEffect(() => {
     if (globalAudioRef.current && playlist[playlistIndex]) {
       const currentSong = playlist[playlistIndex];
-      const wasPlaying = isPlaying;
       const audio = globalAudioRef.current;
       
       console.log('Cambiando a canción:', currentSong.title, 'Audio src:', currentSong.audioSrc);
       
-      // ✅ Resetear estados antes de cambiar la fuente
-      setCurrentTime(0);
-      setDuration(0);
-      setProgress(0);
+      // ✅ Solo resetear si la canción realmente cambió
+      const songChanged = audio.src !== currentSong.audioSrc;
       
-      // ✅ Cambiar la fuente del audio
-      audio.src = currentSong.audioSrc;
-      audio.currentTime = 0;
-      
-      // ✅ Si estaba reproduciéndose, continuar reproduciéndose
-      if (wasPlaying) {
+      if (songChanged) {
+        // ✅ Resetear estados solo cuando cambia la canción
+        setCurrentTime(0);
+        setDuration(0);
+        setProgress(0);
+        
+        // ✅ Cambiar la fuente del audio
+        audio.src = currentSong.audioSrc;
+        audio.currentTime = 0;
+        
+        // ✅ Cuando cambia la canción, siempre reproducir automáticamente
+        setIsPlaying(true);
         const playPromise = audio.play();
         if (playPromise !== undefined) {
           playPromise
             .then(() => {
-              console.log('Reproducción iniciada correctamente');
+              console.log('Nueva canción reproduciéndose automáticamente');
             })
             .catch(error => {
-              console.error('Error al reproducir:', error);
+              console.error('Error al reproducir nueva canción:', error);
               setIsPlaying(false);
             });
         }
       }
     }
-  }, [playlistIndex, playlist, isPlaying]);
+  }, [playlistIndex, playlist]); // ✅ Remover isPlaying de las dependencias
 
   // ✅ Manejar play/pause
   useEffect(() => {
@@ -160,23 +163,26 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const audio = globalAudioRef.current;
       
       if (isPlaying) {
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log('Reproducción iniciada');
-            })
-            .catch(error => {
-              console.error('Error al reproducir:', error);
-              setIsPlaying(false);
-            });
+        // ✅ Solo reproducir si no está ya reproduciéndose
+        if (audio.paused) {
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                console.log('Reproducción iniciada');
+              })
+              .catch(error => {
+                console.error('Error al reproducir:', error);
+                setIsPlaying(false);
+              });
+          }
         }
       } else {
         audio.pause();
         console.log('Reproducción pausada');
       }
     }
-  }, [isPlaying, playlist.length]);
+  }, [isPlaying]); // ✅ Remover playlist.length para evitar conflictos
 
   // ✅ Cleanup al desmontar el provider
   useEffect(() => {

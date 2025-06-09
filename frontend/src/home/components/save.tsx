@@ -52,9 +52,12 @@ const SaveButton: React.FC<SaveButtonProps> = ({ postId, isSaved, onSave }) => {
   };
 
   return (
-    <Tooltip title={saved ? "Quitar de guardados" : "Guardar post"} arrow placement="top">
+    <Tooltip title={saved ? "Eliminar de guardados" : "Guardar"} arrow placement="top">
       <IconButton
-        onClick={handleSave}
+        onClick={(e) => {
+          e.stopPropagation(); // ✅ Evitar que se active el play
+          handleSave();
+        }}
         disabled={loading}
         sx={{
           color: saved ? '#307cbe' : '#757575',

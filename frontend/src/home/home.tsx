@@ -1,8 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useState, useEffect, useRef, useCallback, useContext } from 'react';
-import { Container, Box, Typography, CircularProgress, Avatar, Snackbar } from '@mui/material';
+import { Container, Box, Typography, CircularProgress, Snackbar } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import SearchIcon from '@mui/icons-material/Search';
+// import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate, useLocation } from 'react-router-dom';
 import SongCard from './components/songCard';
 import MusicPlayer from './components/musicPlayer';
@@ -11,7 +11,8 @@ import { AuthContext } from '../context/auth-context';
 import { usePlayer } from '../context/player-context';
 import { useHome } from '../context/home-context'; // ✅ AGREGAR
 import NavigationWrapper from '../components/NavigationWrapper';
-import BottomNav from '../components/bottom-navigation';
+// import BottomNav from '../components/bottom-navigation';
+import SearchBar from '../components/SearchBar';
 
 // Tipos para los objetos de la API
 interface User {
@@ -149,7 +150,7 @@ function MusicHome() {
 
   // Cargar posts de la API
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const fetchPosts = useCallback(async (pageNum: number) => {
+  /* const fetchPosts = useCallback(async (pageNum: number) => {
     setLoading(true);
     try {
       const res = await fetchWithAuth(`/api/home?page=${pageNum}`);
@@ -175,7 +176,7 @@ function MusicHome() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, []); */
 
   // ✅ MODIFICAR: Función para refrescar completamente el home
   const refreshHome = useCallback(async () => {
@@ -315,10 +316,10 @@ function MusicHome() {
   }, [observerRef, loading, hasMore, lastLoadedPage]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleLogout = () => {
+  /* const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
-  };
+  }; */
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleNavigation = (path: string) => {
@@ -402,7 +403,8 @@ function MusicHome() {
   };
 
   // Detectar si es móvil (puedes ajustar el breakpoint si lo deseas)
-  const isMobile = window.innerWidth < 900;
+  // const isMobile = window.innerWidth < 900;
+  const isMobile = false;
 
   return (
     <NavigationWrapper>
@@ -410,351 +412,92 @@ function MusicHome() {
         className="scrollable-container"
         sx={{
           display: 'flex',
-          flexDirection: 'row',
+          flexDirection: { xs: 'column', md: 'row' },
           minWidth: '100vw',
           height: '100vh',
           overflowY: 'auto',
-          paddingTop: isMobile ? '70px' : '100px', // Menor padding top en móvil para la barra del reproductor
-          paddingBottom: isMobile ? '90px' : '70px',
+          paddingTop: { xs: '16px', md: '32px' },
+          paddingBottom: { xs: '80px', md: '70px' },
           backgroundColor: 'transparent',
           position: 'relative',
         }}
       >
-        {/* Reproductor barra superior en móvil */}
-        {isMobile && (
-          <Box
-            sx={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '100vw',
-              height: '70px',
-              backgroundColor: '#f5f5f5',
-              boxShadow: '0 2px 12px rgba(0,0,0,0.10)',
-              zIndex: 2100,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              px: 2,
-            }}
-          >
-            <MusicPlayer
-              onPrevPublication={handlePrevPublication}
-              onNextPublication={handleNextPublication}
-            />
-          </Box>
-        )}
-
-        {/* Barra de búsqueda */}
-        <Box
-          ref={searchContainerRef}
-          sx={{
-            position: 'fixed',
-            top: isSearchBarVisible ? (isMobile ? 80 : 16) : -80,
-            width: isMobile ? '94%' : '60%',
-            left: isMobile ? '3%' : '7%',
-            zIndex: 1999,
-            transition: 'top 0.3s ease',
-          }}
-        >
-          {/* Barra de búsqueda */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              borderRadius: showResults ? '32px 32px 0 0' : '32px',
-              padding: '0 24px',
-              boxShadow: showResults ? '0 2px 0 rgba(0,0,0,0.1)' : '0 2px 8px rgba(0,0,0,0.1)',
-              height: '56px',
-              transition: 'all 0.3s ease',
-            }}
-          >
-            <SearchIcon sx={{ color: '#307cbe', fontSize: '28px' }} />
-            <input
-              type="text"
-              value={searchTerm}
-              placeholder="Buscar canciones, álbumes o artistas..."
-              style={{
-                width: '100%',
-                height: '100%',
-                border: 'none',
-                outline: 'none',
-                backgroundColor: 'transparent',
-                fontSize: '1.1rem',
-                color: '#424242',
-                fontFamily: 'inherit',
-                padding: '0 12px',
-              }}
-              onChange={(e) => handleSearch(e.target.value)}
-            />
-          </Box>
-
-          {/* Resultados de búsqueda */}
-          {showResults && searchResults.length > 0 && (
-            <Box
-              sx={{
-                width: '100%',
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                borderRadius: '0 0 16px 16px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                maxHeight: '300px',
-                overflowY: 'auto',
-                '&::-webkit-scrollbar': {
-                  width: '8px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: 'rgba(0,0,0,0.2)',
-                  borderRadius: '4px',
-                },
-              }}
-            >
-              {searchResults.map((result, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '12px 24px',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s',
-                    '&:hover': {
-                      backgroundColor: 'rgba(48, 124, 190, 0.1)',
-                    },
-                    borderBottom: index < searchResults.length - 1 ? '1px solid rgba(0,0,0,0.1)' : 'none',
-                  }}
-                  onClick={() => {
-                    if (result.type === 'user') {
-                      navigate(`/profile/${result.name}`);
-                    } else if ((result.type === 'song' || result.type === 'album' || result.type === 'post') && result.id) {
-                      navigate(`/post/${result.id}`);
-                    }
-                    setShowResults(false);
-                  }}
-                >
-                  {/* Mostrar imagen si existe, sino mostrar icono por defecto */}
-                  {result.img ? (
-                    result.type === 'user' ? (
-                      <Avatar 
-                        src={result.img}
-                        sx={{ width: 40, height: 40, mr: 2 }}
-                      />
-                    ) : (
-                      <Box
-                        component="img"
-                        src={result.img}
-                        sx={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 1,
-                          mr: 2,
-                          objectFit: 'cover'
-                        }}
-                      />
-                    )
-                  ) : (
-                    result.type === 'user' ? (
-                      <Avatar 
-                        sx={{ width: 40, height: 40, mr: 2, backgroundColor: '#307cbe' }}
-                      />
-                    ) : (
-                      <Box
-                        sx={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 1,
-                          backgroundColor: '#307cbe',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          mr: 2,
-                          color: 'white',
-                          fontSize: '1.5rem',
-                        }}
-                      >
-                        {result.type === 'song' ? '♪' : '♫'}
-                      </Box>
-                    )
-                  )}
-                  
-                  {/* Nombre y tipo */}
-                  <Box>
-                    <Typography 
-                      variant="body1" 
-                      sx={{ fontWeight: 500, color: '#424242' }}
-                    >
-                      {result.name}
-                    </Typography>
-                    <Typography 
-                      variant="caption" 
-                      sx={{ color: 'text.secondary', textTransform: 'capitalize' }}
-                    >
-                      {result.type === 'user' ? 'Usuario' : result.type === 'song' ? 'Canción' : 'Álbum'}
-                    </Typography>
-                  </Box>
-                </Box>
-              ))}
-            </Box>
-          )}
-          {/* Mensaje cuando no hay resultados */}
-          {showResults && searchResults.length === 0 && (
-            <Box
-              sx={{
-                width: '100%',
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                borderRadius: '0 0 16px 16px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                p: 3,
-                textAlign: 'center',
-                color: '#307cbe',
-                fontWeight: 500,
-              }}
-            >
-              No se han encontrado resultados.
-            </Box>
-          )}
-        </Box>
+        {/* Barra de búsqueda SOLO en escritorio */}
+        <SearchBar
+          isFixed={true}
+          width={{ xs: '95%', md: '60%' }}
+          left={{ xs: '2.5%', md: '7%' }}
+          top={isSearchBarVisible ? 16 : -80}
+          zIndex={1999}
+        />
 
         {/* Contenido principal */}
         <Box
           sx={{
             flex: 1,
-            display: 'grid',
-            gridTemplateColumns: '1fr',
-            gap: { xs: 4, md: 6 },
-            maxWidth: '65%',
-            paddingTop: { xs: '20px', md: '20px' },
-            justifyItems: 'center',
-            position: 'relative',
-            zIndex: 1,
+            maxWidth: { xs: '100vw', md: '65%' },
+            paddingX: { xs: 1, md: '32px' },
+            minHeight: 'max-content',
+            width: '100%',
+            paddingBottom: { xs: '250px', md: 0 },
           }}
         >
           {posts.map((post, index) => {
             const songCardData = postToSongCard(post, index);
-            const handleUserClick = (username: string) => {
-              if (username === authContext?.user?.name) {
-                navigate('/profile');
-              } else {
-                navigate(`/profile/${username}`);
-              }
-            };
-            const handleRepostUserClick = (repostUser?: { name: string }) => {
-              if (!repostUser) return;
-              if (repostUser.name === authContext?.user?.name) {
-                navigate('/profile');
-              } else {
-                navigate(`/profile/${repostUser.name}`);
-              }
-            };
             return (
-              <SongCard
+              <Box
                 key={index}
-                song={songCardData}
-                isRepost={post.type === 'repost'}
-                repostUser={post.type === 'repost' ? post.repostUser : undefined}
-                onUserClick={() => handleUserClick(songCardData.username)}
-                onRepostUserClick={
-                  post.type === 'repost' && post.repostUser
-                    ? () => handleRepostUserClick(post.repostUser)
-                    : undefined
-                }
-                ref={index === posts.length - 1 ? observerRef : null}
-                onPlay={() => playPublication(index)}
-              />
+                sx={{
+                  my: 2,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  width: { xs: '100%', md: 'auto' },
+                }}
+              >
+                <SongCard
+                  song={songCardData}
+                  isRepost={post.type === 'repost'}
+                  repostUser={post.type === 'repost' ? post.repostUser : undefined}
+                  onUserClick={() => handleUserClick(songCardData.username)}
+                  onRepostUserClick={
+                    post.type === 'repost' && post.repostUser
+                      ? () => handleRepostUserClick(post.repostUser)
+                      : undefined
+                  }
+                  ref={index === posts.length - 1 ? observerRef : null}
+                  onPlay={() => playPublication(index)}
+                />
+              </Box>
             );
           })}
           {loading && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', py: 2 }}>
-              <CircularProgress sx={{ color: '307cbe' }} />
-              <Typography variant="caption" sx={{ marginTop: 1, color: 'gray' }}>
-                Cargando más publicaciones...
-              </Typography>
+            <Box sx={{ textAlign: 'center', mt: 4 }}>
+              <CircularProgress />
             </Box>
           )}
           {!hasMore && posts.length > 0 && (
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                py: 4,
-                pb: { xs: 16, md: 12 },
-                visibility: 'hidden',
-                animation: 'showEndMessage 0.5s ease-in-out forwards',
-                '@keyframes showEndMessage': {
-                  '0%': {
-                    visibility: 'visible',
-                    opacity: 0,
-                    transform: 'translateY(20px)'
-                  },
-                  '100%': {
-                    visibility: 'visible',
-                    opacity: 1,
-                    transform: 'translateY(0)'
-                  }
-                }
-              }}
-            >
-              <CheckCircleIcon 
-                sx={{ 
-                  fontSize: 60,
-                  color: '#307cbe',
-                  opacity: 0,
-                  animation: 'checkAnimation 0.5s ease-in-out 0.3s forwards',
-                  '@keyframes checkAnimation': {
-                    '0%': {
-                      transform: 'scale(0) rotate(-180deg)',
-                      opacity: 0
-                    },
-                    '70%': {
-                      transform: 'scale(1.2) rotate(0deg)',
-                    },
-                    '100%': {
-                      transform: 'scale(1) rotate(0deg)',
-                      opacity: 1
-                    }
-                  }
-                }} 
-              />
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  mt: 2,
-                  color: '#307cbe',
-                  fontWeight: 500,
-                  opacity: 0,
-                  animation: 'fadeIn 0.5s ease-in-out 0.8s forwards',
-                  '@keyframes fadeIn': {
-                    from: {
-                      opacity: 0,
-                      transform: 'translateY(10px)'
-                    },
-                    to: {
-                      opacity: 1,
-                      transform: 'translateY(0)'
-                    }
-                  }
-                }}
-              >
+            <Box sx={{ textAlign: 'center', mt: 4 }}>
+              <CheckCircleIcon sx={{ fontSize: 60, color: '#307cbe' }} />
+              <Typography variant="body1" sx={{ mt: 2, color: '#307cbe', fontWeight: 500 }}>
                 ¡Estás al día!
               </Typography>
             </Box>
           )}
         </Box>
 
-        {/* Reproductor de música */}
+        {/* Reproductor lateral solo escritorio */}
         <Box
           sx={{
-            display: { xs: 'none', md: 'flex' }, // Oculto en móvil, visible en desktop
+            display: { xs: 'none', md: 'flex' },
             alignItems: 'flex-start',
             justifyContent: 'center',
-            width: { md: '30%', lg: '30%' },
+            width: { md: '30%' },
             position: 'fixed',
             top: 0,
             right: 0,
             height: 'calc(100vh - 24px)',
             backgroundColor: '#f5f5f5',
-            margin: { md: '12px 18px 24px 12px', lg: '12px 18px 24px 12px' }, // ⬅️ Mantén margen inferior
+            margin: { md: '12px 18px 24px 12px' },
             padding: 0,
             boxShadow: '-8px 8px 12px rgba(0, 0, 0, 0.15)',
             overflow: 'hidden',
@@ -766,7 +509,8 @@ function MusicHome() {
             onNextPublication={handleNextPublication}
           />
         </Box>
-        {/* Reproductor flotante en móvil */}
+
+        {/* Reproductor flotante solo en móvil */}
         <Box
           sx={{
             display: { xs: 'flex', md: 'none' },
@@ -777,7 +521,7 @@ function MusicHome() {
             backgroundColor: '#f5f5f5',
             boxShadow: '0 -4px 12px rgba(0,0,0,0.12)',
             zIndex: 2000,
-            pb: 2,
+            pb: 1,
           }}
         >
           <MusicPlayer 
@@ -794,9 +538,9 @@ function MusicHome() {
         />
       </Container>
       {/* Barra de navegación inferior solo en móvil */}
-      {isMobile && (
+      {/* {isMobile && (
         <BottomNav handleNavigation={handleNavigation} />
-      )}
+      )} */}
     </NavigationWrapper>
   );
 }

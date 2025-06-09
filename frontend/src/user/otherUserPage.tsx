@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Container, Box, Avatar, Typography, Paper, Alert, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, List, ListItem, ListItemAvatar, ListItemText, CircularProgress, Tabs, Tab, Tooltip, IconButton, Drawer, ListItemIcon, Divider, useMediaQuery } from '@mui/material';
+import { Container, Box, Avatar, Typography, Paper, Alert, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, List, ListItem, ListItemAvatar, ListItemText, CircularProgress, Tabs, Tab, Tooltip, IconButton, Drawer, ListItemIcon, Divider } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import MusicPlayer from '../home/components/musicPlayer';
 import { getOtherUserPage, getOtherUserPosts, getOtherUserFollowers, getOtherUserFollowed, followUser, unfollowUser, fetchWithAuth, getFollowed, getOtherUserReposts } from '../api';
@@ -52,7 +52,7 @@ const OtherUserPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTitle, setDialogTitle] = useState('');
-  const [userList, setUserList] = useState<{ name: string; profile_img?: string }[]>([]);
+  const [userList, setUserList] = useState<{ name: string; profile_img?: string; profileImg?: string }[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [tab, setTab] = useState(0);
@@ -62,7 +62,6 @@ const OtherUserPage: React.FC = () => {
   const user = auth?.user;
   const { triggerRefresh } = useHome(); // ✅ AGREGAR
 
-  const isMobile = useMediaQuery('(max-width:900px)');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { playlist, setPlaylist, playlistIndex, setPlaylistIndex } = usePlayer();
   const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
@@ -233,7 +232,7 @@ const OtherUserPage: React.FC = () => {
           // Usar la función de transformación correcta
           const songCardData = otherUserPagePostToSongCard(post, userData!, idx);
           return (
-            <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
+            <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center', width: { xs: '100%', md: 'auto' } }}>
               <SongCard 
                 song={songCardData} 
                 onPlay={() => playPublication(idx)} 
@@ -254,7 +253,7 @@ const OtherUserPage: React.FC = () => {
           // Usar la función de transformación correcta
           const songCardData = otherUserPagePostToSongCard(post, userData!, idx);
           return (
-            <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
+            <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center', width: { xs: '100%', md: 'auto' } }}>
               <SongCard 
                 song={songCardData} 
                 onPlay={() => playPublication(idx)} 
@@ -311,181 +310,182 @@ const OtherUserPage: React.FC = () => {
     <Container
       sx={{
         display: 'flex',
-        flexDirection: 'row',
+        flexDirection: { xs: 'column', md: 'row' },
         minWidth: '100vw',
         height: '100vh',
         overflowY: 'auto',
-        paddingTop: { xs: '32px', md: '32px' },
-        paddingBottom: '70px',
+        paddingTop: { xs: '16px', md: '32px' },
+        paddingBottom: { xs: '80px', md: '70px' },
         backgroundColor: 'transparent',
         position: 'relative',
       }}
     >
-      {/* Botón menú solo en desktop */}
-      {!isMobile && (
-        <Tooltip title="Menú" arrow placement="bottom">
-          <IconButton
-            onClick={() => setDrawerOpen(true)}
-            sx={{
-              position: 'fixed',
-              top: 19,
-              left: 16,
-              zIndex: 2000,
-              boxShadow: '0 2px 8px rgba(48,124,190,0.18)',
-              background: 'rgba(255,255,255,0.8)',
-              padding: '6px',
-              marginTop: '18px',
-              '&:hover': { background: 'rgba(255,255,255,0.9)' },
-            }}
-          >
-            <Box
-              component="img"
-              src={Logo}
-              alt="Logo"
-              sx={{ width: '40px', height: '40px', objectFit: 'contain' }}
-            />
-          </IconButton>
-        </Tooltip>
-      )}
-
-      {/* Drawer lateral solo en desktop */}
-      {!isMobile && (
-        <Drawer
-          anchor="left"
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          PaperProps={{
-            sx: {
-              width: '340px',
-              background: '#f7fafd',
-              boxShadow: '8px 0 24px rgba(48,124,190,0.10)',
-              display: 'flex',
-              flexDirection: 'column',
-              height: '100%',
-            }
+      {/* Botón menú solo móvil */}
+      <Tooltip title="Menú" arrow placement="bottom">
+        <IconButton
+          onClick={() => setDrawerOpen(true)}
+          sx={{
+            // display: { xs: 'inline-flex', md: 'none' },
+            position: 'fixed',
+            top: 19,
+            left: 16,
+            zIndex: 2000,
+            boxShadow: '0 2px 8px rgba(48,124,190,0.18)',
+            background: 'rgba(255,255,255,0.8)',
+            padding: '6px',
+            marginTop: '18px',
+            '&:hover': { background: 'rgba(255,255,255,0.9)' },
           }}
         >
           <Box
+            component="img"
+            src={Logo}
+            alt="Logo"
+            sx={{ width: '40px', height: '40px', objectFit: 'contain' }}
+          />
+        </IconButton>
+      </Tooltip>
+
+      {/* Drawer lateral */}
+      <Drawer
+        anchor="left"
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        variant={{ xs: 'temporary', md: 'permanent' }}
+        PaperProps={{
+          sx: {
+            width: { xs: '80vw', md: '340px' },
+            background: '#f7fafd',
+            boxShadow: { xs: 2, md: '8px 0 24px rgba(48,124,190,0.10)' },
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+          }
+        }}
+      >
+        <Box
+          sx={{
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            mt: 1,
+            mb: 1,
+          }}
+        >
+          <Box
+            component="img"
+            src={Logo}
+            alt="Logo Vibra"
+            sx={{ width: 40, height: 40, objectFit: 'cover' }}
+          />
+        </Box>
+        <List>
+          <Divider />
+          <ListItem
             sx={{
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              mt: 1,
-              mb: 1,
+              backgroundColor: '#f7fafd',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background 0.2s',
+              '&:hover': { backgroundColor: '#e3e6ea' },
             }}
+            component="button"
+            onClick={() => handleNavigation('/home')}
           >
-            <Box
-              component="img"
-              src={Logo}
-              alt="Logo Vibra"
-              sx={{ width: 40, height: 40, objectFit: 'cover' }}
-            />
-          </Box>
-          <List>
-            <Divider />
-            <ListItem
-              sx={{
-                backgroundColor: '#f7fafd',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'background 0.2s',
-                '&:hover': { backgroundColor: '#e3e6ea' },
-              }}
-              component="button"
-              onClick={() => handleNavigation('/home')}
-            >
-              <ListItemIcon><HomeIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
-              <ListItemText primary="Inicio" />
-            </ListItem>
-            <Divider />
-            <ListItem
-              sx={{
-                backgroundColor: '#f7fafd',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'background 0.2s',
-                '&:hover': { backgroundColor: '#e3e6ea' },
-              }}
-              component="button"
-              onClick={() => handleNavigation('/upload')}
-            >
-              <ListItemIcon><AddCircleIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
-              <ListItemText primary="Subir" />
-            </ListItem>
-            <Divider />
-            <ListItem
-              sx={{
-                backgroundColor: '#f7fafd',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'background 0.2s',
-                '&:hover': { backgroundColor: '#e3e6ea' },
-              }}
-              component="button"
-              onClick={() => handleNavigation('/notifications')}
-            >
-              <ListItemIcon><NotificationsIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
-              <ListItemText primary="Notificaciones" />
-            </ListItem>
-            <Divider />
-            <ListItem
-              sx={{
-                backgroundColor: '#f7fafd',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'background 0.2s',
-                '&:hover': { backgroundColor: '#e3e6ea' },
-              }}
-              component="button"
-              onClick={() => handleNavigation('/profile')}
-            >
-              <ListItemIcon><PersonIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
-              <ListItemText primary="Perfil" />
-            </ListItem>
-            <Divider />
-          </List>
-          <Box sx={{ flexGrow: 1 }} />
-          <List sx={{paddingBottom: '0px'}}>
-            <ListItem
-              sx={{
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'background 0.2s',
-                '&:hover': { backgroundColor: '#ffeaea' },
-              }}
-              component="button"
-              onClick={handleLogout}
-            >
-              <ListItemIcon><LogoutIcon sx={{ color: '#e53935' }} /></ListItemIcon>
-              <ListItemText primary="Cerrar sesión" />
-            </ListItem>
-          </List>
-        </Drawer>
-      )}
+            <ListItemIcon><HomeIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+            <ListItemText primary="Inicio" />
+          </ListItem>
+          <Divider />
+          <ListItem
+            sx={{
+              backgroundColor: '#f7fafd',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background 0.2s',
+              '&:hover': { backgroundColor: '#e3e6ea' },
+            }}
+            component="button"
+            onClick={() => handleNavigation('/upload')}
+          >
+            <ListItemIcon><AddCircleIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+            <ListItemText primary="Subir" />
+          </ListItem>
+          <Divider />
+          <ListItem
+            sx={{
+              backgroundColor: '#f7fafd',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background 0.2s',
+              '&:hover': { backgroundColor: '#e3e6ea' },
+            }}
+            component="button"
+            onClick={() => handleNavigation('/notifications')}
+          >
+            <ListItemIcon><NotificationsIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+            <ListItemText primary="Notificaciones" />
+          </ListItem>
+          <Divider />
+          <ListItem
+            sx={{
+              backgroundColor: '#f7fafd',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background 0.2s',
+              '&:hover': { backgroundColor: '#e3e6ea' },
+            }}
+            component="button"
+            onClick={() => handleNavigation('/profile')}
+          >
+            <ListItemIcon><PersonIcon sx={{ color: '#307cbe' }} /></ListItemIcon>
+            <ListItemText primary="Perfil" />
+          </ListItem>
+          <Divider />
+        </List>
+        <Box sx={{ flexGrow: 1 }} />
+        <List sx={{paddingBottom: '0px'}}>
+          <ListItem
+            sx={{
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background 0.2s',
+              '&:hover': { backgroundColor: '#ffeaea' },
+            }}
+            component="button"
+            onClick={handleLogout}
+          >
+            <ListItemIcon><LogoutIcon sx={{ color: '#e53935' }} /></ListItemIcon>
+            <ListItemText primary="Cerrar sesión" />
+          </ListItem>
+        </List>
+      </Drawer>
 
       {/* Contenido principal */}
       <Box
         sx={{
           flex: 1,
-          maxWidth: '65%',
-          paddingX: { xs: '16px', md: '32px' },
+          maxWidth: { xs: '100vw', md: '65%' },
+          paddingX: { xs: 1, md: '32px' },
           minHeight: 'max-content',
+          width: '100%',
+          paddingBottom: { xs: '200px', md: 0 },
         }}
       >
         {/* Perfil del usuario */}
         <Paper
           elevation={3}
           sx={{
-            padding: '12px 16px',
+            padding: { xs: '10px 6px', md: '12px 16px' },
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
             display: 'flex',
-            alignItems: 'center',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'flex-start', sm: 'center' },
             gap: '16px',
             position: 'relative',
-            maxWidth: { xs: '100%', sm: '1000px' }, // Limita el ancho en desktop
-            ml: { xs: 0, sm: 8 },                  // Añade margen izquierdo en desktop
-            mt: { xs: 2, sm: 0 },                  // Un poco de margen arriba en móvil
+            maxWidth: { xs: '100%', md: '1000px' },
+            ml: { xs: 0, md: 8 },
+            mt: 0,
           }}
         >
           {/* Avatar del usuario */}
@@ -557,7 +557,7 @@ const OtherUserPage: React.FC = () => {
                   variant="body2"
                   sx={{ color: 'text.secondary' }}
                 >
-                  Posts
+                  Publicaciones
                 </Typography>
               </Box>
 
@@ -593,8 +593,8 @@ const OtherUserPage: React.FC = () => {
         {/* Publicaciones */}
         <Box sx={{ mt: 4 }}>
           <Tabs value={tab} onChange={(_, v) => setTab(v)} centered>
-            <Tab label="Posts" />
-            <Tab label="Reposts" />
+            <Tab label="Publicaciones" />
+            <Tab label="Reposteados" />
           </Tabs>
           <Box sx={{ mt: 2 }}>
             {error && (
@@ -607,22 +607,42 @@ const OtherUserPage: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Reproductor lateral */}
+      {/* Reproductor lateral solo escritorio */}
       <Box
         sx={{
-          display: 'flex',
+          display: { xs: 'none', md: 'flex' },
           alignItems: 'flex-start',
           justifyContent: 'center',
-          width: '30%',
+          width: { md: '30%' },
           position: 'fixed',
           top: 0,
           right: 0,
           height: 'calc(100vh - 24px)',
           backgroundColor: '#f5f5f5',
-          margin: '12px 18px 0 12px',
+          margin: { md: '12px 18px 0 12px' },
           padding: 0,
           boxShadow: '-8px 8px 12px rgba(0,0,0,0.15)',
           overflow: 'hidden',
+        }}
+      >
+        <MusicPlayer 
+          onPrevPublication={handlePrevPublication}
+          onNextPublication={handleNextPublication}
+        />
+      </Box>
+
+      {/* Reproductor flotante solo en móvil */}
+      <Box
+        sx={{
+          display: { xs: 'flex', md: 'none' },
+          position: 'fixed',
+          left: 0,
+          bottom: 0,
+          width: '100vw',
+          backgroundColor: '#f5f5f5',
+          boxShadow: '0 -4px 12px rgba(0,0,0,0.12)',
+          zIndex: 2000,
+          pb: 1,
         }}
       >
         <MusicPlayer 
@@ -646,7 +666,7 @@ const OtherUserPage: React.FC = () => {
               {userList.map((item) => (
                 <ListItem key={item.name}>
                   <ListItemAvatar>
-                    <Avatar src={item.profile_img || undefined} />
+                    <Avatar src={item.profile_img || item.profileImg || undefined} />
                   </ListItemAvatar>
                   <ListItemText
                     primary={
