@@ -42,6 +42,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
 
   const handleSeek = (event: Event, newValue: number | number[]) => {
 	event;
+	event;
     if (globalAudioRef.current && duration && !isNaN(duration)) {
       const seekTime = Math.min((newValue as number / 100) * duration, duration - 0.1);
       globalAudioRef.current.currentTime = seekTime;
@@ -49,6 +50,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
   };
 
   const handleVolumeChange = (event: Event, newValue: number | number[]) => {
+	event;
 	event;
     setVolume(newValue as number);
   };
