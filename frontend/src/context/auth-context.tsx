@@ -1,11 +1,9 @@
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
 
-// Obtener la URL de la API desde variables de entorno
-const API_URL = import.meta.env.VITE_API_URL || 'http://vibra';
-
 interface AuthContextType {
   isLoggedIn: boolean;
   login: (emailOrUsername: string, password: string) => Promise<boolean>;
+  completeLogin: () => void;
   logout: () => void;
   token: string | null;
   user: { name: string } | null;
@@ -16,65 +14,50 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [user, setUser] = useState<{ name: string } | null>(null);
-  const [isLoadingUser, setIsLoadingUser] = useState(false);
+  const [allowAutoLogin, setAllowAutoLogin] = useState(true); // ✅ AGREGAR: Control de auto-login
 
-  // Debug en desarrollo
+  // Si el token no es válido, lo eliminamos y forzamos logout
   useEffect(() => {
-    if (import.meta.env.DEV) {
-      console.log('🔐 AuthContext - Token inicial:', !!token);
-      console.log('🌐 AuthContext - API_URL:', API_URL);
+    if (token && token.length < 10) {
+      setToken(null);
+      localStorage.removeItem('token');
+      setUser(null);
     }
-  }, []);
+  }, [token]);
 
-  // Auto-cargar usuario cuando hay token válido
+  // ✅ MODIFICAR: Solo auto-cargar usuario si allowAutoLogin es true
   useEffect(() => {
     const fetchUser = async () => {
-      if (token && !user && !isLoadingUser) {
-        setIsLoadingUser(true);
-        
-        if (import.meta.env.DEV) {
-          console.log('👤 Cargando datos de usuario...');
-        }
-        
+      if (token && allowAutoLogin) { // ✅ AGREGAR: Verificar allowAutoLogin
         try {
-          const response = await fetch(`${API_URL}/api/users/page`, {
+          const response = await fetch('http://vibra/api/users/page', {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           });
-          
           if (response.ok) {
             const data = await response.json();
             setUser({ name: data.name });
-            
-            if (import.meta.env.DEV) {
-              console.log('✅ Usuario cargado:', data.name);
-            }
           } else {
-            // Token inválido, limpiar
-            console.error('🚫 Token inválido, limpiando sesión');
-            setToken(null);
-            localStorage.removeItem('token');
             setUser(null);
           }
-        } catch (error) {
-          console.error('🔥 Error al cargar usuario:', error);
-          // Error de red, mantener token pero limpiar usuario
+        } catch {
           setUser(null);
         }
-        setIsLoadingUser(false);
+      } else if (!allowAutoLogin) {
+        setUser(null); // ✅ Limpiar usuario si no se permite auto-login
       }
     };
     fetchUser();
-  }, [token, user, isLoadingUser]);
+  }, [token, allowAutoLogin]); // ✅ AGREGAR: allowAutoLogin como dependencia
 
+  // ✅ MODIFICAR: Login que temporalmente desactiva auto-login
   const login = async (emailOrUsername: string, password: string): Promise<boolean> => {
     try {
-      if (import.meta.env.DEV) {
-        console.log('🔑 Intentando login...');
-      }
+      // ✅ Temporalmente desactivar auto-login
+      setAllowAutoLogin(false);
       
-      const response = await fetch(`${API_URL}/api/users/login`, {
+      const response = await fetch('http://vibra/api/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -86,7 +69,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
       
       if (!response.ok) {
-        console.error('❌ Login fallido:', response.status);
+        setAllowAutoLogin(true); // ✅ Reactivar si falla
         return false;
       }
       
@@ -94,18 +77,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (data.token) {
         setToken(data.token);
         localStorage.setItem('token', data.token);
-        
-        if (import.meta.env.DEV) {
-          console.log('✅ Token guardado, cargando usuario...');
-        }
-        
+        // ✅ NO cargar usuario aún
         return true;
       }
       
+      setAllowAutoLogin(true); // ✅ Reactivar si falla
       return false;
-    } catch (error) {
-      console.error('🔥 Error en login:', error);
+    } catch {
+      setAllowAutoLogin(true); // ✅ Reactivar si falla
       return false;
+    }
+  };
+
+  // ✅ MODIFICAR: completeLogin que activa el auto-login y carga usuario
+  const completeLogin = async () => {
+    setAllowAutoLogin(true); // ✅ Reactivar auto-login
+    
+    // ✅ Cargar usuario manualmente
+    if (token) {
+      try {
+        const response = await fetch('http://vibra/api/users/page', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUser({ name: data.name });
+        }
+      } catch {
+        setUser(null);
+      }
     }
   };
 
@@ -113,17 +115,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setToken(null);
     localStorage.removeItem('token');
     setUser(null);
-    
-    if (import.meta.env.DEV) {
-      console.log('🚪 Usuario desconectado');
-    }
+    setAllowAutoLogin(true); // ✅ Reactivar auto-login para futuros logins
   };
 
-  // isLoggedIn basado solo en el token - más confiable en producción
-  const isLoggedIn = !!token;
+  // ✅ isLoggedIn se calcula del token y usuario
+  const isLoggedIn = !!token && !!user;
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout, token, user }}>
+    <AuthContext.Provider value={{ isLoggedIn, login, completeLogin, logout, token, user }}>
       {children}
     </AuthContext.Provider>
   );

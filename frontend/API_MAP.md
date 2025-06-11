@@ -1,7 +1,5 @@
 # Mapa de endpoints de la API
 
-ROOT PATH: http://localhost:8080
-
 ## HOME
 
 - Obtener objetos del HOME (debe contener el JWT)
@@ -440,6 +438,10 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 			"name": "mastercaster",
 			"coverImg": "http://localhost:8080/api/media/defaultc.png"
 		}
+
+ - Delete post
+
+	request: DELETE /api/posts/{post_id}
 
 # MEDIA
 

@@ -6,9 +6,6 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Logo from '../../assets/logo.png';
 
-// Obtener la URL de la API desde variables de entorno
-const API_URL = import.meta.env.VITE_API_URL || 'http://vibra';
-
 const Signup: React.FC = () => {
   const navigate = useNavigate();
   const [formValues, setFormValues] = useState({
@@ -87,7 +84,7 @@ const Signup: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/users/register`, {
+      const response = await fetch('http://vibra/api/users/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

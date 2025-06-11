@@ -1,8 +1,8 @@
 
-ALTER TABLE posts DROP CONSTRAINT fkfheekp1ddxo90erweblld3axm;
+/* ALTER TABLE posts DROP CONSTRAINT fkfheekp1ddxo90erweblld3axm;
 ALTER TABLE reposts DROP CONSTRAINT fkersix1dfhot0h5xp4umnh2mgr;
 ALTER TABLE songs DROP CONSTRAINT fkte4gkb2cqtk2erfa87oopj2cj;
-ALTER TABLE posts DROP CONSTRAINT fk89ik4e9tqc05yvnct49n1fhto;
+ALTER TABLE posts DROP CONSTRAINT fk89ik4e9tqc05yvnct49n1fhto; */
 
 --INSERTS--
 
@@ -82,12 +82,12 @@ INSERT INTO albums (id, name, cover_img, date, user_name) VALUES
 ALTER SEQUENCE albums_seq RESTART WITH 2;
 
 -- Elimina la constraint existente
-ALTER TABLE albums DROP CONSTRAINT fklcrj8o8xk0s856f6wl9o7vuib;
+/* ALTER TABLE albums DROP CONSTRAINT fklcrj8o8xk0s856f6wl9o7vuib; */
 
 -- Vuelve a crear la constraint con ON DELETE CASCADE
-ALTER TABLE albums 
+/* ALTER TABLE albums 
 ADD CONSTRAINT fk_albums_user 
-FOREIGN KEY (user_name) REFERENCES users(name) ON DELETE CASCADE;
+FOREIGN KEY (user_name) REFERENCES users(name) ON DELETE CASCADE; */
 
 
 -- VIEWS

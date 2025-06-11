@@ -14,7 +14,8 @@ const Login: React.FC = () => {
     throw new Error('AuthContext debe ser utilizado dentro de un AuthProvider');
   }
 
-  const { login } = authContext;
+  const { login, completeLogin } = authContext; // ✅ AGREGAR completeLogin
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const navigate = useNavigate();
 
   const [emailOrUsername, setEmailOrUsername] = useState('');
@@ -45,14 +46,16 @@ const Login: React.FC = () => {
     if (success) {
       setShowWelcomeScreen(true);
 
-      setTimeout(() => {
+      setTimeout(async () => {
         // Inicia el fade out
         setFadeOutWelcome(true);
-        // Espera la animación antes de navegar
-        setTimeout(() => {
-          navigate('/home');
+        // Espera la animación antes de completar el login y desmontar la pantalla
+        setTimeout(async () => {
+          await completeLogin();
+          setShowWelcomeScreen(false);
+          setFadeOutWelcome(false);
         }, 600); // 600ms = duración del fade out
-      }, 2500); // 2.5 segundos total
+      }, 2500); // 2 segundos total
     } else {
       setError(true);
     }
