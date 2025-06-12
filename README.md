@@ -41,8 +41,7 @@ Aplicación de red social enfocada al bienestar digital y la música, desarrolla
 ## 🔗 Documentación específica
 
 - 📄 [`Instrucciones del backend`](./backend/README.md)
-- 📄 [`Instrucciones del frontend`](./frontend/README.md)
-- 📄 [`Instrucciones de despliegue`](./frontend/README.md)
+- 📄 [`Instrucciones de despliegue`](./kubernetes/README.md)
 
 ---
 
