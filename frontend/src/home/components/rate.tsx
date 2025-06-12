@@ -57,12 +57,12 @@ const Rate: React.FC<RateProps> = ({ postId, onRate }) => {
 
   return (
     <Tooltip title="Calificar" arrow placement="top">
-      <Box sx={{ display: 'flex', gap: 0 }} onClick={(e) => e.stopPropagation()}> {/* ✅ Evitar que se active el play */}
+      <Box sx={{ display: 'flex', gap: 0 }} onClick={(e) => e.stopPropagation()}>
         {[...Array(5)].map((_, i) => (
           <IconButton
             key={i}
             onClick={(e) => {
-              e.stopPropagation(); // ✅ Evitar que se active el play
+              e.stopPropagation();
               handleRating(i + 1);
             }}
             sx={{

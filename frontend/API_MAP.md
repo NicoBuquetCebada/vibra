@@ -436,7 +436,7 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 			"type": "song",
 			"contentId": 4,
 			"name": "mastercaster",
-			"coverImg": "http://localhost:8080/api/media/defaultc.png"
+			"coverImg": "http://vibra/api/media/defaultc.png"
 		}
 
  - Delete post

@@ -12,7 +12,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import Logo from '../assets/basic_logo.png';
 import { AuthContext } from '../context/auth-context';
 import { usePlayer } from '../context/player-context';
-import { useHome } from '../context/home-context'; // ✅ AGREGAR
+import { useHome } from '../context/home-context';
 
 interface UserData {
   name: string;
@@ -60,7 +60,7 @@ const OtherUserPage: React.FC = () => {
   const [loadingReposts, setLoadingReposts] = useState(true);
   const auth = useContext(AuthContext);
   const user = auth?.user;
-  const { triggerRefresh } = useHome(); // ✅ AGREGAR
+  const { triggerRefresh } = useHome();
 
   const isMobile = useMediaQuery('(max-width:900px)');
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -182,25 +182,19 @@ const OtherUserPage: React.FC = () => {
     checkFollowing();
   }, [username, user]);
 
-  // ✅ MODIFICAR: La función handleFollowToggle
   const handleFollowToggle = async () => {
     if (!username) return;
     try {
       if (isFollowing) {
         await unfollowUser(username);
         setIsFollowing(false);
-        console.log('✅ Usuario dejado de seguir:', username);
       } else {
         await followUser(username);
         setIsFollowing(true);
-        console.log('✅ Usuario seguido:', username);
         
-        // ✅ AGREGAR: Refrescar el home después de seguir
         triggerRefresh();
-        console.log('✅ Refresh del home programado después de seguir');
       }
       
-      // ✅ OPCIONAL: También actualizar los contadores localmente
       if (userData) {
         setUserData({
           ...userData,
@@ -277,11 +271,9 @@ const OtherUserPage: React.FC = () => {
     if (songCardData.type === 'album' && Array.isArray(songCardData.albumSongs)) {
       // Si es un álbum, configura el playlist con todas las canciones del álbum
       setPlaylist(songCardData.albumSongs);
-      console.log('Cargando álbum en el reproductor:', songCardData.albumSongs);
     } else {
       // Si es una canción, configura el playlist con una sola canción
       setPlaylist([songCardData]);
-      console.log('Cargando canción en el reproductor:', songCardData);
     }
 
     setPlaylistIndex(0);
@@ -301,7 +293,6 @@ const OtherUserPage: React.FC = () => {
       setPlaylistIndex(playlistIndex - 1);
 
       // Log para verificar el botón "Anterior"
-      console.log('Anterior canción/publicación:', playlist[playlistIndex - 1]);
     } else if (activePostIndex !== null && activePostIndex > 0) {
       playPublication(activePostIndex - 1);
     }
@@ -517,10 +508,9 @@ const OtherUserPage: React.FC = () => {
                   variant={isFollowing ? 'outlined' : 'contained'}
                   color="primary"
                   size="small"
-                  onClick={handleFollowToggle} // ✅ Esta función ya está modificada
+                  onClick={handleFollowToggle}
                   sx={{ 
                     ml: 1,
-                    // ✅ OPCIONAL: Agregar feedback visual
                     transition: 'all 0.3s ease',
                     '&:hover': {
                       transform: 'scale(1.05)',

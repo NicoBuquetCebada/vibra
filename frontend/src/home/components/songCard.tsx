@@ -22,7 +22,7 @@ interface Song {
   coverImg?: string;
   postId: number;
   type?: string;
-  // ✅ CORREGIR: Usar la estructura real de los datos
+ 
   albumSongs?: {
     id: number;
     title: string; // Era 'name' pero en realidad es 'title'
@@ -50,12 +50,12 @@ export interface SongCardProps {
   onRate?: (rate: number) => void;
   onSave?: () => void;
   onRepost?: () => void;
-  // ✅ Agregar props para borrar
+ 
   canDelete?: boolean;
   onDelete?: () => void;
-  // ✅ Agregar prop para tamaño grande
+ 
   largeSize?: boolean;
-  // ✅ Agregar prop para tamaño medio
+ 
   mediumSize?: boolean;
 }
 
@@ -74,10 +74,10 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
       onRate,
       onSave,
       onRepost,
-      canDelete, // ✅ Nueva prop
-      onDelete,  // ✅ Nueva prop
-      largeSize = false, // ✅ Nueva prop con valor por defecto
-      mediumSize = false, // ✅ Nueva prop para tamaño medio
+      canDelete,
+      onDelete, 
+      largeSize = false,
+      mediumSize = false,
     },
     ref
   ) => {
@@ -123,12 +123,10 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
         }));
         setPlaylist(playlist);
         setPlaylistIndex(0);
-        console.log('Cargando álbum en el reproductor:', playlist);
 
       } else {
         setPlaylist([song]);
         setPlaylistIndex(0);
-        console.log('Cargando canción en el reproductor:', song);
 
       }
     };
@@ -138,7 +136,7 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
         ref={ref}
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
-        onClick={handlePlay} // ✅ Hacer clic en cualquier parte reproduce la canción
+        onClick={handlePlay}
         sx={{
           width: largeSize 
             ? { xs: '95vw', sm: '600px', md: '600px' }
@@ -169,7 +167,7 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
               src={repostUser.profileImg}
               sx={{ width: 28, height: 28, mr: 1, cursor: 'pointer' }}
               onClick={(e) => {
-                e.stopPropagation(); // ✅ Evitar que se active el play
+                e.stopPropagation();
                 handleRepostUserClick();
               }}
             />
@@ -177,7 +175,7 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
               variant="caption"
               sx={{ color: '#307cbe', cursor: 'pointer', fontWeight: 500 }}
               onClick={(e) => {
-                e.stopPropagation(); // ✅ Evitar que se active el play
+                e.stopPropagation();
                 handleRepostUserClick();
               }}
             >
@@ -243,7 +241,7 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
             src={song.profilePic}
             sx={{ cursor: 'pointer' }}
             onClick={(e) => {
-              e.stopPropagation(); // ✅ Evitar que se active el play
+              e.stopPropagation();
               handleUserClick();
             }}
           />
@@ -251,7 +249,7 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
             variant="subtitle2"
             sx={{ cursor: 'pointer', color: '#307cbe' }}
             onClick={(e) => {
-              e.stopPropagation(); // ✅ Evitar que se active el play
+              e.stopPropagation();
               handleUserClick();
             }}
           >
@@ -443,7 +441,6 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
                               
                               setPlaylist(playlist);
                               setPlaylistIndex(idx); // Empezar desde la canción clickeada
-                              console.log(`Reproduciendo canción ${idx + 1} del álbum:`, track.title);
                             }}
                             sx={{ 
                               display: 'flex',
@@ -514,7 +511,6 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
                                 
                                 setPlaylist(playlist);
                                 setPlaylistIndex(idx); // Empezar desde la canción clickeada
-                                console.log(`Reproduciendo canción ${idx + 1} del álbum:`, track.title);
                               }}
                               sx={{
                                 width: '24px',
@@ -583,7 +579,7 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
         >
           <IconButton
             onClick={(e) => {
-              e.stopPropagation(); // ✅ Evitar doble activación
+              e.stopPropagation();
               handlePlay();
             }}
             sx={{
@@ -620,7 +616,7 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
             opacity: { xs: 1, md: hover ? 1 : 0 },
             zIndex: 10
           }}
-          onClick={(e) => e.stopPropagation()} // ✅ Evitar que se active el play en toda la caja de botones
+          onClick={(e) => e.stopPropagation()}
         >
           <Rate
             postId={song.postId}
@@ -635,7 +631,7 @@ const SongCard = forwardRef<HTMLDivElement, SongCardProps>(
               width: '100%',
               gap: 0,
             }}
-            onClick={(e) => e.stopPropagation()} // ✅ Evitar que se active el play en el área de botones
+            onClick={(e) => e.stopPropagation()}
           >
             <RepostButton
               postId={song.postId}

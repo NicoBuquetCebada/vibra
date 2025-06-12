@@ -9,7 +9,7 @@ import MusicPlayer from './components/musicPlayer';
 import { fetchWithAuth } from '../api';
 import { AuthContext } from '../context/auth-context';
 import { usePlayer } from '../context/player-context';
-import { useHome } from '../context/home-context'; // ✅ AGREGAR
+import { useHome } from '../context/home-context';
 import NavigationWrapper from '../components/NavigationWrapper';
 import BottomNav from '../components/bottom-navigation';
 
@@ -110,7 +110,7 @@ function MusicHome() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
   const { setPlaylist, setPlaylistIndex } = usePlayer();
-  const { shouldRefresh, resetRefresh } = useHome(); // ✅ AGREGAR
+  const { shouldRefresh, resetRefresh } = useHome();
 
   // Función para manejar clics fuera del buscador
   useEffect(() => {
@@ -156,7 +156,6 @@ function MusicHome() {
       if (!res.ok) throw new Error('Error al obtener publicaciones');
       const data: PostApi[] = await res.json();
       
-      // ✅ CAMBIAR: Solo parar si NO hay posts (array vacío)
       if (data.length === 0) setHasMore(false);
       
       setPosts(prev => {
@@ -177,9 +176,7 @@ function MusicHome() {
     }
   }, []); */
 
-  // ✅ MODIFICAR: Función para refrescar completamente el home
   const refreshHome = useCallback(async () => {
-    console.log('🔄 Refrescando home...');
     setPosts([]); // Limpiar posts actuales
     setLastLoadedPage(-1);
     setHasMore(true);
@@ -196,11 +193,9 @@ function MusicHome() {
       const page1Data: PostApi[] = await page1Res.json();
       const allPosts = [...page0Data, ...page1Data];
       
-      console.log('✅ Home refrescado, nuevas publicaciones:', allPosts.length);
       setPosts(allPosts);
       setLastLoadedPage(1);
       
-      // ✅ CAMBIAR: Solo parar si AMBAS páginas están vacías
       if (page0Data.length === 0 && page1Data.length === 0) {
         setHasMore(false);
       }
@@ -210,7 +205,6 @@ function MusicHome() {
     }
   }, []);
 
-  // ✅ AGREGAR: Escuchar cambios para refrescar
   useEffect(() => {
     if (shouldRefresh) {
       refreshHome();
@@ -232,14 +226,10 @@ function MusicHome() {
         const page1Data: PostApi[] = await page1Res.json();
         const allPosts = [...page0Data, ...page1Data];
         
-        console.log('Publicaciones cargadas:', allPosts);
-        console.log('Página 0:', page0Data.length, 'posts');
-        console.log('Página 1:', page1Data.length, 'posts');
         
         setPosts(allPosts);
         setLastLoadedPage(1);
         
-        // ✅ CAMBIAR: Solo parar si AMBAS páginas están vacías
         if (page0Data.length === 0 && page1Data.length === 0) {
           setHasMore(false);
         }
@@ -251,11 +241,10 @@ function MusicHome() {
       }
     };
     
-    // ✅ Solo cargar si no hay posts y hay token
     if (authContext?.token && posts.length === 0) {
       initialLoad();
     }
-  }, [authContext?.token, posts.length]); // ✅ Cambiar dependencias
+  }, [authContext?.token, posts.length]);
 
   // Scroll infinito con IntersectionObserver
   useEffect(() => {
@@ -279,8 +268,6 @@ function MusicHome() {
           const page1Data: PostApi[] = await page1Res.json();
           const page2Data: PostApi[] = await page2Res.json();
           
-          console.log(`Página ${nextPage}:`, page1Data.length, 'posts');
-          console.log(`Página ${nextNextPage}:`, page2Data.length, 'posts');
           
           setPosts(prev => {
             const newPosts = [...page1Data, ...page2Data].filter(newPost =>
@@ -291,7 +278,6 @@ function MusicHome() {
           
           setLastLoadedPage(nextNextPage);
           
-          // ✅ CAMBIAR: Solo parar si AMBAS páginas están vacías
           if (page1Data.length === 0 && page2Data.length === 0) {
             setHasMore(false);
           }
@@ -337,13 +323,9 @@ function MusicHome() {
     }
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        console.log('🔍 Buscando:', query);
-        console.log('👤 Usuario autenticado:', authContext?.user?.name);
         const response = await fetchWithAuth(`/api/home/search/${encodeURIComponent(query)}`);
         if (!response.ok) throw new Error('Error en la búsqueda');
         const results: SearchResult[] = await response.json();
-        console.log('📊 Resultados encontrados:', results.length);
-        console.log('📋 Resultados completos:', results);
         setSearchResults(results.slice(0, 5));
         setShowResults(true);
       } catch (error) {
@@ -386,7 +368,6 @@ function MusicHome() {
     setPlaylistIndex(0);
 
     // Log para verificar qué se carga en el reproductor
-    console.log('Cargando en el reproductor:', songCardData.type === 'album' ? songCardData.albumSongs : songCardData);
   };
 
   const handlePrevPublication = () => {

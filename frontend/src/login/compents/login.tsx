@@ -14,7 +14,7 @@ const Login: React.FC = () => {
     throw new Error('AuthContext debe ser utilizado dentro de un AuthProvider');
   }
 
-  const { login, completeLogin } = authContext; // ✅ AGREGAR completeLogin
+  const { login, completeLogin } = authContext;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const navigate = useNavigate();
 
@@ -34,7 +34,7 @@ const Login: React.FC = () => {
     event.preventDefault();
   };
 
-  // ✅ MODIFICAR: handleSubmit con pantalla de bienvenida
+ 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -235,13 +235,13 @@ const Login: React.FC = () => {
     </Box>
   );
 
-  // ✅ MODIFICAR: El return principal
+ 
   return (
     <>
-      {/* ✅ Mostrar pantalla de bienvenida si está activada */}
+      
       {showWelcomeScreen && <WelcomeScreen />}
       
-      {/* ✅ Login form original (se oculta cuando showWelcomeScreen es true) */}
+      
       <div className="container" style={{ 
         display: showWelcomeScreen ? 'none' : 'flex',
         justifyContent: 'center',

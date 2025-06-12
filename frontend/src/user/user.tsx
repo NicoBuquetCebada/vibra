@@ -313,7 +313,6 @@ const UserPage: React.FC = () => {
       setDeleteDialog({ open: false, postId: null, postTitle: '' });
       
       // Opcional: Mostrar mensaje de éxito
-      console.log('Post eliminado correctamente');
       
     } catch (error) {
       console.error('Error al eliminar el post:', error);
@@ -347,12 +346,12 @@ const UserPage: React.FC = () => {
             <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
               <SongCard 
                 song={songCardData} 
-                onPlay={() => playPublication(idx)} // ✅ Conectado
+                onPlay={() => playPublication(idx)}
                 onUserClick={() => navigate('/profile')} 
                 onSaveChange={fetchSaves} 
                 onRateChange={fetchRates} 
-                canDelete={true} // ✅ Habilitar borrar solo en posts propios
-                onDelete={() => handleDeletePost(post.id, post.name)} // ✅ Función de borrado
+                canDelete={true}
+                onDelete={() => handleDeletePost(post.id, post.name)}
               />
             </Box>
           );
@@ -371,11 +370,10 @@ const UserPage: React.FC = () => {
             <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
               <SongCard 
                 song={songCardData} 
-                onPlay={() => playPublication(idx)} // ✅ Agregado
+                onPlay={() => playPublication(idx)}
                 onUserClick={() => navigate('/profile')} 
                 onSaveChange={fetchSaves} 
                 onRateChange={fetchRates}
-                // ❌ NO incluir canDelete para reposts
               />
             </Box>
           );
@@ -394,7 +392,7 @@ const UserPage: React.FC = () => {
             <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
               <SongCard 
                 song={songCardData} 
-                onPlay={() => playPublication(idx)} // ✅ Agregado
+                onPlay={() => playPublication(idx)}
                 onUserClick={() => navigate('/profile')} 
                 onSaveChange={fetchSaves} 
                 onRateChange={fetchRates}
@@ -416,7 +414,7 @@ const UserPage: React.FC = () => {
             <Box key={post.id} sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
               <SongCard 
                 song={songCardData} 
-                onPlay={() => playPublication(idx)} // ✅ Agregado
+                onPlay={() => playPublication(idx)}
                 onUserClick={() => navigate('/profile')} 
                 onSaveChange={fetchSaves} 
                 onRateChange={fetchRates}
@@ -474,13 +472,11 @@ const UserPage: React.FC = () => {
     setPlaylistIndex(0);
     setActivePostIndex(postIdx);
 
-    console.log('Cargando en el reproductor:', songCardData.type === 'album' ? songCardData.albumSongs : songCardData);
   };
 
   const handlePrevPublication = () => {
     if (playlistIndex > 0) {
       setPlaylistIndex(playlistIndex - 1);
-      console.log('Anterior canción/publicación:', playlist[playlistIndex - 1]);
     } else if (activePostIndex !== null && activePostIndex > 0) {
       playPublication(activePostIndex - 1);
     }
@@ -489,7 +485,6 @@ const UserPage: React.FC = () => {
   const handleNextPublication = () => {
     if (playlistIndex < playlist.length - 1) {
       setPlaylistIndex(playlistIndex + 1);
-      console.log('Siguiente canción/publicación:', playlist[playlistIndex + 1]);
     } else if (activePostIndex !== null) {
       // Obtener el array correcto según la pestaña
       let currentPosts: UserPagePost[];

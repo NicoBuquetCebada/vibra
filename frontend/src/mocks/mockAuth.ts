@@ -39,7 +39,6 @@ export const validateToken = (token: string): UserData | null => {
     }
 
     const decoded = JSON.parse(atob(payload)); // Decodifica el payload
-    console.log('Token válido:', decoded);
     return decoded; // Devuelve los datos del token si es válido
   } catch (error) {
     // Manejar error de manera segura

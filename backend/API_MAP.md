@@ -1,7 +1,5 @@
 # Mapa de endpoints de la API
 
-ROOT PATH: http://localhost:8080
-
 ## HOME
 
 - Obtener objetos del HOME (debe contener el JWT)
@@ -236,37 +234,7 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 			"coverImg": "ruta/cover"
 		}
 
- - Get user reposts, obtiene las publicaciones reposteadas por el usuario autenticado a través de JWT
-	
-	request: GET /api/users/reposts
-
-	reponse:
-		{
-			"id": 1,
-			"userName": "string",
-			"createdAt": "2022-03-10T12:15:50",
-			"type": "song o album",
-			"contentId": 1,
-			"name": "songName o albumName",
-			"coverImg": "ruta/cover"
-		}
-
- - Get other user reposts, obtiene las publicaciones reposteadas por otro usuario a traves del user name
-	
-	request: GET /api/users/reposts/{user_name}
-
-	reponse:
-		{
-			"id": 1,
-			"userName": "string",
-			"createdAt": "2022-03-10T12:15:50",
-			"type": "song o album",
-			"contentId": 1,
-			"name": "songName o albumName",
-			"coverImg": "ruta/cover"
-		}
-
-	IMPORTANTE: En los endpoint de users/posts, users/saves, users/rates y users/saves no está la información del audio de la canción (canciones en caso de album) Cuando se traigan esta información se podrán listar los posts pero hará falta por cada uno de los posts hacer una petición a los endpoint de song (información detallada en el apartado songs), en caso de:
+	IMPORTANTE: En los endpoint de users/posts, users/saves y users/rates no está la información del audio de la canción (canciones en caso de album) Cuando se traigan esta información se podrán listar los posts pero hará falta por cada uno de los posts hacer una petición a los endpoint de song (información detallada en el apartado songs), en caso de:
 
 		"type": "song" -> GET /api/songs/{id} del que se utilizara solo la propiedad audio
 
@@ -468,8 +436,12 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 			"type": "song",
 			"contentId": 4,
 			"name": "mastercaster",
-			"coverImg": "http://localhost:8080/api/media/defaultc.png"
+			"coverImg": "http://vibra/api/media/defaultc.png"
 		}
+
+ - Delete post
+
+	request: DELETE /api/posts/{post_id}
 
 # MEDIA
 
@@ -522,3 +494,41 @@ search, buscador de usuarios, albumes y canciones. Se introduce el texto a busca
 			"contentId": 1
 		}
 		]
+
+# REPOST
+
+- Get user reposts, obtiene las publicaciones que el usuario autenticado ha hecho repost a través del JWT
+
+    request: GET /api/users/reposts
+
+    response:
+        [
+            {
+                "id": 1,
+                "userName": "string",
+                "createdAt": "2022-03-10T12:15:50",
+                "type": "song o album",
+                "contentId": 1,
+                "name": "songName o albumName",
+                "coverImg": "ruta/cover"
+            },
+            ...
+        ]
+
+- Get other user reposts, obtiene las publicaciones que otro usuario ha hecho repost a través de su user name
+
+    request: GET /api/users/reposts/{user_name}
+
+    response:
+        [
+            {
+                "id": 1,
+                "userName": "string",
+                "createdAt": "2022-03-10T12:15:50",
+                "type": "song o album",
+                "contentId": 1,
+                "name": "songName o albumName",
+                "coverImg": "ruta/cover"
+            },
+            ...
+        ]

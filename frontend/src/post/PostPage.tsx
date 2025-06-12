@@ -11,7 +11,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
 import Logo from '../assets/basic_logo.png';
-import { getHome, fetchWithAuth } from '../api'; // ✅ AGREGAR fetchWithAuth
+import { getHome, fetchWithAuth } from '../api';
 import { AuthContext } from '../context/auth-context';
 import { postToSongCard, PostApi } from '../home/home';
 
@@ -19,7 +19,7 @@ const PostPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
   const [post, setPost] = useState<PostApi | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null); // ✅ AGREGAR estado de error
+  const [error, setError] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   //const [loadingStage/* , setLoadingStage */] = useState<'initial' | 'searching' | 'loading-all' | 'complete'>('initial');
   //const [currentPage/* , setCurrentPage */] = useState(0);
@@ -28,9 +28,8 @@ const PostPage: React.FC = () => {
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
 
-  // ✅ NUEVA FUNCIÓN: Cargar todas las páginas disponibles
+ 
   const loadAllPosts = async (): Promise<PostApi[]> => {
-    console.log('🔄 PostPage: Cargando todas las páginas...');
     
     const allPosts: PostApi[] = [];
     let currentPageNum = 0;
@@ -38,13 +37,11 @@ const PostPage: React.FC = () => {
     
     try {
       while (hasMorePages) {
-        console.log(`📄 PostPage: Cargando página ${currentPageNum}...`);
         
         const response = await fetchWithAuth(`/api/home?page=${currentPageNum}`);
         if (!response.ok) break;
         
         const pageData: PostApi[] = await response.json();
-        console.log(`📄 PostPage: Página ${currentPageNum}: ${pageData.length} posts`);
         
         if (pageData.length === 0) {
           hasMorePages = false;
@@ -62,7 +59,6 @@ const PostPage: React.FC = () => {
         }
       }
       
-      console.log(`✅ PostPage: Carga completa: ${allPosts.length} posts totales`);
       return allPosts;
     } catch (error) {
       console.error('❌ PostPage: Error cargando todas las páginas:', error);
@@ -70,7 +66,7 @@ const PostPage: React.FC = () => {
     }
   };
 
-  // ✅ SIMPLIFICAR: useEffect sin los estados de loading stage
+ 
   useEffect(() => {
     const fetchPost = async () => {
       if (!postId) {
@@ -83,31 +79,22 @@ const PostPage: React.FC = () => {
       setError(null);
       
       try {
-        console.log('🔍 PostPage: Buscando post ID:', postId);
         
-        // ✅ ESTRATEGIA 1: Intentar con la primera página (rápido)
-        console.log('⚡ PostPage: Intentando búsqueda rápida...');
+       
         const firstPagePosts = await getHome();
-        console.log('📋 PostPage: Posts de primera página:', firstPagePosts.length);
         
         let filteredPost = firstPagePosts.find((p: PostApi) => p.postId === Number(postId));
-        console.log('🎯 PostPage: Post encontrado en primera página:', !!filteredPost);
         
-        // ✅ ESTRATEGIA 2: Si no se encuentra, cargar todas las páginas
+       
         if (!filteredPost) {
-          console.log('🔍 PostPage: No encontrado en primera página, cargando todas...');
           const allPosts = await loadAllPosts();
-          console.log('📚 PostPage: Posts totales cargados:', allPosts.length);
           
           filteredPost = allPosts.find((p: PostApi) => p.postId === Number(postId));
-          console.log('🎯 PostPage: Post encontrado en todas las páginas:', !!filteredPost);
         }
         
         if (filteredPost) {
-          console.log('✅ PostPage: Post cargado exitosamente:', filteredPost.postId);
           setPost(filteredPost);
         } else {
-          console.log('❌ PostPage: Post no encontrado en ninguna página');
           setError('Publicación no encontrada');
         }
       } catch (e) {
@@ -141,7 +128,7 @@ const PostPage: React.FC = () => {
         flexDirection: 'row',
         minWidth: '100vw',
         height: '100vh',
-        overflow: 'hidden', // ✅ Deshabilitar scroll
+        overflow: 'hidden',
         paddingTop: { xs: '32px', md: '32px' },
         paddingBottom: '70px',
         backgroundColor: 'transparent',
@@ -306,9 +293,9 @@ const PostPage: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           minHeight: '100vh',
-          paddingTop: { xs: '80px', md: '60px' }, // ✅ Reducido: era 100px/80px, ahora 80px/60px
+          paddingTop: { xs: '80px', md: '60px' }, 
           paddingLeft: { xs: '0', md: '0' },
-          paddingRight: { xs: '0', md: '30%' }, // Espacio para el reproductor (vuelve al 30%)
+          paddingRight: { xs: '0', md: '30%' },
           position: 'relative',
           zIndex: 1,
         }}
@@ -321,7 +308,7 @@ const PostPage: React.FC = () => {
             </Typography>
           </Box>
         ) : error ? (
-          // ✅ MEJORAR: Mejor manejo de errores
+         
           <Box sx={{ textAlign: 'center', py: 4 }}>
             <Typography variant="h6" color="error" sx={{ mb: 2 }}>
               ❌ {error}
@@ -371,7 +358,7 @@ const PostPage: React.FC = () => {
               username: post.user.name || 'Sistema',
             }}
             isRepost={false}
-            mediumSize={true} // ✅ Usar tamaño medio (menos grande)
+            mediumSize={true}
           />
         ) : (
           <Typography variant="body1" color="error" sx={{ mt: 4 }}>
@@ -396,7 +383,7 @@ const PostPage: React.FC = () => {
           padding: 0,
           boxShadow: '-8px 8px 12px rgba(0, 0, 0, 0.15)',
           overflow: 'hidden',
-          zIndex: 1000, // ✅ Z-index menor que la barra de búsqueda
+          zIndex: 1000,
         }}
       >
         <MusicPlayer />

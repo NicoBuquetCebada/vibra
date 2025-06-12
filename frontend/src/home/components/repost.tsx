@@ -29,11 +29,9 @@ const RepostButton: React.FC<RepostButtonProps> = ({ postId, isReposted, onRepos
     setLoading(true);
     try {
       if (reposted) {
-        console.log(`Llamando a deleteRepost para el postId: ${postId}`);
         await deleteRepost(postId);
         setReposted(false);
       } else {
-        console.log(`Llamando a repostPost para el postId: ${postId}`);
         await repostPost(postId);
         setReposted(true);
       }
@@ -54,7 +52,7 @@ const RepostButton: React.FC<RepostButtonProps> = ({ postId, isReposted, onRepos
     <Tooltip title={reposted ? "Eliminar repost" : "Repostear"} arrow placement="top">
       <IconButton
         onClick={(e) => {
-          e.stopPropagation(); // ✅ Evitar que se active el play
+          e.stopPropagation();
           handleRepost();
         }}
         disabled={loading}

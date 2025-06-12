@@ -1,8 +1,10 @@
 
-/* ALTER TABLE posts DROP CONSTRAINT fkfheekp1ddxo90erweblld3axm;
+ALTER TABLE posts DROP CONSTRAINT fkfheekp1ddxo90erweblld3axm;
 ALTER TABLE reposts DROP CONSTRAINT fkersix1dfhot0h5xp4umnh2mgr;
 ALTER TABLE songs DROP CONSTRAINT fkte4gkb2cqtk2erfa87oopj2cj;
-ALTER TABLE posts DROP CONSTRAINT fk89ik4e9tqc05yvnct49n1fhto; */
+ALTER TABLE posts DROP CONSTRAINT fk89ik4e9tqc05yvnct49n1fhto;
+ALTER TABLE albums DROP CONSTRAINT fklcrj8o8xk0s856f6wl9o7vuib;
+ALTER TABLE rates DROP CONSTRAINT fkcmg8iasa7rtthx09ygse9san5;
 
 --INSERTS--
 
@@ -56,13 +58,6 @@ INSERT INTO posts (id, created_at, user_name, album_id, song_id) VALUES
 (1, '2025-06-01 11:17:43', '', null, ), */
 ALTER SEQUENCE posts_seq RESTART WITH 6;
 
-
--- Reposts
-/* INSERT INTO reposts (id, created_at, user_name, post_id) VALUES
-(1, '2023-06-17 12:00:00', 'janedoe', 1),
-ALTER SEQUENCE reposts_seq RESTART WITH 5;
- */
-
 -- Songs
 INSERT INTO songs (id, name, cover_img, date, audio, user_name, album_id) VALUES
 (1, 'Depelicula', 'http://vibra/api/media/ab67616d00001e02864d1711060de17fabb8b7da.jpg', '2025-06-01', 'http://vibra/api/media/ab67616d00001e02864d1711060de17fabb8b7da.mp3', 'ardo440', null),
@@ -81,14 +76,25 @@ INSERT INTO albums (id, name, cover_img, date, user_name) VALUES
 --(2, '', 'http://vibra/api/media/', '2025-06-01', ''),
 ALTER SEQUENCE albums_seq RESTART WITH 2;
 
--- Elimina la constraint existente
-/* ALTER TABLE albums DROP CONSTRAINT fklcrj8o8xk0s856f6wl9o7vuib; */
+-- Reposts
+INSERT INTO reposts (id, created_at, user_name, post_id) VALUES
+(1, '2023-06-17 12:00:00', 'nico', 1);
+ALTER SEQUENCE reposts_seq RESTART WITH 2;
 
--- Vuelve a crear la constraint con ON DELETE CASCADE
-/* ALTER TABLE albums 
-ADD CONSTRAINT fk_albums_user 
-FOREIGN KEY (user_name) REFERENCES users(name) ON DELETE CASCADE; */
 
+-- Saves
+INSERT INTO saves (id, created_at, user_name, post_id) VALUES
+(1, '2023-06-19 18:00:00', 'nico', 1),
+(2, '2023-12-19 19:00:00', 'nico', 5),
+(3, '2023-03-19 20:00:00', 'nico', 3);
+ALTER SEQUENCE saves_seq RESTART WITH 4;
+
+-- Rates
+INSERT INTO rates (id, rate, created_at, user_name, post_id) VALUES
+(1, 5, '2023-06-18 15:00:00', 'nico', 1),
+(2, 4, '2023-12-18 16:00:00', 'nico', 2),
+(3, 1, '2023-03-18 17:00:00', 'nico', 4);
+ALTER SEQUENCE rates_seq RESTART WITH 4;
 
 -- VIEWS
 
@@ -138,20 +144,3 @@ SELECT
 FROM posts p
 LEFT JOIN albums a ON p.album_id = a.id
 LEFT JOIN songs s ON p.song_id = s.id;
-
-/*
--- Rates
-INSERT INTO rates (id, rate, created_at, user_name, post_id) VALUES
-(1, 5, '2023-06-18 15:00:00', 'janedoe', 1),
-(2, 4, '2023-12-18 16:00:00', 'bobsmith', 2),
-(3, 5, '2023-03-18 17:00:00', 'johndoe', 3);
-ALTER SEQUENCE rates_seq RESTART WITH 4;
-
--- Saves
-INSERT INTO saves (id, created_at, user_name, post_id) VALUES
-(1, '2023-06-19 18:00:00', 'janedoe', 1),
-(2, '2023-12-19 19:00:00', 'bobsmith', 2),
-(3, '2023-03-19 20:00:00', 'johndoe', 3);
-ALTER SEQUENCE saves_seq RESTART WITH 4;
-
- */

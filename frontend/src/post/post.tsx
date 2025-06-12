@@ -210,7 +210,7 @@ const CreatePost: React.FC = () => {
             mb: 4,
           }}
         >
-          {/* ✅ AGREGAR: Card contenedora principal */}
+          
           <Card
             elevation={6}
             sx={{
@@ -303,7 +303,7 @@ const CreatePost: React.FC = () => {
 
               {/* Contenido principal */}
               {!isAlbum ? (
-                // ✅ CORREGIR: Formulario de canción en Card
+               
                 <Card
                   elevation={2}
                   sx={{
@@ -473,7 +473,7 @@ const CreatePost: React.FC = () => {
                   </Box>
                 </Card>
               ) : (
-                // ✅ CORREGIR: Formulario de álbum en Card
+               
                 <Card
                   elevation={2}
                   sx={{

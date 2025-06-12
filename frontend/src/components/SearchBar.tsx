@@ -58,11 +58,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
     }
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        console.log('🔍 Buscando:', query);
         const response = await fetchWithAuth(`/api/home/search/${encodeURIComponent(query)}`);
         if (!response.ok) throw new Error('Error en la búsqueda');
         const results: SearchResult[] = await response.json();
-        console.log('📊 Resultados encontrados:', results.length);
         setSearchResults(results.slice(0, 5));
         setShowResults(true);
       } catch (error) {
