@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: quay.io/nicobuquet/vibra:0.3
+          image: quay.io/nicobuquet/vibra:1
           ports:
             - containerPort: 8080
           env:

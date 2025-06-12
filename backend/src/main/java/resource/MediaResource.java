@@ -24,7 +24,7 @@ import java.util.*;
 @Consumes(MediaType.MULTIPART_FORM_DATA)
 public class MediaResource {
 
-	private static final String UPLOAD_DIR = "media";
+	private static final String UPLOAD_DIR = "/deployments/media";
 
 	@ConfigProperty(name = "media.path")
     private String URL;
