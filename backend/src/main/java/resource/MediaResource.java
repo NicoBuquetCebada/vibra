@@ -27,7 +27,7 @@ public class MediaResource {
 	private static final String UPLOAD_DIR = "media";
 
 	@ConfigProperty(name = "media.path")
-    private static String URL;
+    private String URL;
 
     private static final Tika tika = new Tika();
 
