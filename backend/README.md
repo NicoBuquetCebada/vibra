@@ -2,6 +2,8 @@
 
 Backend de la aplicación Vibra, desarrollado en Quarkus con programación reactiva, persistencia sobre PostgreSQL y autenticación JWT. Este servicio expone la API REST principal de la plataforma y gestiona la lógica de negocio, persistencia y seguridad.
 
+[información del despliegue en producción](../kubernetes/README.md)
+
 ---
 
 ### ⚙️ Tecnologías utilizadas
@@ -22,7 +24,7 @@ Backend de la aplicación Vibra, desarrollado en Quarkus con programación react
 - Java (JDK)
 - Maven
 - Acceso a la base de datos PostgreSQL
-- Claves públicas y privadas para firma JWT
+- Claves públicas y privadas para firma JWT (cambia en producción)
 - Variables de entorno configuradas correctamente
 
 ---
@@ -40,7 +42,7 @@ quarkus.datasource.reactive.url=postgresql://<host>:<port>/<database>
 quarkus.datasource.username=<username>
 quarkus.datasource.password=<password>
 
-# Claves JWT
+# Claves JWT (para dev)
 mp.jwt.verify.publickey.location=public-key.pem # Por defecto toma la carpeta /src/main/resources
 smallrye.jwt.sign.key.location=private-key.pem
 
