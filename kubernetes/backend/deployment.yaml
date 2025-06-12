@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: quay.io/nicobuquet/vibra:0.3
+          ports:
+            - containerPort: 8080
+          env:
+          - name: MP_JWT_VERIFY_PUBLICKEY
+            valueFrom:
+              secretKeyRef:
+                name: jwt-secret
+                key: publicKey.pem
+          - name: SMALLRYE_JWT_SIGN_KEY
+            valueFrom:
+              secretKeyRef:
+                name: jwt-secret
+                key: privateKey.pem
+          - name: QUARKUS_HTTP_LIMITS_MAX-BODY-SIZE
+            value: 50M
+          - name: MEDIA_PATH
+            value: http://vibra/api/media/
+          - name: QUARKUS_HIBERNATE-ORM_DATABASE_GENERATION
+            value: drop-and-create

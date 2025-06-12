@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-vibra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db-vibra
+  template:
+    metadata:
+      labels:
+        app: db-vibra
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          env:
+            - name: POSTGRES_DB
+              value: db_vibra
+            - name: POSTGRES_USER
+              value: nico
+            - name: POSTGRES_PASSWORD
+              value: pass
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: db-storage
+      volumes:
+        - name: db-storage
+          persistentVolumeClaim:
+            claimName: db-pvc
