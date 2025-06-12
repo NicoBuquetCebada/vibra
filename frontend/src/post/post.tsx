@@ -5,6 +5,7 @@ import AddIcon from '@mui/icons-material/Add';
 import AudiotrackIcon from '@mui/icons-material/Audiotrack';
 import { useNavigate, useLocation } from 'react-router-dom';
 import NavigationWrapper from '../components/NavigationWrapper';
+import AudioPreview from '../components/AudioPreview';
 import Logo from '../assets/logo.png';
 import { fetchWithAuth, addSongPost, addAlbumPost } from '../api';
 
@@ -438,16 +439,7 @@ const CreatePost: React.FC = () => {
                       </Button>
 
                       {songData.audio && (
-                        <Card elevation={1} sx={{ p: 1, borderRadius: 2 }}>
-                          <audio
-                            controls
-                            src={URL.createObjectURL(songData.audio)}
-                            style={{
-                              width: '100%',
-                              borderRadius: '8px',
-                            }}
-                          />
-                        </Card>
+                        <AudioPreview audioFile={songData.audio} />
                       )}
                     </Box>
 
@@ -640,24 +632,7 @@ const CreatePost: React.FC = () => {
                             </Button>
 
                             {song.audio && (
-                              <Card
-                                elevation={1}
-                                sx={{
-                                  p: 1,
-                                  borderRadius: 2,
-                                  backgroundColor: 'rgba(248, 250, 252, 0.8)',
-                                  border: '1px solid rgba(48, 124, 190, 0.08)',
-                                }}
-                              >
-                                <audio
-                                  controls
-                                  src={URL.createObjectURL(song.audio)}
-                                  style={{
-                                    width: '100%',
-                                    borderRadius: '8px',
-                                  }}
-                                />
-                              </Card>
+                              <AudioPreview audioFile={song.audio} />
                             )}
                           </Box>
                         </Card>
