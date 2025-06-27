@@ -2,6 +2,8 @@
 
 Aplicación de red social enfocada al bienestar digital y la música, desarrollada como Trabajo de Fin de Ciclo por Nicolás Buquet Cebada y Jorge López Moreno. El proyecto abarca el desarrollo completo de backend, frontend e infraestructura de despliegue en un entorno cloud-native simulado.
 
+**Nota: 10**
+
 ---
 
 ## 📂 Estructura del proyecto
